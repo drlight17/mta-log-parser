@@ -47,6 +47,9 @@ mail_log = env('MAIL_LOG', '/var/log/mail.log')
 admin_pass = env('ADMIN_PASS', 'SetThis!InYourEnv')
 secret_key = env('SECRET_KEY', 'SetThis!InYourEnv')
 
+# add prefix var from env
+path_prefix = env('PATH_PREFIX', '')
+
 log_timezone = pytz.timezone(env('LOG_TIMEZONE', 'UTC'))
 """
 If your mail.log isn't in UTC, set the LOG_TIMEZONE env var to a pytz compatible timezone
