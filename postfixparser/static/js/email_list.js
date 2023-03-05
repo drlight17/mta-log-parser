@@ -1,4 +1,4 @@
-const base_url = '/api/emails';
+const base_url = document.currentScript.getAttribute('path_prefix')+'/api/emails';
 
 window.addEventListener('load', () => {
     window.debounce_emails = _.debounce(function () {
