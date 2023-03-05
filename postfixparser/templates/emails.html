@@ -202,7 +202,8 @@
     <script>
     Vue.config.devtools = true;
     </script>
-    <script src="{{ url_for('static', filename='js/pager.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/local_settings.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/email_list.js') }}"></script>
+    <script src="{{ settings.path_prefix+url_for('static', filename='js/pager.js') }}"></script>
+    <script src="{{ settings.path_prefix+url_for('static', filename='js/local_settings.js') }}"></script>
+    <script src="{{ settings.path_prefix+url_for('static', filename='js/email_list.js') }}" path_prefix="{{ settings.path_prefix }}"></script>
+
 {% endblock %}
