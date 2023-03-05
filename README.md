@@ -80,6 +80,16 @@ install -m 644 /home/mailparser/postfix-parser/postfix-parser.service /etc/syste
 systemctl daemon-reload
 systemctl enable postfix-parser.service
 
+# Nginx reverse proxy example for WebUI (for the URL path /logs, i.e. https://domain.org/logs, make sure you have added PATH_PREFIX=/logs
+var into .env file):
+
+location /logs/ {
+   location /logs/static/ {
+       proxy_pass http://domain.org:8487/static/;
+   }
+   proxy_pass http://domain.org:8487;
+}
+
 ```
 
 # License
