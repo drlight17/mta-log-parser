@@ -64,7 +64,7 @@ crontab -e
 # DEVELOPMENT
 ####
 
-./run.sh dev         # Run the development server with automatic restart on edits (make sure to pip install all required modules, i.e. privex-helpers, rethinkdb and other asked)
+./run.sh dev         # Run the development server with automatic restart on edits (make sure to pip install all required modules, i.e. privex-helpers, rethinkdb and other asked + change wsgi.py to bind to host and port for example: application.run(host='0.0.0.0', port=8487) )
 ./run.sh parse       # Import MAIL_LOG immediately
 
 ####
