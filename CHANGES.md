@@ -1,0 +1,43 @@
+- make docker container
+- add icons to text filter selectors
+- add configurable html titles (?)  
+- save settings into cookies + accept cookies modal
+- add other popular MTA support (parser.py + settings.py + .env)
+- add locales support ~~+ env var for datetime format (to sync datepicker format with webui.py)~~
+- add multiple text filters
+- replace momentjs wih day.js or luxone?  
+- make mailcow PR to integrate into
+- filter autofill on click at cells according to its type (timestamp fills date, queue id fills text queue id etc.)   
+- fix firefox marquee redo before full line passed (maybe force switch this function off on firefox?)
+- fix sort by all found rows instead of current page only
+- ~~parser cuts the 1st symbol in queue ID (E6E6462414 instead of EE6E6462414 for example)~~
+- ~~add message subject to the parser and GUI~~
+- ~~add message size to the parser and GUI~~
+- ~~log rotation configuration~~
+- ~~calendar js date picker for Older than and Newer than~~
+- ~~add sticky-headers~~
+- ~~add more statuses to parser and GUI (reject, milter-reject)~~
+- ~~add last page, first page buttons to GUI~~
+- ~~add sort columns~~
+- ~~add saving of current filter for page reload (use local storage as user settings)~~
+- ~~add up button~~
+- ~~button to turn on/off blur modal effect~~ 
+- ~~create logo and favicon~~ 
+- ~~sort css~~ 
+- ~~add icons for statuses~~
+- ~~add status styling gui tumbler~~ 
+- ~~remove marquee in mobile mode~~
+- ~~loading modal instead of div above table~~  
+- ~~add * to search filters on backend~~
+- ~~format datetime inputs with datetimeformat from .env~~
+- ~~permanent refresh in mobile mode when text inputs are in focus~~ 
+- ~~add show/hide thead in mobile mode~~
+- ~~add gui option show logs from last N minutes~~ + env default_value for this
+- ~~styling table in modal (+ marquee)~~
+- ~~forbid special symbols (?, / and so on) in text search input~~
+- ~~remaining window height if strong filter is applied (also this happen when maximum results per page is small) - recalc windows height on loadEmails()~~   
+- ~~fix page goes to top when loadEmails() is called~~    
+- ~~firefox dont support css resize on th and tables (maybe try https://mottie.github.io/tablesorter/docs/example-widget-resizable.html)~~    
+- ~~fix loading goes to the top and wrong modal conversion after show details clicks and call any loadEmails()~~    
+- ~~firefox overflow hidden css fix (it has no support for :has selector since 103)~~
+- ~~reset date filters and all filters buttons~~
