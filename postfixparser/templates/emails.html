@@ -2,62 +2,159 @@
 {% block content %}
 
 <div id="app">
-    <div class="ui segment">
-        <h3>Tips on filtering emails</h3>
+    <div class="ui stackable two column grid">
+        <div id="user-settings" class="six wide column">
+            <div class="logo">
+                    <div class="field">
+                        <a href="#"><img width="60px" src="{{ settings.path_prefix+url_for('static', filename='images/logo.png') }}"></img></a>
+                    </div>
+                    <div class="field title">
+                        <h1>Privex Mail Log Parser GUI</h1>
+                    </div>
+                    <div class="field">
+                        <a href="{{ settings.path_prefix }}/logout"><button class="ui button red center"><i class="sign out alternate icon"></i><span>Log Out</span></button></a>
+                    </div>
+            </div>
+            <local-settings @settings-loaded="settings_loaded" @settings-saved="settings_saved"></local-settings>
+        </div>
+        <div id="tips" class="ten wide column">
+            <div class="ui segment">
+  
+                <h3><i class="bookmark icon"></i>Emails filtering tips and some other info</h3>
 
-        <ul>
-            <li>
-                You can use asterisks ( <code>*</code> ) at the start or end of your query, to match
-                values starting or ending with something. For example <code>*@gmail.com</code> would
-                match all emails ending with <strong>@gmail.com</strong>
-            </li>
-            <li>
-                <code>DEFAULT_LIMIT</code> (amount of emails per page) is currently set to
-                {{ settings.default_limit }}
-            </li>
-            <li>
-                <code>MAX_LIMIT</code> (maximum number for <code>?limit=</code>) is currently set to
-                {{ settings.max_limit }}
-            </li>
-        </ul>
-    </div>
-    <div class="ui segment">
-        <div class="ui labeled fluid input">
-            <input v-model="search" type="text" class="ui input" placeholder="Search Emails"/>
-            <select name="searchby-email" id="searchby-email" v-model="search_by" class="dropdown">
-                <option value="id">Queue ID</option>
-                <option value="mail_from">From Address</option>
-                <option value="mail_to">To Address</option>
-                <option value="timestamp__lt">Older Than</option>
-                <option value="timestamp__gt">Newer Than</option>
-            </select>
-            <select name="filter-email" id="filter-email" v-model="status_filter" class="dropdown">
-                <option value="NOFILTER">No Status Filter</option>
-                <option value="sent">Successfully Sent</option>
-                <option value="bounced">Bounced</option>
-                <option value="deferred">Delayed (deferred)</option>
-            </select>
-            <a href="/logout"><button class="ui button red">Log Out</button></a>
+                <ul>
+                    <!--<li>
+                        You can use asterisks ( <code>*</code> ) at the start or end of your query to match
+                        values starting or ending with something. For example <code>*@gmail.com</code> would
+                        match all emails ending with <strong>@gmail.com</strong>
+                    </li>-->
+                    <li>
+                        All your text search requests are wildcards, so search string will match start, middle or end of found strings. For example <code><strong>qwerty</strong></code> will match <strong>qwerty@mail.com</strong>, <strong>user@qwerty.com</strong> and <strong>user@mail.qwerty</strong>
+                    </li>
+                    <li>
+                        Use start and end date fields to apply date range filter
+                    </li>
+                    <li>
+                        Use "Refresh" <i class="sync icon"></i> button to reload email list with current applied filters
+                    </li>
+                    <li>
+                        Use "Reset" <i class="eraser icon"></i> button to clear all applied filters and reload email list
+                    </li>
+                    <li>
+                        Use "Show" <i class="envelope open icon"></i> button to show more email information with related logs
+                    </li>
+                    <li>
+                    {% if settings.mta %}
+                        Current <code>MTA</code> is set to 
+                        <span style="text-transform:uppercase"><strong>{{ settings.mta }}</strong></span>
+                    {% else %}
+                        Current <code>MTA</code> is set to default
+                        <span style="text-transform:uppercase"><strong>postfix</strong></span>
+                    {% endif %}
+                    </li>
+                    <li>
+                        <code>DEFAULT_LIMIT</code> (amount of emails per page) is currently set to
+                        <strong>{{ settings.default_limit }}</strong>
+                    </li>
+                    <li>
+                        <code>MAX_LIMIT</code> (maximum number for <code>?limit=</code>) is currently set to
+                        <strong>{{ settings.max_limit }}</strong>
+                    </li>
+                    {% if settings.housekeeping_days %}
+                    <li>
+                        <code>HOUSEKEEPING_DAYS</code> (maximum days of logs storing before cleanup) is currently set to
+                        <strong>{{ settings.housekeeping_days }}</strong>
+                    </li>
+                    {% endif %}
+                    {% if settings.datetime_format %}
+                    <li>
+                        <code>DATETIME_FORMAT</code> is currently set to
+                        <strong>{{ settings.datetime_format }}</strong>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
         </div>
     </div>
-    <Pager v-model="page" :page-count="page_count"></Pager>
-
-    <div v-if="loading" class="ui column twelve wide segment">
-        <div class="ui active inline huge text centered loader">
-            Loading emails...
+    <div class="ui segment stackable two column grid">
+        <div class="eight wide column">
+            <h3>Text and status filter</h3>
+            <div class="ui form">
+                <div class="three fields">
+                    <div class="field">
+                        <div class="ui input left icon">
+                            <input id="text_search" v-model="search" type="text" class="ui input" placeholder="Search Emails">
+                            <i class="search icon"></i>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <select name="searchby-email" id="searchby-email" v-model="search_by" class="ui selection dropdown">
+                            <option value="id">Queue ID</option>
+                            <option value="mail_from">From Address</option>
+                            <option value="mail_to">To Address</option>
+                            <option value="subject">Subject</option>
+                            <!--<option value="timestamp__lt">Older Than</option>
+                            <option value="timestamp__gt">Newer Than</option>-->
+                        </select>
+                    </div>
+                    <div class="field">
+                        <select name="filter-email" id="filter-email" v-model="status_filter" class="ui selection dropdown">
+                            <option value="NOFILTER">No Status Filter</option>
+                            <option value="sent">Successfully Sent</option>
+                            <option value="bounced">Bounced</option>
+                            <option value="deferred">Delayed (deferred)</option>
+                            <option value="reject">Rejected</option>
+                        </select>
+                    </div>
+                    <!--<div class="field">
+                        <button @click="resetTextStatusFilters()" class="ui button grey" v-bind:disabled="!isDisabledText">Reset</button>
+                    </div>-->
+                </div>
+            </div>
+            
+        </div>
+        <div class="eight wide column">
+            <h3>Date range filter</h3>
+            <div class="ui form">
+                <div class="three fields">
+                  <div class="field">
+                    <div class="ui calendar" id="rangestart">
+                      <div class="ui input left icon">
+                        <i class="calendar icon"></i>
+                        <input v-model="date_filter__gt" type="text" placeholder="Start date">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="ui calendar" id="rangeend">
+                      <div class="ui input left icon">
+                        <i class="calendar icon"></i>
+                        <input v-model="date_filter__lt" type="text" placeholder="End date">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <button @click="resetFilters()" disabled class="ui button grey" v-bind:disabled="!isDisabled"><i class="eraser icon"></i>Reset</button>
+                  </div>
+                </div>  
+            </div>
         </div>
     </div>
 
-    <table class="ui table" v-if="!loading">
+    <!--<Pager v-model="page" :page-count="page_count"></Pager>-->
+    <table class="ui table celled emails-list" v-if="!loading">
         <thead>
-            <tr>
-                <th>Timestamp</th>
-                <th>Queue ID</th>
-                <th>Status</th>
-                <th>From</th>
-                <th>To</th>
-                <th>First Attempt</th>
-                <th>Last Attempt</th>
+            <tr title="Right-click to reset columns widths to default">
+                <th><i class="clock icon"></i> Timestamp</div></th>
+                <th><i class="stream icon"></i> Queue ID</th>
+                <th><i class="info icon"></i> Status</th>
+                <th><i class="address card icon"></i> From</th>
+                <th><i class="address card outline icon"></i> To</th>
+                <th><i class="terminal icon"></i> Subject</th>
+                <th><i class="hdd icon"></i> Size(Kb)</th>
+                <th><i class="hourglass start icon"></i> First Attempt</th>
+                <th><i class="hourglass end icon"></i> Last Attempt</th>
+                <th class="exclude-marquee"><button @click="loadEmails()" class="ui button primary refresh-button"><i class="sync icon"></i></button></th>
             </tr>
         </thead>
         <tbody>
@@ -68,53 +165,61 @@
                 <td>{{ m.status.code }}</td>
                 <td>{{ m.mail_from }}</td>
                 <td>{{ m.mail_to }}</td>
+                <td>{{ m.subject }}</td>
+                <td>{{ m.size }}</td>
                 <td>{{ m.first_attempt }}</td>
                 <td>{{ m.last_attempt }}</td>
-                <td><button @click="show_modal(m)" class="ui button primary">Show</button></td>
+                <td class="exclude-marquee"><button @click="show_modal(m)" class="ui button primary"><i class="envelope open icon"></i><span>Show</span></button></td>
             </tr>
 
             {% endraw %}
         </tbody>
     </table>
 
-    <pager v-model="page" :page-count="page_count"></pager>
-
-    <local-settings @settings-loaded="settings_loaded" @settings-saved="settings_saved"></local-settings>
+    <pager v-model="page" :page-count="page_count" :emails-count="count"></pager>
 
     {% raw %}
 
     <div class="ui modal" id="mail-modal">
         <i class="close icon"></i>
         <div class="header" v-if="msg.id">
-            Email {{ msg.id }}
+            <span>Email {{ msg.id }}</span>
         </div>
         <div class="content" v-if="msg.id">
-            <h3>Email Metadata</h3>
+            <h3><i class="envelope open icon"></i> Email parsed metadata</h3>
             <table class="ui definition table" id="email-metadata">
                 <tbody>
                     <tr>
-                        <td>Timestamp</td>
+                        <td><i class="clock icon"></i> Timestamp</td>
                         <td>{{ msg.timestamp }}</td>
                     </tr>
                     <tr>
-                        <td>Queue ID</td>
+                        <td><i class="stream icon"></i> Queue ID</td>
                         <td>{{ msg.id }}</td>
                     </tr>
                     <tr>
-                        <td>Message ID</td>
+                        <td><i class="file alternate icon"></i> Message ID</td>
                         <td>{{ msg.message_id }}</td>
                     </tr>
 
                     <tr>
-                        <td>From Address:</td>
+                        <td><i class="address card icon"></i> From Address:</td>
                         <td>{{ msg.mail_from }}</td>
                     </tr>
                     <tr>
-                        <td>To Address:</td>
+                        <td><i class="address card outline icon"></i> To Address:</td>
                         <td>{{ msg.mail_to }}</td>
                     </tr>
                     <tr>
-                        <td>Full Status</td>
+                        <td><i class="terminal icon"></i> Subject:</td>
+                        <td>{{ msg.subject }}</td>
+                    </tr>
+                     <tr>
+                        <td><i class="hdd icon"></i> Size(KB):</td>
+                        <td>{{ msg.size }}</td>
+                    </tr>
+                    <tr>
+                        <td><i class="archive icon"></i> Full Status</td>
                         <td class="max-70">
                             <strong>Code:</strong> {{ msg.status.code }} <br/>
                             <strong>Message:</strong><br/>
@@ -122,14 +227,14 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>Client</td>
+                        <td><i class="desktop icon"></i> Client</td>
                         <td>
                             <strong>Host:</strong> {{ msg.client.host }} <br/>
                             <strong>IP:</strong> {{ msg.client.ip }}
                         </td>
                     </tr>
                     <tr>
-                        <td>Relay (Dest. SMTP server)</td>
+                        <td><i class="server icon"></i> Relay (Dest. SMTP server)</td>
                         <td>
                             <strong>Host:</strong> {{ msg.relay.host }} <br/>
                             <strong>IP:</strong> {{ msg.relay.ip }} (port {{ msg.relay.port }})
@@ -137,7 +242,7 @@
                     </tr>
                 </tbody>
             </table>
-            <h3>Related Log Lines</h3>
+            <h3><i class="code icon"></i> Related Log Lines</h3>
 
             <ul>
                 <li v-for="l in msg.lines">[{{ l.timestamp }}] {{ l.queue_id }} {{ l.message }}</li>
@@ -145,8 +250,8 @@
 
         </div>
     </div>
-    {% endraw %}
 
+    {% endraw %}
 </div>
 
 
@@ -155,55 +260,38 @@
 
 {% block scripts %}
 
-    <script src="https://cdn.privex.io/lib/underscorejs/1.9.1/underscore-min.js"
+    <!--<script src="https://cdn.privex.io/lib/underscorejs/1.9.1/underscore-min.js"
             integrity="sha384-5DWzr9S4agqS3WKvPrhFKJagpYyHOBsf3/DxuDKORyqCv2sYer9c/ExdhPOL8CGh"
-            crossorigin="anonymous"></script>
+            crossorigin="anonymous"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/underscore@1.13.6/underscore-min.min.js"></script>
 
     {% if VUE_DEBUG %}
-        <script src="https://cdn.privex.io/lib/vue/2.6.10/vue.js"></script>
+        <!--<script src="https://cdn.privex.io/lib/vue/2.6.10/vue.js"></script>-->
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js" crossorigin="anonymous"></script>
     {% else %}
-        <script src="https://cdn.privex.io/lib/vue/2.6.10/vue.min.js"
+        <!--<script src="https://cdn.privex.io/lib/vue/2.6.10/vue.min.js"
             integrity="sha384-8t+aLluUVnn5SPPG/NbeZCH6TWIvaXIm/gDbutRvtEeElzxxWaZN+G/ZIEdI/f+y"
-            crossorigin="anonymous"></script>
+            crossorigin="anonymous"></script>-->
+            <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js" crossorigin="anonymous"></script>
     {% endif %}
 
     {% raw %}
-    <script type="text/x-template" id="template-paginator">
-        <div class="ui buttons">
-            <button class="ui labeled icon button" :class="{disabled: !has_prev}" @click="$emit('input', page - 1);">
-                <i class="left chevron icon"/>Previous Page
-            </button>
-            <button class="ui button disabled">
-                <i class="page icon"/><strong>Page {{ page }} of {{ pageCount }}</strong>
-            </button>
-            <button class="ui right labeled icon button" :class="{disabled: !has_next}"
-                    @click="$emit('input', page + 1);">
-                Next Page <i class="right chevron icon"/>
-            </button>
-        </div>
-    </script>
-    <script type="text/x-template" id="template-settings">
-        <div class="ui segment">
-            <h3>Local Settings</h3>
-            <div class="ui form grid">
-                <div class="ui column six wide">
-                    <label>
-                        Maximum results per page:
-                        <input v-model="settings.page_limit" type="number" class="ui input" placeholder="Results per Page"/>
-                    </label>
-                    <hr/>
-                    <button class="ui button primary" @click="saveSettings()">Save Settings</button>
-                </div>
-            </div>
-        </div>
-    </script>
+    <!--<script type="text/x-template" id="template-paginator"></script>
+    <script type="text/x-template" id="template-settings"></script>-->
     {% endraw %}
 
     <script>
     Vue.config.devtools = true;
     </script>
+    <!-- samoilov add sortable columns async-->
+    <!--<script src="{{ settings.path_prefix+url_for('static', filename='js/sort.js') }}"></script>-->
+    <!-- samoilov add marquee helper-->
+    <script src="{{ settings.path_prefix+url_for('static', filename='js/jquery.marquee.js') }}"></script>
+    <!-- samoilov add tablesorter -->
+    <script src="{{ settings.path_prefix+url_for('static', filename='js/jquery.tablesorter.min.js') }}"></script>
+    <script src="{{ settings.path_prefix+url_for('static', filename='js/jquery.tablesorter.widgets.min.js') }}"></script>
+
     <script src="{{ settings.path_prefix+url_for('static', filename='js/pager.js') }}"></script>
     <script src="{{ settings.path_prefix+url_for('static', filename='js/local_settings.js') }}"></script>
-    <script src="{{ settings.path_prefix+url_for('static', filename='js/email_list.js') }}" path_prefix="{{ settings.path_prefix }}"></script>
-
+    <script src="{{ settings.path_prefix+url_for('static', filename='js/email_list.js') }}" path_prefix="{{ settings.path_prefix }}" datetime_format="{{ settings.datetime_format }}" housekeeping_days="{{ settings.housekeeping_days }}"></script>
 {% endblock %}

@@ -1,0 +1,201 @@
+/*logo*/
+.logo {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+.logo img {
+    box-shadow: 3px 3px 3px 0 rgba(34,36,38,.15);
+}
+.title {
+    text-overflow: ellipsis;
+    /*white-space: nowrap;*/
+    overflow: hidden;
+}
+.title h1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+/* on top from bottom offset */
+#back-to-top {
+    bottom: 30px!important;
+}
+
+/*to mark mouse over table row*/
+.tablesorter tr:hover td{
+    background-color: rgb(255 255 255 / 40%);
+}
+.tablesorter tr td {
+
+}
+
+/*for tablesorter*/
+
+.tablesorter {
+  table-layout: fixed;
+}
+.tablesorter td:not(:last-child):not(.exclude-marquee) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.tablesorter th, .tablesorter-header-inner {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+.tablesorter th:not(.exclude-marquee) {
+}
+
+/* tablesorter asc and desc arrows */
+.tablesorter-headerAsc {
+    background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7)!important;
+    background-position: center right!important;
+    background-repeat: no-repeat!important;
+}
+
+.tablesorter-headerDesc {
+    background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7)!important;
+    background-position: center right!important;
+    background-repeat: no-repeat!important;
+}
+
+.tablesorter-headerRow {
+    background: #f9fafb!important;
+
+}
+.tablesorter th {
+    transition: none!important;
+    cursor: pointer!important;
+}
+
+.ui.form {
+    max-width: initial!important;
+}
+
+.ui.button>.icon {
+    margin:0!important;
+}
+
+
+/*for sticky pager*/
+.ui.buttons {
+    z-index: 3;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    opacity:1;
+    background: white;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/*change notification z-index*/
+.notie-alert {
+    z-index: 1002;
+}
+/*fix sematicui paddings*/
+@media only screen and (min-width: 1400px) {
+    .ui.fluid.container {
+        margin-top:1em;
+        width: 100%!important;
+        padding-left: 12em;
+        padding-right: 12em;
+        height: initial;
+    }
+}
+@media only screen and (max-width: 1400px) {
+    .ui.fluid.container {
+            margin-top:1em;
+            width: 100%!important;
+            padding-left: 1em;
+            padding-right: 1em;
+            height: initial;
+    }
+}
+/*fix semanticui dropdown style*/
+.ui.selection.dropdown {
+    padding:initial!important;
+}
+
+#user-settings, #tips {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+@media only screen and (max-width: 767px){
+    #user-settings, #tips {
+        padding-left: 0;
+        padding-right: 0;
+        }
+
+    /* sticky header button styling */
+    .hide-sticky-header-button {
+        width: 100%;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        opacity: .85;
+        padding: 10px;
+        background-color: #fff;
+        transition: opacity 0.5s ease-out;
+        z-index: 4;
+        cursor: pointer;
+    }
+}
+
+
+@media only screen and (min-width: 767px) and (max-width: 1000px){
+    .exclude-marquee button span, #user-settings > div.logo  button span{
+        display:none!important
+    }
+}
+
+.ui.grid+.grid {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+/*all buttons except ui.buttons div*/
+button:not(.navi), #footer {
+    width:100%;
+}
+/* fix of calendar z-index over modals*/
+.ui.popup {
+    z-index:4!important;
+}
+/* calendar  ellipsis hidden inputs*/
+#rangestart input, #rangeend input {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* fix of modal long strings*/
+/*#email-metadata {
+    table-layout: fixed
+}
+
+#email-metadata td {     
+    white-space: break-spaces;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+
+#email-metadata td:hover {
+    overflow: auto;
+    text-overflow: initial; 
+}
+*/
+#mail-modal > div.content > ul {
+    overflow: auto;
+}
+
+
