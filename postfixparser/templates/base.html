@@ -1,41 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Privex SMTP Mail Info</title>
-    <link rel="stylesheet" type="text/css" href="https://cdn.privex.io/lib/semanticui/2.4.2/semantic.min.css"
-          integrity="sha384-JKIDqM48bt14NZpzl9v0AP36VK2C/X6RuSPfimxpoWdSANUXblZUX1cgdQw8cZUK" crossorigin="anonymous"/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.privex.io/lib/notie/4.3.1/notie.min.css"
-          integrity="sha384-Jv3WSys2uSFeLomz0Yj7cvY3du+3jFXWOn97+UCbEUTTTQX8ljqok72pu03WznpC" crossorigin="anonymous"/>
-    <style>
-        .main {margin-top: 1em;}
+    <title>Privex Mail Log Parser GUI</title>
+    <!-- add mobile switch gui -->
+    <meta name="viewport" content="width=device-width, maximum-scale=1, user-scalable=no" />
+        <!-- add favicon
+    <link rel="shortcut icon" type="image/x-icon" href="/static/images/favicon.ico"/> -->
+    <link rel="shortcut icon" type="image/x-icon" href="{{ settings.path_prefix+url_for('static', filename='images/favicon.ico') }}"/>
+    <link rel="stylesheet" type="text/css" href="{{ settings.path_prefix+url_for('static', filename='css/style.css') }}"/>
+    <!-- custom.css -->
+    <link rel="stylesheet" type="text/css" href="{{ settings.path_prefix+url_for('static', filename='css/custom.css') }}"/>
+    <!-- add semanticui with calendar support -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.css" integrity="sha256-ot9Eohfi9t3iQkCNQKYTu9O9kjKx5iJ5hkQ0u1xZLik=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notie@4.3.1/dist/notie.min.css" integrity="sha256-kafcFKMcjkeyTfjBox93yP5PkCQNvf4GzAlovJyTKCs=" crossorigin="anonymous">
 
-        #email-metadata td:nth-child(2) {
+
+
+    <style>
+        .main {
+            display: flex!important;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 70%;
+        }
+        .logo img {
+            max-width: 80px;
+        }
+
+        /*#email-metadata td:nth-child(2) {
             width: 70%;
         }
         @media only screen and (min-width: 1200px) {
             .ui.fluid.main.container {
                 width: 90%;
             }
-        }
+        }*/
     </style>
 
-    <script src="https://cdn.privex.io/lib/notie/4.3.1/notie.min.js"
-            integrity="sha384-Ulw8y0TpoFZw3cNSRM88s1+p9O/TL6qMFIzDn9Bs+qETYhMp0UwMiv+vCylRfZVI"
-            crossorigin="anonymous" async></script>
-    <script src="https://cdn.privex.io/lib/jquery/3.3.1/jquery.min.js"
-            integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT"
-            crossorigin="anonymous" async></script>
-    <script src="https://cdn.privex.io/lib/semanticui/2.4.2/semantic.min.js"
-            integrity="sha384-yvMKoOb78htxD1Bp6oo2tsnFh4lwwz+621kAp2m8YeFkSe9CM2+N1coOvw4R0uwt"
-            crossorigin="anonymous" async></script>
-
-
     {% block head_scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/notie@4.3.1/dist/notie.min.js" integrity="sha256-ns3awRQUDUkb4hl21sd+GTFVidJLerhtrBrFMDk+Yvo=" crossorigin="anonymous" async></script>
+    <script src="https://cdn.jsdelivr.net/gh/jquery/jquery@3.3.1/dist/jquery.min.js" crossorigin="anonymous"></script>
+     <!--add semanticui with calendar support-->
+    <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.js" integrity="sha256-k89McqiQeAeH3zwEUu8tOiKsHSYgZ4cvxaYhPtPOg34=" crossorigin="anonymous"></script>
+    <!-- add moment for datetime client functions -->
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <!-- add back to top button-->
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js" integrity="sha256-uMJJ3EoTyfRBoTbR+lrfu1uRQ87RZG8AR3cVNuQVeFg=" crossorigin="anonymous"></script>
+    <!-- try to override site.variables -->
+    <script>
+        //console.log(@{tabletBreakpoint});
+        //@tabletBreakpoint = 1000;
+    </script>
     {% endblock %}
+
 
 </head>
 <body>
-    <div class="ui main fluid container">
+    <div class="ui basic modal" id="loading-modal"  style="background: transparent!important; box-shadow: initial!important" >
+            <div class="ui active inline huge text centered loader">
+                Loading...
+            </div>
+    </div>
+
+    <div id="main-wrapper" class="ui main fluid container">
         {% with messages = get_flashed_messages(True) %}
             {% if messages %}
                 {% for message in messages %}
@@ -46,8 +74,9 @@
 
         {% block content %}{% endblock %}
         <div class="ui segment" id="footer">
-            &copy; 2019 Privex Inc. --- Released under the GNU AGPL v3 ---
-            <a href="https://github.com/Privex/postfix-parser" target="_BLANK">View source on Github</a>
+            Original version &copy; 2019 by Privex Inc. under the GNU AGPL v3 | <a href="https://github.com/Privex/postfix-parser" target="_BLANK">Original source on Github</a><br>
+            Extended version &copy; 2023 by drlight | <a href="https://github.com/drlight17/postfix-parser" target="_BLANK">Extended source on Github</a>
+
         </div>
     </div>
 

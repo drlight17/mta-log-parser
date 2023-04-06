@@ -19,6 +19,7 @@ import json
 from dataclasses import dataclass, field
 from typing import List, Union, Mapping, Tuple
 
+#import rethinkdb
 import rethinkdb.query
 import logging
 
@@ -29,10 +30,18 @@ from postfixparser.exceptions import APIException
 from postfixparser.core import get_rethink
 from quart import Quart, session, redirect, render_template, request, flash, jsonify
 from privex.helpers import random_str, empty, filter_form, DictDataClass, DictObject
+# for timestamp process
+from datetime import datetime, timezone
+from dateutil import parser
+# TODO dayjs? as moment is deprecated
+import moment
+
 
 log = logging.getLogger(__name__)
 
 app = Quart(__name__)
+# add path prefix
+PREFIX = settings.path_prefix
 app.secret_key = settings.secret_key
 
 Table = rethinkdb.query.ast.Table
@@ -40,45 +49,45 @@ RqlQuery = rethinkdb.query.ast.RqlQuery
 QueryOrTable = Union[Table, RqlQuery]
 
 
-@app.route('/', methods=['GET'])
+@app.route(f'{PREFIX}/', methods=['GET'])
 async def index():
     if 'admin' in session:
-        return redirect('/emails/')
+        return redirect(f'{PREFIX}/emails/')
 
-    return await render_template('login.html')
+    return await render_template('login.html', settings=settings)
 
 
-@app.route('/login', methods=['POST'])
+@app.route(f'{PREFIX}/login', methods=['POST'])
 async def login():
     frm = await request.form
 
     if frm.get('password') == settings.admin_pass:
         session['admin'] = random_str()
-        return redirect('/emails/')
+        return redirect(f'{PREFIX}/emails/')
 
     await flash('Invalid password.', 'error')
-    return redirect('/')
+    return redirect(f'{PREFIX}/')
 
 
-@app.route('/emails', methods=['GET'])
-@app.route('/emails/', methods=['GET'])
+@app.route(f'{PREFIX}/emails', methods=['GET'])
+@app.route(f'{PREFIX}/emails/', methods=['GET'])
 async def emails_ui():
     if 'admin' not in session:
         await flash("You must log in to access this.", 'error')
-        return redirect('/')
+        return redirect(f'{PREFIX}/')
 
     return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, settings=settings)
 
 
-@app.route('/logout', methods=['GET'])
+@app.route(f'{PREFIX}/logout', methods=['GET'])
 async def logout():
     if 'admin' not in session:
         await flash("You must log in to access this.", 'error')
-        return redirect('/')
+        return redirect(f'{PREFIX}/')
 
     del session['admin']
     await flash("You have been successfully logged out", "success")
-    return redirect('/')
+    return redirect(f'{PREFIX}/')
 
 
 @dataclass
@@ -113,7 +122,7 @@ class PageResult(DictDataClass):
         return json.dumps(self.to_json_dict(), indent=indent, **kwargs)
 
 
-@app.route('/api/emails', methods=['GET'])
+@app.route(f'{PREFIX}/api/emails', methods=['GET'])
 async def api_emails():
     """
 
@@ -142,7 +151,7 @@ async def api_emails():
     """
     if 'admin' not in session:
         await flash("You must log in to access this.", 'error')
-        return redirect('/')
+        return redirect(f'{PREFIX}/')
 
     r, conn, r_q = await get_rethink()
     r_q: rethinkdb.query
@@ -182,7 +191,9 @@ async def _paginate_query(query: QueryOrTable, frm: Mapping, rt_conn: DefaultCon
     
     # Get the total number of rows which match the requested filters
     count = await query.count().run(rt_conn)
-    
+    # samoilov
+    #print ("Total number of rows found: ",count)
+
     # rt_query: RqlTopLevelQuery
     r_order = order_by if order_dir == 'asc' else rt_query.desc(order_by)
     limit = settings.default_limit if limit <= 0 else (settings.max_limit if limit > settings.max_limit else limit)
@@ -212,6 +223,8 @@ async def _process_filters(query: QueryOrTable, frm: Mapping, skip_keys: List[st
             continue
 
         query = await _filter_form_key(fkey=fkey, fval=fval, query=query)
+    #samoilov
+    print("query: ",query)
     return query
 
 
@@ -219,15 +232,33 @@ async def _filter_form_key(fkey: str, fval: str, query: QueryOrTable) -> QueryOr
     if '.' in fkey:
         k1, k2 = fkey.split('.')
         return query.filter(lambda m: m[k1][k2] == fval)
+    #samoilov process timestamp values before filter
+    # Mon Mar 13 2023 07:00:06 GMT+00:00 ----    %a %b %d %Y %H:%M:%S %Z
+    # Mon Mar 13 2023 07:00:06 GMT 00:00
     if '__lt' in fkey:
         fkey = fkey.replace('__lt', '')
+        print("fval: ",fval,"\n")
+        fval = moment.date(fval,settings.datetime_format).date
+        #fval = parser.isoparse(fval)
+        #fval = json.dumps(fval, indent=4, sort_keys=True, default=str)
+        #fval = parser.isoparse(fval)
+        fval = fval.replace(tzinfo=timezone.utc)
+        print("processed_fval: ",fval,"\n")
         return query.filter(lambda m: m[fkey] <= fval)
     if '__gt' in fkey:
         fkey = fkey.replace('__gt', '')
+        print("fval: ",fval,"\n")
+        #fval = datetime.strptime(fval, '%d.%m.%Y, %H:%M')
+        fval = moment.date(fval,settings.datetime_format).date
+        #fval = parser.isoparse(fval)
+        #fval = json.dumps(fval, indent=4, sort_keys=True, default=str)
+        #fval = parser.isoparse(fval)
+        fval = fval.replace(tzinfo=timezone.utc)
+        print("processed_fval: ",fval,"\n")
         return query.filter(lambda m: m[fkey] >= fval)
     # If the form key value starts or ends with an asterisk, then we use .match() with regex filtering
     # to find items which start/end with the actual value (rval = without asterisks)
-    if fval.startswith('*') or fval.endswith('*'):
+    '''if fval.startswith('*') or fval.endswith('*'):
         rval = fval.replace('*', '')  # fval but without asterisks
         if fval.startswith('*') and fval.endswith('*'):  # matches: *something*
             query = query.filter(lambda m: m[fkey].match(rval))
@@ -235,7 +266,11 @@ async def _filter_form_key(fkey: str, fval: str, query: QueryOrTable) -> QueryOr
             query = query.filter(lambda m: m[fkey].match(f"{rval}$"))
         elif fval.endswith('*'):  # matches: something*
             query = query.filter(lambda m: m[fkey].match(f"^{rval}"))
-        return query
+        return query'''
+    # samoilov force full wildcard to key value (i.e. *find string*)
+    rval = fval.replace('*', '')  # fval but without asterisks
+    query = query.filter(lambda m: m[fkey].match(rval))
+    return query
 
     return query.filter(lambda m: m[fkey] == fval)
 

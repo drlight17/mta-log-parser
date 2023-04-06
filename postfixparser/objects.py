@@ -7,7 +7,6 @@ from privex.helpers import Dictable, is_false
 
 from postfixparser.settings import log_timezone
 
-
 @dataclass
 class PostfixLog(Dictable):
     timestamp: datetime
@@ -42,6 +41,8 @@ class PostfixMessage(Dictable):
     lines: List[PostfixLog] = field(default_factory=list)
     mail_to: str = ""
     mail_from: str = ""
+    subject: str = ""
+    size: float  = 0
     message_id: str = ""
     status: dict = field(default_factory=dict)
     relay: dict = field(default_factory=dict)
