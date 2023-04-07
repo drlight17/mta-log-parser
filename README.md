@@ -44,7 +44,7 @@ docker-compose down
 
 # To schedule log parsing add to your crontab (every minute in example)
 crontab -e
-*/1  *   *   *   *   docker exec -it multi-mta-parser flock /tmp/lck_mmp /app/run.sh cron
+*/1  *   *   *   *   docker exec -t multi-mta-parser flock /tmp/lck_mmp /app/run.sh cron
 
 # Rethinkdb web gui is available on the port 8080 (you may change expose port in .env).
 ```
