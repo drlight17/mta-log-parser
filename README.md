@@ -16,14 +16,14 @@ parsed data is kept in RethinkDB - thus you can run the WebUI on a separate serv
 RethinkDB server. Dockerized is designed to run on the same server, but you can simply edit Dockerfile and docker-compose.yaml to your needs.
 
 
-![Screenshot of Log View Web UI](https://github.com/drlight17/multi-mta-parser/raw/main/screenshot1.JPG)
+![Screenshot of Log View Web UI](https://github.com/drlight17/multi-mta-parser/raw/master/screenshot1.JPG)
 
-![Screenshot of Email Show Modal](https://github.com/drlight17/multi-mta-parser/raw/main/screenshot2.JPG)
+![Screenshot of Email Show Modal](https://github.com/drlight17/multi-mta-parser/raw/master/screenshot2.JPG)
 
 Dockerized usage (recommended for production and development)
 ========
 
-**Pre-requisites**
+**Pre-requirements**
 - Docker.io (>=20)
 - Docker-compose (>=2)
 
@@ -61,7 +61,7 @@ location /logs/ {
 Install in your system (not recommended)
 ========
 
-**Pre-requisites**
+**Pre-requirements**
 
  - [RethinkDB](https://rethinkdb.com/) (for storing the queryable log data)
  - Python 3.7 MINIMUM (will not work on earlier versions)
