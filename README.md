@@ -28,7 +28,7 @@ Dockerized usage (recommended for production and development)
 - Docker-compose (tested on 2.9.0)
 
 ```
-git clone https://github.com/drlight/multi-mta-parser
+git clone https://github.com/drlight17/multi-mta-parser
 cd multi-mta-parser
 cp example.env .env
 
@@ -72,7 +72,7 @@ gpasswd -a mailparser syslog adm postfix
 
 su - mailparser
 
-git clone https://github.com/drlight/multi-mta-parser
+git clone https://github.com/drlight17/multi-mta-parser
 cd multi-mta-parser
 pipenv install
 
