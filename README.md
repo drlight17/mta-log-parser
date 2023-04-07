@@ -1,6 +1,6 @@
+<h1><img align="center" height="50" src="https://github.com/drlight17/multi-mta-parser/raw/master/postfixparser/static/images/logo.png"> Privex Multi MTA Log Parser + Web UI</h1>
 
-Privex Multi MTA Log Parser + Web UI
-=====================================
+
 
 This is a small application designed to parse the log output of SMTP servers (postfix, exim and sendmail are supported for now), and convert it into easily queryable data inside of [RethinkDB](https://rethinkdb.com/).
 
