@@ -24,8 +24,8 @@ Dockerized usage (recommended for production and development)
 ========
 
 **Pre-requirements**
-- Docker.io (>=20)
-- Docker-compose (>=2)
+- Docker.io (tested on 23.0.2)
+- Docker-compose (tested on 2.9.0)
 
 ```
 git clone https://github.com/drlight/multi-mta-parser
