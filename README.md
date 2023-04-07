@@ -1,5 +1,5 @@
 
-Privex's Multi MTA Log Parser + Web UI
+Privex Multi MTA Log Parser + Web UI
 =====================================
 
 This is a small application designed to parse the log output of SMTP servers (postfix, exim and sendmail are supported for now), and convert it into easily queryable data inside of [RethinkDB](https://rethinkdb.com/).
