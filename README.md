@@ -1,4 +1,4 @@
-<h1><img align="center" height="50" src="https://github.com/drlight17/multi-mta-parser/raw/master/postfixparser/static/images/logo.png"> Privex Multi MTA Log Parser + Web UI</h1>
+<h1><img align="center" height="50" src="https://github.com/drlight17/multi-mta-parser/raw/master/postfixparser/static/images/logo.png"> Privex Multi MTA Log Parser with Web UI</h1>
 
 
 
