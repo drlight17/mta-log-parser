@@ -72,8 +72,8 @@ gpasswd -a mailparser syslog adm postfix
 
 su - mailparser
 
-git clone https://github.com/Privex/postfix-parser.git
-cd postfix-parser
+git clone https://github.com/drlight/multi-mta-parser
+cd multi-mta-parser
 pipenv install
 
 cp example.env .env
@@ -86,7 +86,7 @@ nano .env
 # cron overlapping if there's a lot to parse.
 
 crontab -e
-# *  *   *   *   *    flock /tmp/lck_mailparser /home/mailparser/postfix-parser/run.sh cron
+# *  *   *   *   *    flock /tmp/lck_mailparser /home/mailparser/multi-mta-parser/run.sh cron
 
 ####
 # DEVELOPMENT
@@ -104,9 +104,9 @@ exit
 # (AS ROOT)
 
 # Production systemd service for the WebUI
-install -m 644 /home/mailparser/postfix-parser/postfix-parser.service /etc/systemd/system/
+install -m 644 /home/mailparser/multi-mta-parser/postfix-parser.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable postfix-parser.service
+systemctl enable multi-mta-parser.service
 ```
 Nginx reverse proxy
 ===================
