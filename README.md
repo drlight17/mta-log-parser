@@ -104,7 +104,7 @@ exit
 # (AS ROOT)
 
 # Production systemd service for the WebUI
-install -m 644 /home/mailparser/multi-mta-parser/postfix-parser.service /etc/systemd/system/
+install -m 644 /home/mailparser/multi-mta-parser/multi-mta-parser.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable multi-mta-parser.service
 ```
