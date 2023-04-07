@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  mmp:
+    container_name: multi-mta-parser
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: /app/run.sh ${COMMAND}
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - .:/app
+      - /tmp:/tmp
+      - ${MAIL_LOG}:${MAIL_LOG}
+
+    depends_on:
+      - rethinkdb
+
+  rethinkdb:
+    image: rethinkdb:2.4
+    container_name: rethinkdb
+    ports:
+      - ${RETHINK_EXP_GUI_PORT}:8080
+    volumes:
+      - ./:/data
