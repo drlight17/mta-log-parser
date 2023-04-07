@@ -170,15 +170,17 @@ async def main():
     r, conn, r_q = await get_rethink()
     r_q: rethinkdb.query
     """housekeeping from old logs"""
-    log.info('Start housekeeping')
     housekeeping_days = settings.housekeeping_days
-    hk_result = await housekeeping(housekeeping_days)
-    log.info('Finished housekeeping')
-    if hk_result['status']=='true':
-        log.info('Housekeeping has successfully deleted %d messages older then %d day(s)', hk_result['deleted'], housekeeping_days)
+    if housekeeping_days != '':
+        log.info('Start housekeeping')
+        hk_result = await housekeeping(housekeeping_days)
+        log.info('Finished housekeeping')
+        if hk_result['status']=='true':
+            log.info('Housekeeping has successfully deleted %d messages older then %d day(s)', hk_result['deleted'], housekeeping_days)
+        else:
+            log.info('Housekeeping has deleted NOTHING. There are no emails %d day(s) ago or something went wrong.', housekeeping_days)
     else:
-        log.info('Housekeeping has deleted NOTHING. There are no emails %d day(s) ago or something went wrong.', housekeeping_days)
-
+        log.info('Housekeeping is not configured so there will be no deletion of old data! Pay attention to the disk space!')
     log.info('Importing log file')
     msgs = await import_log(settings.mail_log)
     log.info('Converting log data into list')

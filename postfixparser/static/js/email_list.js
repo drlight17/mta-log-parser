@@ -1,7 +1,10 @@
 // append path_prefix to the base_url if any is set
 const base_url = document.currentScript.getAttribute('path_prefix')+'/api/emails';
 // get datetime_format from .env
-const datetime_format = document.currentScript.getAttribute('datetime_format');
+var datetime_format = document.currentScript.getAttribute('datetime_format');
+if (datetime_format == '') {
+        datetime_format = 'YYYY-MM-DDTHH:mm:ss.sssZ';
+}
 // get HOUSEKEEPING_DAYS from .env
 const housekeeping_days = document.currentScript.getAttribute('housekeeping_days');
 
@@ -192,18 +195,11 @@ window.addEventListener('load', () => {
                     return response.json();
                 }).then((res) => {
                     this.emails = res['result'];
-                    // format timestamp to current locale
                     // get format from .env var
-                    if (datetime_format != '') {
-                        for (let i = 0; i < this.emails.length; i++) {
-                            //console.log(this.emails[i]);
-                            this.emails[i].timestamp = this.format_date(this.emails[i].timestamp,datetime_format,false);
-                            this.emails[i].first_attempt = this.format_date(this.emails[i].first_attempt,datetime_format,false);
-                            this.emails[i].last_attempt = this.format_date(this.emails[i].last_attempt,datetime_format,false);
-                            /*this.emails[i].timestamp = new Date(this.emails[i].timestamp).toLocaleString("ru-RU", { timeZone: 'UTC' });
-                            this.emails[i].first_attempt = new Date(this.emails[i].first_attempt).toLocaleString("ru-RU", { timeZone: 'UTC' });
-                            this.emails[i].last_attempt = new Date(this.emails[i].last_attempt).toLocaleString("ru-RU", { timeZone: 'UTC' });*/
-                        }
+                    for (let i = 0; i < this.emails.length; i++) {
+                        this.emails[i].timestamp = this.format_date(this.emails[i].timestamp,datetime_format,false);
+                        this.emails[i].first_attempt = this.format_date(this.emails[i].first_attempt,datetime_format,false);
+                        this.emails[i].last_attempt = this.format_date(this.emails[i].last_attempt,datetime_format,false);
                     }
                      
                     this.page_count = res['total_pages'];
@@ -300,7 +296,6 @@ window.addEventListener('load', () => {
                     // samoilov add calendar date picker fields
                     var min_date=new Date();
                     min_date.setDate(min_date.getDate()-housekeeping_days);
-                    console.log()
                     $('#rangestart').calendar({
                       onChange: function(date, text, mode) {
                           //console.log('change: ' + date + "  text: " + text + "  mode: " + mode)

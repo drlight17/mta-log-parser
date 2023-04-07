@@ -101,23 +101,30 @@
     z-index: 1002;
 }
 /*fix sematicui paddings*/
-@media only screen and (min-width: 1400px) {
-    .ui.fluid.container {
+.ui.fluid.container:has(.login) {
+    height: 70%!important;
+}
+
+.ui.fluid.container {
         margin-top:1em;
         width: 100%!important;
+        height: initial;
+
+}
+
+@media only screen and (min-width: 1400px) {
+    .ui.fluid.container {
         padding-left: 12em;
         padding-right: 12em;
-        height: initial;
     }
 }
 @media only screen and (max-width: 1400px) {
     .ui.fluid.container {
-            margin-top:1em;
-            width: 100%!important;
-            padding-left: 1em;
-            padding-right: 1em;
-            height: initial;
+        padding-left: 1em;
+        padding-right: 1em;
     }
+    
+    
 }
 /*fix semanticui dropdown style*/
 .ui.selection.dropdown {

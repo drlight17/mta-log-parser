@@ -1,9 +1,8 @@
 
-Privex's Postfix Log Parser + Web UI
+Privex's Multi MTA Log Parser + Web UI
 =====================================
 
-This is a small application designed to parse the log output of the Postfix SMTP server (usually `/var/log/mail.log`),
-and convert it into easily queryable data inside of [RethinkDB](https://rethinkdb.com/).
+This is a small application designed to parse the log output of SMTP servers (postfix, exim and sendmail are supported for now), and convert it into easily queryable data inside of [RethinkDB](https://rethinkdb.com/).
 
 It includes a Web UI built with [Quart](https://github.com/pgjones/quart) and [VueJS](https://vuejs.org/) - allowing
 for easily navigating and filtering the log data straight from your browser.
@@ -14,14 +13,52 @@ kept restricted within a corporate VPN / LAN.
 
 There's also no requirement to run both the Web UI and the actual log parser/importer on the same server, as the
 parsed data is kept in RethinkDB - thus you can run the WebUI on a separate server as long as it has access to the
-RethinkDB server.
+RethinkDB server. Dockerized is designed to run on the same server, but you can simply edit Dockerfile and docker-compose.yaml to your needs.
 
 
-![Screenshot of Log View Web UI](https://cdn.privex.io/github/postfix-parser/postfix-parser.png?2)
+![Screenshot of Log View Web UI](https://github.com/drlight17/multi-mta-parser/raw/main/screenshot1.JPG)
 
-![Screenshot of Email Show Modal](https://cdn.privex.io/github/postfix-parser/postfix-parser-modal.png)
+![Screenshot of Email Show Modal](https://github.com/drlight17/multi-mta-parser/raw/main/screenshot2.JPG)
 
-Install
+Dockerized usage (recommended for production and development)
+========
+
+**Pre-requisites**
+- Docker.io (>=20)
+- Docker-compose (>=2)
+
+```
+git clone https://github.com/drlight/multi-mta-parser
+cd multi-mta-parser
+cp example.env .env
+
+# Adjust the example .env as needed. Make sure you set SECRET_KEY to a long random string, and change ADMIN_PASS 
+# to the password you want to use to log into the web application. Other variables are described. 
+nano .env
+
+# To build and run app with web GUI run
+docker-compose up -d
+
+# To stop app with web GUI app run
+docker-compose down
+
+# To schedule log parsing add to your crontab (every minute in example)
+crontab -e
+*/1  *   *   *   *   docker exec -it multi-mta-parser flock /tmp/lck_mmp /app/run.sh cron
+
+# Nginx reverse proxy example for WebUI (for the URL path /logs, i.e. https://domain.org/logs, make sure you have added PATH_PREFIX=/logs var into .env file):
+
+location /logs/ {
+   location /logs/static/ {
+       proxy_pass http://domain.org:8487/static/;
+   }
+   proxy_pass http://domain.org:8487;
+}
+
+# Rethinkdb web gui is available on the port 8080 (you may change expose port in .env).
+```
+
+Install in your system (not recommended)
 ========
 
 **Pre-requisites**
@@ -64,7 +101,7 @@ crontab -e
 # DEVELOPMENT
 ####
 
-./run.sh dev         # Run the development server with automatic restart on edits (make sure to pip install all required modules, i.e. privex-helpers, rethinkdb and other asked + change wsgi.py to bind to host and port for example: application.run(host='0.0.0.0', port=8487) )
+./run.sh dev         # Run the development server with automatic restart on edits
 ./run.sh parse       # Import MAIL_LOG immediately
 
 ####

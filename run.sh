@@ -72,7 +72,7 @@ cd "$DIR"
 
 case "$1" in
     dev*)
-        QUART_APP=wsgi QUART_ENV=development ./wsgi.py
+        QUART_APP=wsgi QUART_ENV=development pipenv run ./manage.py runserver --host "${HOST}" --port "${PORT}"
         ;;
     prod*)
         pipenv run hypercorn -b "${HOST}:${PORT}" -w "$GU_WORKERS" wsgi
