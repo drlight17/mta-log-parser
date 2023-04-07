@@ -46,15 +46,6 @@ docker-compose down
 crontab -e
 */1  *   *   *   *   docker exec -it multi-mta-parser flock /tmp/lck_mmp /app/run.sh cron
 
-# Nginx reverse proxy example for WebUI (for the URL path /logs, i.e. https://domain.org/logs, make sure you have added PATH_PREFIX=/logs var into .env file):
-
-location /logs/ {
-   location /logs/static/ {
-       proxy_pass http://domain.org:8487/static/;
-   }
-   proxy_pass http://domain.org:8487;
-}
-
 # Rethinkdb web gui is available on the port 8080 (you may change expose port in .env).
 ```
 
@@ -116,19 +107,19 @@ exit
 install -m 644 /home/mailparser/postfix-parser/postfix-parser.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable postfix-parser.service
-
-# Nginx reverse proxy example for WebUI (for the URL path /logs, i.e. https://domain.org/logs, make sure you have added PATH_PREFIX=/logs
+```
+Nginx reverse proxy
+===================
+If you want to use nginx reverse proxy for WebUI  with the URL path, i.e."/logs" ( like https://domain.org/logs ), make sure you have added PATH_PREFIX=/logs
 var into .env file):
-
+```
 location /logs/ {
    location /logs/static/ {
        proxy_pass http://domain.org:8487/static/;
    }
    proxy_pass http://domain.org:8487;
 }
-
 ```
-
 # License
 
 This project is licensed under the **GNU AGPL v3**
