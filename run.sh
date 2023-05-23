@@ -74,18 +74,18 @@ case "$1" in
     dev*)
         QUART_APP=wsgi QUART_ENV=development pipenv run ./manage.py runserver --host "${HOST}" --port "${PORT}"
         ;;
-    prod*)
+    ''|prod*)
         pipenv run hypercorn -b "${HOST}:${PORT}" -w "$GU_WORKERS" wsgi
         ;;
     cron|import|parse*)
         pipenv run ./manage.py parse
         ;;
     *)
-        echo "Runner script for Privex's Postfix Log Parser"
+        echo "Runner script for MTA Log Parser"
         echo ""
         msg bold red "Unknown command.\n"
-        msg bold green "Postfix Log Parser - (C) 2019 Privex Inc."
-        msg bold green "    Website: https://www.privex.io/ \n    Source: https://github.com/Privex/postfix-parser\n"
+        msg bold green "MTA Log Parser - (C) 2022"
+        msg bold green "    Source: https://github.com/drlight17/mta-log-parser\n"
         msg green "Available run.sh commands:\n"
         msg yellow "\t dev - Start the Flask development server - UNSAFE FOR PRODUCTION"
         msg yellow "\t prod - Start the production Hypercorn server"

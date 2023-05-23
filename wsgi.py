@@ -16,7 +16,7 @@ Copyright::
     +===================================================+
 
 """
-from postfixparser.webui import app
+from mlp.webui import app
 
 application = app
 

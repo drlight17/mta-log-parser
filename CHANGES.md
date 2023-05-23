@@ -1,14 +1,4 @@
-- add icons to text filter selectors
-- add configurable html titles (?)  
-- save settings into cookies + accept cookies modal
-- add other popular MTA support (parser.py + settings.py + .env)
-- add locales support ~~+ env var for datetime format (to sync datepicker format with webui.py)~~
-- add multiple text filters
-- replace momentjs wih day.js or luxone? 
-- filter autofill on click at cells according to its type (timestamp fills date, queue id fills text queue id etc.)   
-- fix firefox marquee redo before full line passed (maybe force switch this function off on firefox?)
-- fix sort by all found rows instead of current page only
-- ~~make docker container~~
+VER. 1.1.0
 - ~~parser cuts the 1st symbol in queue ID (E6E6462414 instead of EE6E6462414 for example)~~
 - ~~add message subject to the parser and GUI~~
 - ~~add message size to the parser and GUI~~
@@ -18,25 +8,81 @@
 - ~~add more statuses to parser and GUI (reject, milter-reject)~~
 - ~~add last page, first page buttons to GUI~~
 - ~~add sort columns~~
+- ~~make docker container~~
 - ~~add saving of current filter for page reload (use local storage as user settings)~~
 - ~~add up button~~
-- ~~button to turn on/off blur modal effect~~ 
-- ~~create logo and favicon~~ 
-- ~~sort css~~ 
+- ~~button to turn on/off blur modal effect~~
+- ~~create logo and favicon~~
+- ~~sort css~~
 - ~~add icons for statuses~~
-- ~~add status styling gui tumbler~~ 
+- ~~add status styling gui tumbler~~
 - ~~remove marquee in mobile mode~~
-- ~~loading modal instead of div above table~~  
+- ~~loading modal instead of div above table~~
+- ~~add other popular MTA support (parser.py + settings.py + .env)~~
+- ~~EXIM: multiple recipients + multiple statuses + multiple relays parsing, processing and output~~
+- ~~add log lines search filter (for multiple recipients)~~
+- ~~SENDMAIL:~~
 - ~~add * to search filters on backend~~
+- ~~fix pagination calculation~~
+- ~~refactor sticky related stuff~~
+- ~~fix parse of relay and client if without ip address "\[x.x.x.x\]"~~
+- ~~add gui table columns resize switcher~~
+- add configurable html titles (?)
+- save settings into cookies + accept cookies modal (?)
+- ~~port from vue2 to vue3, fix next bugs~~
+- ~~pager doesn't work~~
+- ~~reset button doesn't work~~
+- ~~no logo shown~~
+- ~~add locale support: + env var for datetime format (to sync datepicker format with webui.py)~~
+- ~~addFilterLink() locale support~~
+- ~~fetch supported locales based on /static/locales folder using python flask and send them to template~~
+- ~~Current browser locale not supported message to notie (row 194)~~
+- ~~fix modal close button position in wide width window~~
+- ~~500 ms delay for loading circle~~
+- ~~api_error locale handling~~
+- ~~get from browser~~
+- ~~calendar localization based on locale~~
+- ~~fallback locale if browser locale is not in supported locales~~
+- ~~replace "postfixparser" folder and code with "mlp"~~
+- remove python privex helpers code (?)
+- ~~rename to mta log parser~~
+- ~~errors if js modules didn't load~~
+- ~~no results message if no rows returned~~
+- ==exclude-marquee remove==
+- ~~fix broken colResizable~~
+- add multiple text filters
+- ==on row click instead of show button + make refresh button like to top==
+- tail realtime parsing mode + gui autorefresh (with config seconds) (?)
+- replace momentjs wih day.js or luxone(?)
+- make mailcow PR to integrate into
+- maybe scrollTo by not all refreshes (?)
+- ~~fix calendar not working~~
+- ~~focus to password input on login page~~
+- ~~login page~~
+- ~~notie~~
+- ~~backend login messages replace with notie~~
+- ~~fix right click to reset column widths~~
+- ~~save lang JSON into localStorage for cache (faster page reloads)~~
+- ~~make placeholders or hide all page content while loading~~ ~~and default language fallback if no localization for element found~~
+- ~~fix no messages on login page (errors, warns, info)~~
 - ~~format datetime inputs with datetimeformat from .env~~
-- ~~permanent refresh in mobile mode when text inputs are in focus~~ 
+- ~~fix narrow columns widths (status, dates, IDs) to some percentages with resizable columns off~~
+- ~~filter autofill on click at cells according to its type (timestamp fills date, queue id fills text queue id etc.)~~
+- ~~sticky header gui switcher~~
+- ~~cleanup from tablesorter~~
+VER. 1.0.0
+- ~~page goes to top when refresh without colResize~~
+- ~~save sticky header state in localStorage~~
+- ~~fix append icons to statuses on refresh button with tablesort off~~
+- ~~sort by all found rows instead of current page only~~
+- ~~permanent refresh in mobile mode when text inputs are in focus~~
 - ~~add show/hide thead in mobile mode~~
-- ~~add gui option show logs from last N minutes~~ + env default_value for this
-- ~~styling table in modal (+ marquee)~~
-- ~~forbid special symbols (?, / and so on) in text search input~~
-- ~~remaining window height if strong filter is applied (also this happen when maximum results per page is small) - recalc windows height on loadEmails()~~   
-- ~~fix page goes to top when loadEmails() is called~~    
+- ~~add gui option show logs from last N minutes~~ \+ env default_value for this
+- ~~styling table in modal (+ marquee)~~ 
+- ~~forbid special symbols (?, / and so on) in text search input~~  
+- ~~remaining window height if strong filter is applied (also this happen when maximum results per page is small) - recalc windows height on loadEmails()~~
+- ~~fix page goes to top when loadEmails() is called~~ 
 - ~~firefox dont support css resize on th and tables (maybe try https://mottie.github.io/tablesorter/docs/example-widget-resizable.html)~~    
-- ~~fix loading goes to the top and wrong modal conversion after show details clicks and call any loadEmails()~~    
+- ~~fix loading goes to the top and wrong modal conversion after show details clicks and call any loadEmails()~~  
 - ~~firefox overflow hidden css fix (it has no support for :has selector since 103)~~
 - ~~reset date filters and all filters buttons~~

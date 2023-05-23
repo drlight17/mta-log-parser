@@ -32,7 +32,7 @@ help_text = textwrap.dedent('''\
 ''')
 
 parser = ErrHelpParser(
-    description='Privex Postfix Parser',
+    description='MTA Log Parser',
     formatter_class=argparse.RawDescriptionHelpFormatter,
     epilog=help_text
 )
@@ -42,7 +42,7 @@ subparser = parser.add_subparsers()
 
 
 def runserver(opt):
-    from postfixparser.webui import app
+    from mlp.webui import app
 
     app.run(
         host=opt.host,
@@ -52,7 +52,7 @@ def runserver(opt):
 
 
 def runparse(opt):
-    from postfixparser.main import main
+    from mlp.main import main
     asyncio.run(main())
 
 

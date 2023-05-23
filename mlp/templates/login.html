@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block login %}
+
+    <div id="login">
+        <h1 style="text-align: center;" v-if="localeData.app_title" v-html="localeData.app_title"></h1>
+        <h1 style="text-align: center;" v-else v-html="fallbackLocaleData.app_title"></h1>
+        <div class="logo login"><img src="static/images/logo.png"></img></div>
+        <div v-if="!loading" class="ui segment form center aligned login">
+            <form action="./login" method="post">
+                <h3 v-if="localeData.login.message" v-html="localeData.login.message"></h3>
+                <h3 v-else v-html="fallbackLocaleData.login.message"></h3>
+                <div class="two fields">
+                    <div class="field">
+                        <input v-if="localeData.login.password_ph" autocomplete="on" type="password" class="ui input" name="password" :placeholder="localeData.login.password_ph">
+                        <input v-else autocomplete="on" type="password" class="ui input" name="password" :placeholder="fallbackLocaleData.login.password_ph">
+                    </div>
+                    <div class="field">
+                        <button class="ui button primary navi"><i class="sign in alternate icon"></i><span v-if="localeData.login.login_button" v-html="localeData.login.login_button"></span><span v-else v-html="fallbackLocaleData.login.login_button"></span></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
