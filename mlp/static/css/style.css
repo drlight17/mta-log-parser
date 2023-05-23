@@ -256,7 +256,7 @@ button:not(.navi), #footer {
 }
 /* fix of calendar z-index over modals*/
 .ui.popup {
-    z-index:4!important;
+    z-index:6!important;
 }
 /* calendar  ellipsis hidden inputs*/
 #rangestart input, #rangeend input {
