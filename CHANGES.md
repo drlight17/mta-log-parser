@@ -1,4 +1,12 @@
 VER. 1.1.0
+- add multiple simultaneous text filters
+- on row click instead of show button + make refresh button like to top
+- tail realtime parsing mode + gui autorefresh (with config seconds) (?)
+- replace momentjs wih day.js or luxone(?)
+- maybe scrollTo by not all refreshes (?)
+- add configurable html titles (?)
+- exclude-marquee class remove
+- remove python privex helpers code (?)
 - ~~parser cuts the 1st symbol in queue ID (E6E6462414 instead of EE6E6462414 for example)~~
 - ~~add message subject to the parser and GUI~~
 - ~~add message size to the parser and GUI~~
@@ -27,8 +35,6 @@ VER. 1.1.0
 - ~~refactor sticky related stuff~~
 - ~~fix parse of relay and client if without ip address "\[x.x.x.x\]"~~
 - ~~add gui table columns resize switcher~~
-- add configurable html titles (?)
-- save settings into cookies + accept cookies modal (?)
 - ~~port from vue2 to vue3, fix next bugs~~
 - ~~pager doesn't work~~
 - ~~reset button doesn't work~~
@@ -44,18 +50,10 @@ VER. 1.1.0
 - ~~calendar localization based on locale~~
 - ~~fallback locale if browser locale is not in supported locales~~
 - ~~replace "postfixparser" folder and code with "mlp"~~
-- remove python privex helpers code (?)
 - ~~rename to mta log parser~~
 - ~~errors if js modules didn't load~~
 - ~~no results message if no rows returned~~
-- ==exclude-marquee remove==
 - ~~fix broken colResizable~~
-- add multiple text filters
-- ==on row click instead of show button + make refresh button like to top==
-- tail realtime parsing mode + gui autorefresh (with config seconds) (?)
-- replace momentjs wih day.js or luxone(?)
-- make mailcow PR to integrate into
-- maybe scrollTo by not all refreshes (?)
 - ~~fix calendar not working~~
 - ~~focus to password input on login page~~
 - ~~login page~~
@@ -70,6 +68,7 @@ VER. 1.1.0
 - ~~filter autofill on click at cells according to its type (timestamp fills date, queue id fills text queue id etc.)~~
 - ~~sticky header gui switcher~~
 - ~~cleanup from tablesorter~~
+
 VER. 1.0.0
 - ~~page goes to top when refresh without colResize~~
 - ~~save sticky header state in localStorage~~
