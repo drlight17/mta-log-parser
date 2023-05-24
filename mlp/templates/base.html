@@ -58,7 +58,7 @@
     <title v-if="localeData.app_title" v-html="localeData.app_title"></title>
     <title v-else v-html="fallbackLocaleData.app_title"></title>
     <div class="ui basic modal" id="loading-modal"  style="background: transparent!important; box-shadow: initial!important" >
-            <div v-if="!loading" class="ui active inline huge text centered loader">
+            <div class="ui active inline huge text centered loader">
                 <span v-if="localeData.loading" v-html="localeData.loading"></span>
                 <span v-else v-html="fallbackLocaleData.loading"></span>
             </div>
