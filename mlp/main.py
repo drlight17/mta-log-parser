@@ -21,10 +21,10 @@ import re
 import rethinkdb.query
 from enum import Enum
 from typing import Dict
-from postfixparser import settings
-from postfixparser.core import get_rethink
-from postfixparser.objects import PostfixLog, PostfixMessage
-from postfixparser.parser import parse_line
+from mlp import settings
+from mlp.core import get_rethink
+from mlp.objects import PostfixLog, PostfixMessage
+from mlp.parser import parse_line
 import email
 import base64
 import quopri
@@ -33,12 +33,41 @@ from quart import jsonify
 
 log = logging.getLogger(__name__)
 
+# !!! change version upon update !!!
+global VERSION
+VERSION ="1.1.0"
 
-_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
+# postfix regexp
+postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
 """(0) Regex to match the Date/Time at the start of each log line"""
-
-_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
+postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
 """Regex to match the (1) Queue ID and the (2) Log Message"""
+
+# exim regexp (for syslog and separate mainlog)
+exim_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+|\d{4}-\d{2}-\d{2}.\d{2}\:\d{2}\:\d{2}).*'
+"""(0) Regex to match the Date/Time at the start of each log line"""
+#exim_match += r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+|\d{4}-\d{2}-\d{2}.\d{2}\:\d{2}\:\d{2}.([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
+#exim_match += r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
+exim_match += r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
+"""Regex to match the (1) Message ID and the (2) Log Message"""
+
+# sendmail regexp
+sendm_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
+"""(0) Regex to match the Date/Time at the start of each log line"""
+#sendm_match += r'([0-9A-Za-z]{14})\:[ \t]+?(.*)'
+sendm_match += r'\:\s([0-9A-Za-z]+)\:[ \t]+?(.*)'
+"""Regex to match the (1) Queue ID and the (2) Log Message"""
+if settings.mta == '': settings.mta = 'postfix'
+
+if settings.mta == 'postfix':
+    _match = postf_match
+elif settings.mta == 'exim':
+    _match = exim_match
+elif settings.mta == 'sendmail':
+    _match = sendm_match
+else:
+    log.exception('Incorrect value of MTA env variable: %s. Check example and set the correct one!', settings.mta)
+    exit()
 
 match = re.compile(_match)
 
@@ -109,6 +138,9 @@ async def housekeeping(housekeeping_days):
 async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
     log.info('Opening log file %s', logfile)
     messages = {}
+    multiple_recipients = []
+    counter = 0
+    same_qid = ''
     with open(logfile, 'r') as f:
         while True:
             line = f.readline()
@@ -122,17 +154,44 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             """Mar 13 10:57:04
             dtime = datetime.strptime(dtime, '%b %d %H:%M:%S').replace(year=datetime.today().year).strftime('%d.%m.%Y-%H:%M:%S')
             print("New time stamp: "+ dtime)"""
+            #print("m.groups[1]: ",m.groups()[1])# - queue_id
+            #print("m.groups[2]: ",m.groups()[2])# - message
+            # merge multiple mail_to strings into one for the one queue_id
 
+                #m['mail_to'] += ", "+recipients
+                #print("mail_to: ",m['mail_to'])
+                
             if qid not in messages:
                 messages[qid] = PostfixMessage(timestamp=dtime, queue_id=qid)
-            
-
             messages[qid].merge(await parse_line(msg))
-            """print(await parse_line(msg))"""
-            messages[qid].lines.append(PostfixLog(timestamp=dtime, queue_id=qid, message=msg))
 
+            cheking_mailto = messages[qid]['mail_to']
+            if qid not in set(multiple_recipients):
+                if qid == same_qid or same_qid=='':
+                    if messages[qid]['status'].get('code') is not None:
+                        # check if there are already recipients in message
+                        #print("Looking for ",cheking_mailto," in message '",msg, "' related to qid ", qid)
+                        if cheking_mailto in msg:
+                            same_qid = qid
+                            counter += 1
+                else:
+                    #print("New message ID: ", qid)
+                    #print("There are ", counter," recipients in message ",same_qid)
+                    if counter > 1:
+                        multiple_recipients.append(same_qid)
+                    counter = 0
+                    same_qid = ''
+
+            #print(await parse_line(msg[1]))
+            messages[qid].lines.append(PostfixLog(timestamp=dtime, queue_id=qid, message=msg))
+            
+    #print(multiple_recipients)
+    #print(messages)
     log.info('Finished parsing log file %s', logfile)
-    return messages
+    output = dict();
+    output['messages'] = messages
+    output['multiple_recipients'] = multiple_recipients
+    return output
 
 """ samoilov subject decoder fixed"""
 #pat2=re.compile(r'(([^=]*)=\?([^\?]*)\?([BbQq])\?([^\?]*)\?=([^=]*))',re.IGNORECASE)
@@ -166,6 +225,15 @@ def decodev2(a):
     else:
             return a
 
+#async def check_recipient(qid,mailto):
+#    log.info('Checking %s in message %s', mailto, qid)
+#    r, conn, r_q = await get_rethink()
+#    r_q: rethinkdb.query
+#    _sm = r.table('sent_mail')
+#   #_sm = _sm.filter(r_q.row["queue_id"] == qid).pluck("mail_to")
+#    _sm = await _sm.filter((r_q.row["mail_to"].match(mailto))&(r_q.row["queue_id"].match(qid))).is_empty().run(conn)
+#    return _sm
+
 async def main():
     r, conn, r_q = await get_rethink()
     r_q: rethinkdb.query
@@ -181,26 +249,59 @@ async def main():
             log.info('Housekeeping has deleted NOTHING. There are no emails %d day(s) ago or something went wrong.', housekeeping_days)
     else:
         log.info('Housekeeping is not configured so there will be no deletion of old data! Pay attention to the disk space!')
-    log.info('Importing log file')
-    msgs = await import_log(settings.mail_log)
-    log.info('Converting log data into list')
+    log.info('Importing %s log file', settings.mta)
+    import_output = await import_log(settings.mail_log)
+    log.info('Converting %s log data into list',settings.mta)
+    multiple_recipients = import_output['multiple_recipients']
+    msgs = import_output['messages']
     msg_list = [{"id": qid, **msg.clean_dict(convert_time=r_q.expr)} for qid, msg in msgs.items()]
     log.info('Total of %d message entries', len(msg_list))
     log.info('Generating async batch save list')
     save_list = []
     for m in msg_list:
         try:
-            """samoilov subject decoder"""
+            # check and process status
+            if m['status'] != {}:                
+                if m['status']['code'] not in ['sent','reject','deferred','bounced','multiple']:
+                    if m['status']['message'] == '':
+                        m['status']['message'] == 'no status message found'
+                    else:
+                        m['status']['message'] = m['status']['code'] + m['status']['message']
+                    m['status']['code'] = "unknown"
+            else:
+                m['status']['code'] = "unknown"
+                m['status']['message'] = "no status message found"
+            """subject decoder"""
             m['subject'] = decodev2(m.get('subject'))
             mfrom, mto = m.get('mail_from'), m.get('mail_to')
-            """if mfrom == 'zabbix@kgilc.ru':
-                log.info(m.get('subject'))"""
             """samoilov to fix index out of range error"""
-            if mfrom != '': mfrom_dom = mfrom.split('@')[1]
-            if mto != '': mto_dom = mto.split('@')[1]
+
+            if mfrom != '':
+                if '<>' not in mfrom:
+                    if '@' in mfrom:
+                        mfrom_dom = mfrom.split('@')[1]
+                    else:
+                        mfrom_dom = ''
+            else:
+                mfrom_dom = mfrom
+            
+            if mto != '':
+                if '@' in mfrom:
+                    mto_dom = mto.split('@')[1]
+                else:
+                    mto_dom = ''
+            else:
+                mto_dom = mto
 
             if mfrom_dom in settings.ignore_domains or mto_dom in settings.ignore_domains:
                 continue
+            # check if there are many recipients
+            if m.get('id') in set(multiple_recipients):
+                #print("There multiple recipients in ",m.get('id'))
+                m['mail_to'] += " and more (check log lines)"
+                m['status']['code'] = 'multiple'
+                m['status']['message'] = 'multiple, see log lines below'
+
             save_list.append(save_obj('sent_mail', m, primary="id", onconflict=OnConflict.UPDATE))
         except Exception:
             log.exception('Error while parsing email %s', m)

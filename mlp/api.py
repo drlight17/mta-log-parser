@@ -110,7 +110,7 @@ async def wants_json() -> bool:
 
 async def handle_error(err_code='UNKNOWN_ERROR', err_msg=None, code: int = None, exc: Exception = None, **kwargs):
     tpl = empty_if(kwargs.get('template'), 'api_error.html')
-    
+
     res, extra = DictObject(error_code=err_code), {}
     if exc is not None:
         res.exc_name, res.exc_msg, res.traceback = str(type(exc)), str(exc), traceback.format_exc()
@@ -126,8 +126,9 @@ async def handle_error(err_code='UNKNOWN_ERROR', err_msg=None, code: int = None,
     
     if await wants_json():
         return error(res.error_code, msg=res.error_msg, code=res.status_code, extra=extra)
-    
+
+
     tpl = await render_template(
-        tpl, **res, data=json.dumps(error_dict(res.error_code, msg=res.error_msg, extra=extra), indent=4)
+        tpl, **res, data=json.dumps(error_dict(res.error_code, msg=res.error_msg, extra=extra), indent=4), settings=settings,  NOTIE_MESSAGE="api_error"
     )
     return tpl, res.status_code

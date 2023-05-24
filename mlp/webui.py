@@ -19,15 +19,15 @@ import json
 from dataclasses import dataclass, field
 from typing import List, Union, Mapping, Tuple
 
-#import rethinkdb
 import rethinkdb.query
 import logging
 
 from rethinkdb.net import DefaultConnection
+from mlp import settings, api
 
-from postfixparser import settings, api
-from postfixparser.exceptions import APIException
-from postfixparser.core import get_rethink
+from mlp.main import VERSION
+from mlp.exceptions import APIException
+from mlp.core import get_rethink
 from quart import Quart, session, redirect, render_template, request, flash, jsonify
 from privex.helpers import random_str, empty, filter_form, DictDataClass, DictObject
 # for timestamp process
@@ -35,7 +35,6 @@ from datetime import datetime, timezone
 from dateutil import parser
 # TODO dayjs? as moment is deprecated
 import moment
-
 
 log = logging.getLogger(__name__)
 
@@ -48,24 +47,27 @@ Table = rethinkdb.query.ast.Table
 RqlQuery = rethinkdb.query.ast.RqlQuery
 QueryOrTable = Union[Table, RqlQuery]
 
-
 @app.route(f'{PREFIX}/', methods=['GET'])
 async def index():
+    NOTIE_MESSAGE = await _process_notie()
+
     if 'admin' in session:
         return redirect(f'{PREFIX}/emails/')
+    
+    return await render_template('login.html', settings=settings, NOTIE_MESSAGE=NOTIE_MESSAGE, VERSION=VERSION)
 
-    return await render_template('login.html', settings=settings)
 
 
 @app.route(f'{PREFIX}/login', methods=['POST'])
 async def login():
     frm = await request.form
-
     if frm.get('password') == settings.admin_pass:
         session['admin'] = random_str()
+        
         return redirect(f'{PREFIX}/emails/')
 
-    await flash('Invalid password.', 'error')
+    session['NOTIE_MESSAGE'] = "pass_error"
+
     return redirect(f'{PREFIX}/')
 
 
@@ -73,20 +75,19 @@ async def login():
 @app.route(f'{PREFIX}/emails/', methods=['GET'])
 async def emails_ui():
     if 'admin' not in session:
-        await flash("You must log in to access this.", 'error')
+        session['NOTIE_MESSAGE'] = "unauth"
         return redirect(f'{PREFIX}/')
-
-    return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, settings=settings)
+    return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, settings=settings, VERSION=VERSION)
 
 
 @app.route(f'{PREFIX}/logout', methods=['GET'])
 async def logout():
     if 'admin' not in session:
-        await flash("You must log in to access this.", 'error')
+        session['NOTIE_MESSAGE'] = "unauth"
         return redirect(f'{PREFIX}/')
 
     del session['admin']
-    await flash("You have been successfully logged out", "success")
+    session['NOTIE_MESSAGE'] = "logged_out"
     return redirect(f'{PREFIX}/')
 
 
@@ -150,7 +151,7 @@ async def api_emails():
     :return:
     """
     if 'admin' not in session:
-        await flash("You must log in to access this.", 'error')
+        session['NOTIE_MESSAGE'] = "unauth"
         return redirect(f'{PREFIX}/')
 
     r, conn, r_q = await get_rethink()
@@ -159,9 +160,34 @@ async def api_emails():
     frm = dict(request.args)
     order_by = str(frm.pop('order', 'last_attempt')).lower()
     order_dir = str(frm.pop('order_dir', 'desc')).lower()
+    #print(request)
+    
 
     _sm = r.table('sent_mail')
 
+    # check mail_to in log lines
+    if 'mail_to' in frm:
+        search_string = str(frm.pop('mail_to'))#.lower()
+        recipient_match = ''
+        if settings.mta == 'exim':
+            recipient_match = "-> |=> |== |>> "
+        if settings.mta == 'sendmail':
+            recipient_match = "to="
+        found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(recipient_match)).filter(lambda m: m['message'].match(search_string)).run(conn)
+        ids = []
+        async for f in found_strings:
+            ids.append(f['queue_id'])
+        _sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
+
+    # check log lines
+    if 'log_lines' in frm:
+        search_string = str(frm.pop('log_lines'))#.lower()
+        found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).run(conn)
+        ids = []
+        async for f in found_strings:
+            ids.append(f['queue_id'])
+        _sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
+        
     # Handle appending .filter() to `_sm` for each filter key in `frm`
     _sm = await _process_filters(query=_sm, frm=frm)
 
@@ -184,30 +210,29 @@ async def _paginate_query(query: QueryOrTable, frm: Mapping, rt_conn: DefaultCon
                           order_by=None, order_dir='desc') -> Tuple[QueryOrTable, PageResult]:
     _lo = filter_form(frm, 'limit', 'offset', 'page', cast=int)
     limit, offset, page = _lo.get('limit', settings.default_limit), _lo.get('offset', 0), _lo.get('page')
+
     if not empty(page, True, True):
         offset = limit * (page - 1)
     offset = 0 if offset < 0 else offset
     res = PageResult(error=False, count=0, remaining=0, page=1 if not page else page, total_pages=1)
-    
     # Get the total number of rows which match the requested filters
     count = await query.count().run(rt_conn)
-    # samoilov
     #print ("Total number of rows found: ",count)
 
     # rt_query: RqlTopLevelQuery
     r_order = order_by if order_dir == 'asc' else rt_query.desc(order_by)
     limit = settings.default_limit if limit <= 0 else (settings.max_limit if limit > settings.max_limit else limit)
     offset = (count - limit if (count - limit) > 0 else 0) if offset >= count else offset
-    
-    # if count < offset:
-    #     offset = count - limit if count - limit > 0 else count - 1
-    page, total_pages = int(offset / limit) + 1, int(count / limit) - 1
+    page = int(offset / limit) + 1
+    # fix of pagination wrong total_pages calc
+    if (count % limit) == 0:
+        total_pages = int(count / limit)
+    else:
+        total_pages = int(count / limit) + 1
     total_pages = 1 if total_pages < 1 else total_pages
     page = 1 if page < 1 else page
     res.count, res.remaining, res.page, res.total_pages = count, count - offset, page, total_pages
-    # if order_by in dict(settings.rethink_tables)['sent_mail']:
-    #     _sm = _sm.order_by(index=r_order)
-    # else:
+
     query = query.order_by(r_order).skip(offset).limit(limit)
     return query, res
 
@@ -221,10 +246,8 @@ async def _process_filters(query: QueryOrTable, frm: Mapping, skip_keys: List[st
     for fkey, fval in frm.items():
         if fkey in skip_keys:
             continue
-
         query = await _filter_form_key(fkey=fkey, fval=fval, query=query)
-    #samoilov
-    print("query: ",query)
+    #print("query: ",query)
     return query
 
 
@@ -232,48 +255,44 @@ async def _filter_form_key(fkey: str, fval: str, query: QueryOrTable) -> QueryOr
     if '.' in fkey:
         k1, k2 = fkey.split('.')
         return query.filter(lambda m: m[k1][k2] == fval)
-    #samoilov process timestamp values before filter
+    # process timestamp values before filter
     # Mon Mar 13 2023 07:00:06 GMT+00:00 ----    %a %b %d %Y %H:%M:%S %Z
     # Mon Mar 13 2023 07:00:06 GMT 00:00
     if '__lt' in fkey:
         fkey = fkey.replace('__lt', '')
-        print("fval: ",fval,"\n")
+        #print("fval: ",fval,"\n")
         fval = moment.date(fval,settings.datetime_format).date
         #fval = parser.isoparse(fval)
         #fval = json.dumps(fval, indent=4, sort_keys=True, default=str)
         #fval = parser.isoparse(fval)
         fval = fval.replace(tzinfo=timezone.utc)
-        print("processed_fval: ",fval,"\n")
+        #print("processed_fval: ",fval,"\n")
         return query.filter(lambda m: m[fkey] <= fval)
     if '__gt' in fkey:
         fkey = fkey.replace('__gt', '')
-        print("fval: ",fval,"\n")
+        #print("fval: ",fval,"\n")
         #fval = datetime.strptime(fval, '%d.%m.%Y, %H:%M')
         fval = moment.date(fval,settings.datetime_format).date
         #fval = parser.isoparse(fval)
         #fval = json.dumps(fval, indent=4, sort_keys=True, default=str)
         #fval = parser.isoparse(fval)
         fval = fval.replace(tzinfo=timezone.utc)
-        print("processed_fval: ",fval,"\n")
+        #print("processed_fval: ",fval,"\n")
         return query.filter(lambda m: m[fkey] >= fval)
-    # If the form key value starts or ends with an asterisk, then we use .match() with regex filtering
-    # to find items which start/end with the actual value (rval = without asterisks)
-    '''if fval.startswith('*') or fval.endswith('*'):
-        rval = fval.replace('*', '')  # fval but without asterisks
-        if fval.startswith('*') and fval.endswith('*'):  # matches: *something*
-            query = query.filter(lambda m: m[fkey].match(rval))
-        elif fval.startswith('*'):  # matches: *something
-            query = query.filter(lambda m: m[fkey].match(f"{rval}$"))
-        elif fval.endswith('*'):  # matches: something*
-            query = query.filter(lambda m: m[fkey].match(f"^{rval}"))
-        return query'''
-    # samoilov force full wildcard to key value (i.e. *find string*)
+
+    # full wildcard to key value (i.e. *find string*)
     rval = fval.replace('*', '')  # fval but without asterisks
     query = query.filter(lambda m: m[fkey].match(rval))
     return query
 
     return query.filter(lambda m: m[fkey] == fval)
 
+async def _process_notie():
+    NOTIE_MESSAGE = ""
+    if 'NOTIE_MESSAGE' in session:
+        NOTIE_MESSAGE = session['NOTIE_MESSAGE']
+        del session['NOTIE_MESSAGE']
+    return NOTIE_MESSAGE
 
 @app.errorhandler(404)
 async def handle_404(exc=None):
@@ -282,6 +301,7 @@ async def handle_404(exc=None):
 
 @app.errorhandler(APIException)
 async def api_exception_handler(exc: APIException, *args, **kwargs):
+    #print(exc.template)
     return await api.handle_error(err_code=exc.error_code, err_msg=exc.message, code=exc.status, exc=exc, template=exc.template)
 
 

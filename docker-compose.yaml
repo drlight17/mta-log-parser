@@ -1,8 +1,8 @@
 version: '3.9'
 
 services:
-  mmp:
-    container_name: multi-mta-parser
+  mlp:
+    container_name: mta-log-parser
     build:
       context: .
       dockerfile: Dockerfile

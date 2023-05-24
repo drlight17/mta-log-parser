@@ -15,7 +15,7 @@ class APIException(MyAppException):
     It's recommended to add an error code using :func:`.add_app_error`, allowing you to raise just the error code, with the message + status
     automatically getting filled out.
 
-        >>> from postfixparser.core import add_app_error
+        >>> from mlp.core import add_app_error
         >>> add_app_error('INV_USERNAME', "Username must be at least 5 characters", 400)
 
     Then, in your API view, simply raise :class:`.APIException` and the error handler :func:`.api_exception_handler` will automatically

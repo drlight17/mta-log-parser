@@ -30,12 +30,12 @@ from rethinkdb import RethinkDB
 from rethinkdb.ast import DB
 from rethinkdb.net import DefaultConnection
 
-from postfixparser import settings
+from mlp import settings
 from privex.loghelper import LogHelper
 
-from postfixparser.settings import AppError, DEFAULT_ERR, ERRORS
+from mlp.settings import AppError, DEFAULT_ERR, ERRORS
 
-_lh = LogHelper('postfixparser')
+_lh = LogHelper('mlp')
 _lh.add_console_handler(level=logging.INFO)
 
 log = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:
 
     Usage:
 
-        >>> from postfixparser.core import get_rethink
+        >>> from mlp.core import get_rethink
         >>>
         >>> r, conn, rDB = await get_rethink()
         >>> r.table('blocks').insert(dict(block_num=1234)).run(conn)

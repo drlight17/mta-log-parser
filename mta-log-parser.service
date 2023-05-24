@@ -14,17 +14,17 @@
 #
 #####
 [Unit]
-Description=Privex Multi MTA Log Parser - Web UI
+Description=MTA Log Parser - Web UI
 After=network.target
 
 [Service]
 Type=simple
 User=mailparser
 
-WorkingDirectory=/home/mailparser/multi-mta-parser/
-EnvironmentFile=/home/mailparser/multi-mta-parser/.env
+WorkingDirectory=/home/mailparser/mta-log-parser/
+EnvironmentFile=/home/mailparser/mta-log-parser/.env
 
-ExecStart=/home/mailparser/multi-mta-parser/run.sh prod
+ExecStart=/home/mailparser/mta-log-parser/run.sh prod
 
 Restart=always
 Environment=PYTHONUNBUFFERED=0
@@ -53,7 +53,7 @@ MemoryDenyWriteExecute=true
 
 [Install]
 WantedBy=multi-user.target
-Alias=mmp.service
+Alias=mlp.service
 
 #####
 # +===================================================+

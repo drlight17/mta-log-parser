@@ -19,7 +19,9 @@ from collections import namedtuple
 from typing import List, Dict
 
 import pytz
-from os import getenv as env
+import json
+
+from os import getenv as env, path as path, listdir as listdir
 from dotenv import load_dotenv
 from privex.helpers import env_bool, env_csv, env_int
 
@@ -78,3 +80,16 @@ _ERRORS: List[AppError] = [
 ERRORS: Dict[str, AppError] = {err.code: err for err in _ERRORS}
 DEFAULT_ERR: AppError = ERRORS['UNKNOWN_ERROR']
 
+# get all locale lang files
+basedir = path.abspath(path.dirname(__file__))
+lang_files = listdir(path.join(basedir,'static/locales/'))
+new_lang_files_json = {}
+
+for lang in lang_files:
+    f = open(path.join(basedir,'static/locales/')+lang)
+    data = json.load(f)
+    before, sep, after = lang.partition('.')
+    lang = before
+    new_lang_files_json[lang] = data['locale_lang']
+
+lang_files = json.dumps(new_lang_files_json)

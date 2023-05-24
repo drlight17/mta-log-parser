@@ -5,7 +5,7 @@ from typing import List
 from dateutil.parser import parse
 from privex.helpers import Dictable, is_false
 
-from postfixparser.settings import log_timezone
+from mlp.settings import log_timezone
 
 @dataclass
 class PostfixLog(Dictable):
@@ -16,6 +16,8 @@ class PostfixLog(Dictable):
     def __post_init__(self):
         if type(self.timestamp) is not datetime:
             self.timestamp = log_timezone.localize(parse(self.timestamp))
+        #if type(self.message) is list:
+        #    self.message[]
         self.message = self.message.strip()
         self.queue_id = self.queue_id.strip()
 
@@ -40,6 +42,7 @@ class PostfixMessage(Dictable):
     queue_id: str
     lines: List[PostfixLog] = field(default_factory=list)
     mail_to: str = ""
+    #mail_to: dict = field(default_factory=dict)
     mail_from: str = ""
     subject: str = ""
     size: float  = 0
@@ -74,6 +77,7 @@ class PostfixMessage(Dictable):
 
     def clean_dict(self, convert_time=str) -> dict:
         data = dict(self)
+        #print(data)
         if is_false(convert_time):
             data['timestamp'] = self.timestamp
             data['first_attempt'], data['last_attempt'] = self.first_attempt, self.last_attempt
@@ -82,4 +86,5 @@ class PostfixMessage(Dictable):
             data['first_attempt'] = convert_time(self.first_attempt)
             data['last_attempt'] = convert_time(self.last_attempt)
         data['lines'] = [s.clean_dict(convert_time=convert_time) for s in self.lines]
+
         return data
