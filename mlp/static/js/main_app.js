@@ -123,7 +123,7 @@ const app = Vue.createApp({
             }
             this.reset_page();
             // do not debounce on datestart change ???
-            //this.debounce_emails(true);
+            this.debounce_emails(true);
         },
         date_filter__lt(val) {
             if (this.settings.filters) {
