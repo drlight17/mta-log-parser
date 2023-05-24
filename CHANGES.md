@@ -7,7 +7,12 @@ unreleased VER.
 - add configurable html titles (?)
 - exclude-marquee class remove
 - remove python privex helpers code (?)
+- fix focus to password input on login load
+- save filters turn off must apply current last minutes
 
+VER. 1.1.1
+- ~~loading circle during api call and request waiting~~
+- 
 VER. 1.1.0
 - ~~parser cuts the 1st symbol in queue ID (E6E6462414 instead of EE6E6462414 for example)~~
 - ~~add message subject to the parser and GUI~~
