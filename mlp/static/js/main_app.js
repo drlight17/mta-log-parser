@@ -1,5 +1,6 @@
 // append path_prefix to the base_url if any is set
-const base_url = document.currentScript.getAttribute('path_prefix')+'/api/emails';
+const path_prefix = document.currentScript.getAttribute('path_prefix');
+const base_url = path_prefix + '/api/emails';
 // get datetime_format from .env
 var datetime_format = document.currentScript.getAttribute('datetime_format');
 if (datetime_format == '') {
@@ -153,7 +154,7 @@ const app = Vue.createApp({
             if ('fallbackLocaleData' in window.localStorage) {
                 this.fallbackLocaleData = JSON.parse(window.localStorage['fallbackLocaleData']);
             } else {
-                await $.getJSON("/static/locales/en.json", function(json_data_fallback) {
+                await $.getJSON(path_prefix + "/static/locales/en.json", function(json_data_fallback) {
                     window.localStorage.setItem("fallbackLocaleData", JSON.stringify(json_data_fallback));
                     //return json_data_fallback;
                 });
@@ -162,7 +163,7 @@ const app = Vue.createApp({
             if ('localeData' in window.localStorage) {
                 this.localeData = JSON.parse(window.localStorage['localeData']);
             } else {
-                await $.getJSON("/static/locales/"+this.settings.locale+".json")
+                await $.getJSON(path_prefix + "/static/locales/"+this.settings.locale+".json")
                     .done(function(json_data) {
                         window.localStorage.setItem("localeData", JSON.stringify(json_data));
                         //return json_data;
