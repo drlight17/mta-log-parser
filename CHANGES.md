@@ -1,4 +1,4 @@
-VER. 1.1.0
+unreleased VER.
 - add multiple simultaneous text filters
 - on row click instead of show button + make refresh button like to top
 - tail realtime parsing mode + gui autorefresh (with config seconds) (?)
@@ -7,6 +7,8 @@ VER. 1.1.0
 - add configurable html titles (?)
 - exclude-marquee class remove
 - remove python privex helpers code (?)
+
+VER. 1.1.0
 - ~~parser cuts the 1st symbol in queue ID (E6E6462414 instead of EE6E6462414 for example)~~
 - ~~add message subject to the parser and GUI~~
 - ~~add message size to the parser and GUI~~
