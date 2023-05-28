@@ -171,6 +171,7 @@ async def api_emails():
         recipient_match = ''
         if settings.mta == 'exim':
             recipient_match = "-> |=> |== |>> "
+            #recipient_match = "->|=>|==|>> "
         if settings.mta == 'sendmail':
             recipient_match = "to="
         found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(recipient_match)).filter(lambda m: m['message'].match(search_string)).run(conn)
@@ -183,6 +184,7 @@ async def api_emails():
     if 'log_lines' in frm:
         search_string = str(frm.pop('log_lines'))#.lower()
         found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).run(conn)
+        #print(found_strings)
         ids = []
         async for f in found_strings:
             ids.append(f['queue_id'])
@@ -279,7 +281,6 @@ async def _filter_form_key(fkey: str, fval: str, query: QueryOrTable) -> QueryOr
         fval = fval.replace(tzinfo=timezone.utc)
         #print("processed_fval: ",fval,"\n")
         return query.filter(lambda m: m[fkey] >= fval)
-
     # full wildcard to key value (i.e. *find string*)
     rval = fval.replace('*', '')  # fval but without asterisks
     query = query.filter(lambda m: m[fkey].match(rval))

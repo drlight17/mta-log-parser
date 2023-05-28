@@ -30,6 +30,7 @@ const app = Vue.createApp({
             error: null,
             emails: [],
             search: "",
+            search_error: false,
             search_by: "id",
             status_filter: "NOFILTER",
             date_filter__gt: "",
@@ -75,7 +76,7 @@ const app = Vue.createApp({
                 this.error !== '' &&
                 this.error !== null &&
                 this.error !== false
-            )
+            ) 
         }
     },
     watch: {
@@ -87,19 +88,21 @@ const app = Vue.createApp({
                 } else {
                     text = this.localeData.notie.one
                 }
-                notie.alert({type: 'error', text: text+val+'&quot;</b>'});
+                notie.alert({type: 'error', text: text+val+'»</b>'});
                 $('#text_search').focus();
                 $('#text_search').css('color','red');
+                this.search_error = true;
                 //this.search = this.search.slice(0,-1);
-                return;
+                //return;
             } else {
                 $('#text_search').css('color', 'initial');
                 if (this.settings.filters) {
                     this.saveFilters();
                 }
+                this.search_error = false;
+                this.reset_page();
+                this.debounce_emails(true);
             }
-            this.reset_page();
-            this.debounce_emails(true);
         },
         search_by(val) {
             if (this.search !== "") {
@@ -149,15 +152,25 @@ const app = Vue.createApp({
            this.loadEmails(refresh);
         }, 400),
         async loadLocaleMessages () {
-            //console.log(lang_files['en.json']);
+            const app = this;
 
             if ('fallbackLocaleData' in window.localStorage) {
                 this.fallbackLocaleData = JSON.parse(window.localStorage['fallbackLocaleData']);
             } else {
-                await $.getJSON(path_prefix + "/static/locales/en.json", function(json_data_fallback) {
+                await $.getJSON(path_prefix + "/static/locales/en.json")
+                    .done(function(json_data_fallback) {
                     window.localStorage.setItem("fallbackLocaleData", JSON.stringify(json_data_fallback));
-                    //return json_data_fallback;
-                });
+                    })
+                    // set fallback if no locales could be fetched
+                    .fail(function(json_data_fallback) {
+                        text = "Error! No locales were loaded (maybe locales directory is empty)! Check console log for details and fix all errors!";
+                        notie.alert({type: 'error', text: text, stay: true});
+                        $("#login").append('<button onClick="window.location.reload();" class="ui button primary refresh-button"><i class="sync icon"></i> Reload page</button>');
+                        $(".logo").hide();
+                        $('#user-settings').hide();
+                        //document.write("Error! No locales weren't loaded (maybe locales directory is empty)! Check console log for details and fix all errors!");
+                        app.toggleLoading(false);
+                    })
             }
             
             if ('localeData' in window.localStorage) {
@@ -166,30 +179,31 @@ const app = Vue.createApp({
                 await $.getJSON(path_prefix + "/static/locales/"+this.settings.locale+".json")
                     .done(function(json_data) {
                         window.localStorage.setItem("localeData", JSON.stringify(json_data));
-                        //return json_data;
+                        $(".logo").hide();
+                        $('#user-settings').hide();
+                        setTimeout(() => location.reload(), 1000);
                     })
                     // set fallback en locale if no current browser locale is supported
-                    .fail(function(json_data) {
-                        //text = "Current browser "+ window.localStorage['locale'] + " locale is not supported. Falling back to default en locale!";
-                        //console.log(text);
+                    .fail(function(json_data) {                        
                         window.localStorage.setItem("localeData", window.localStorage['fallbackLocaleData']);
                         window.localStorage.setItem("locale", "en");
                         window.localStorage.setItem("falled_back", true);
+                        $(".logo").hide();
+                        $('#user-settings').hide();
+                        setTimeout(() => location.reload(), 1000);
                     })
+
             }
         },
 
         ToggleStickyHeader(thead) {
-            /*if (thead == '') {
-                thead = $('.tablesorter-sticky-wrapper');
-            };*/
 
             $('.hide-sticky-header-button i').toggleClass('down').toggleClass('up');
 
-            if (parseInt(thead.css('top')) != -320) {
+            if (parseInt(thead.css('top')) != -271) {
                 window.localStorage['sticky_header_visible']=false;
                 thead.animate({
-                    top: '-320px'
+                    top: '-271px'
                 })
             } else {
                 window.localStorage['sticky_header_visible']=true;
@@ -272,57 +286,65 @@ const app = Vue.createApp({
             }
             $td.each(function(i, obj) {
                 $th = $(obj).closest('table').find('th').eq($(obj).index());
-                if (($th.attr('id') != "size") && (!($th.hasClass("exclude-marquee")))) {
+                if (($th.attr('id') != "size") && ($th.attr('id') != "refresh-button")) {
                     $(obj).addClass('filter_linked');
                 }
                 if ($th.attr('id') == "id") {
-                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(){
+                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         window.app.search = window.app.returnAllowedString($(obj).text());
                         window.app.search_by = 'id';
+                        e.stopPropagation();
                     })
                 }
                 if ($th.attr('id') == "status") {
-                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(){
+                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         window.app.status_filter = window.app.returnAllowedString($(obj).text());
+                        e.stopPropagation();
                     })
                 }
                 if ($th.attr('id') == "mail_from") {
-                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(){
+                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         window.app.search = window.app.returnAllowedString($(obj).text());
                         window.app.search_by = 'mail_from';
+                        e.stopPropagation();
                     })
                 }   
                 if ($th.attr('id') == "mail_to") {
-                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(){
+                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         multiple = window.app.returnAllowedString($(obj).text());
-                        multiple_check = multiple.indexOf(' and more (check log lines)');
+                        multiple_check = multiple.indexOf(' and more');
                         if (multiple_check >=0) {
                             multiple = multiple.substr(0, multiple_check);
                         }
                         window.app.search = multiple;
                         window.app.search_by = 'mail_to';
+                        e.stopPropagation();
                     })
                 }
                 if ($th.attr('id') == "subject") {
-                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(){
+                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         window.app.search = window.app.returnAllowedString($(obj).text());
                         window.app.search_by = 'subject';
+                        e.stopPropagation();
                     })
                 }
                 if ($th.attr('id') == "timestamp") {
-                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(){
+                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         window.app.date_filter__gt = window.app.returnAllowedString($(obj).text());
                         window.app.date_filter__lt = window.app.returnAllowedString($(obj).text());
+                        e.stopPropagation();
                     })
                 }
                 if ($th.attr('id') == "first_attempt") {
-                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(){
+                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         window.app.date_filter__gt = window.app.returnAllowedString($(obj).text());
+                        e.stopPropagation();
                     })
                 }
                 if ($th.attr('id') == "last_attempt") {
-                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(){
+                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         window.app.date_filter__lt = window.app.returnAllowedString($(obj).text());
+                        e.stopPropagation();
                     })
                 }
 
@@ -337,7 +359,7 @@ const app = Vue.createApp({
                 });
             }
 
-            if (parseInt(thead.css('top')) != -320) {
+            if (parseInt(thead.css('top')) != -271) {
                 $('.hide-sticky-header-button i').removeClass('down').addClass('up');
             } else {
                 $('.hide-sticky-header-button i').removeClass('up').addClass('down');
@@ -357,6 +379,11 @@ const app = Vue.createApp({
             }
         },
         loadEmails(refresh) {
+            // check if search_error clear search text
+            if (this.search_error) {
+                this.search = "";
+                this.search_error = false;
+            }
             // show loading modal on emails load
             if (refresh) {
                 $('#main-wrapper').hide(); 
@@ -419,7 +446,13 @@ const app = Vue.createApp({
                             // dirty 500 ms waiting of scrollTo complete =(
                             setTimeout(() => {
                                 const element = $found_table.find('td:first')[0];
-                                const yOffset = -55; 
+                                //console.log(thead.height());
+                                var yOffset = 0;
+                                if (this.settings.resizable) {
+                                    yOffset = -25; 
+                                } else {
+                                    yOffset = -thead.height();
+                                }
                                 const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
                                 // scrolling offset by hide-sticky-header-button height
                                 window.scrollTo({top: y, behavior: 'smooth'});
@@ -431,8 +464,16 @@ const app = Vue.createApp({
                     $found_table.find('#'+this.order).removeClass().addClass(this.order_dir);
                     // if no results don't process empty table
                     if (this.count != 0) {
+                        // add on row click title
+                        if (this.localeData.tips.five == undefined) {
+                            text = this.fallbackLocaleData.tips.five
+                        } else {
+                            text = this.localeData.tips.five
+                        }
+                        $found_table.find('tbody tr').attr('title', text);
+
                         // bind sort to table headers
-                        $('.emails-list th:not(.exclude-marquee)').one('click',function(){
+                        $('.emails-list th:not(#refresh-button)').one('click',function(){
                             window.app.callSort(this);
                         });
                         
@@ -463,9 +504,9 @@ const app = Vue.createApp({
                             } else {
                                 text = this.localeData.user_settings.resizable_title_tip
                             }
-                            thead.find('th:not(.exclude-marquee)').attr('title',text)
+                            thead.find('th').attr('title',text)
                             // reset colResizable() widths states
-                            thead.find('th:not(.exclude-marquee)').one( "contextmenu", function() {
+                            thead.find('th:not(#refresh-button)').one( "contextmenu", function() {
                                 //console.log("colResizable() widths are reset!");
                                 window.localStorage.removeItem($found_table.attr('id'));
                                 window.app.loadEmails(true);
@@ -484,12 +525,12 @@ const app = Vue.createApp({
                     }*/
                     // styling of statuses and status filter dropdown
                     if (!$found_table.find('td:nth-child(3)').hasClass('styled')) {
-                        $found_table.find('td:nth-child(3):contains("deferred")').addClass('styled').prepend(this.settings.status_icon['deferred']);
-                        $found_table.find('td:nth-child(3):contains("sent")').addClass('styled').prepend(this.settings.status_icon['sent']);
-                        $found_table.find('td:nth-child(3):contains("reject")').addClass('styled').prepend(this.settings.status_icon['reject']);
-                        $found_table.find('td:nth-child(3):contains("bounced")').addClass('styled').prepend(this.settings.status_icon['bounced']);
-                        $found_table.find('td:nth-child(3):contains("multiple")').addClass('styled').prepend(this.settings.status_icon['multiple']);
-                        $found_table.find('td:nth-child(3):contains("unknown")').addClass('styled').prepend(this.settings.status_icon['unknown']);
+                        $found_table.find('td:contains("deferred")').addClass('styled').prepend(this.settings.status_icon['deferred']);
+                        $found_table.find('td:contains("sent")').addClass('styled').prepend(this.settings.status_icon['sent']);
+                        $found_table.find('td:contains("reject")').addClass('styled').prepend(this.settings.status_icon['reject']);
+                        $found_table.find('td:contains("bounced")').addClass('styled').prepend(this.settings.status_icon['bounced']);
+                        $found_table.find('td:contains("multiple")').addClass('styled').prepend(this.settings.status_icon['multiple']);
+                        $found_table.find('td:contains("unknown")').addClass('styled').prepend(this.settings.status_icon['unknown']);
                     }
                     if (this.settings.colored) {
                         var filter_email = $('#filter-email');
@@ -512,6 +553,13 @@ const app = Vue.createApp({
                             filter_email.css("background-color", filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor);
                         }); 
                     }
+                    // styling sorted column
+                    var sort_column = thead.find('th.asc, th.desc');
+                    sort_column.css('background-color', window.app.settings.status_color['sorted']);
+                    $('.emails-list tr:nth-child(n) td:nth-child('+(sort_column.index()+1)+')').each(function(i, obj) {
+                        $(obj).css('background-color',window.app.settings.status_color['sorted']);
+                    });
+
                     // add filter links to table cells
                     this.addFilterLink($found_table);
 
@@ -690,9 +738,6 @@ const app = Vue.createApp({
             window.localStorage['cur_page']=this.page;
         },
         setDuration() {
-            // default start_date default_period minutes ago as gui option
-            //var default_period = 10;
-            //if ($('#default_period_div input').is(":disabled"))
             this.$nextTick(function () {
                 if (this.settings.default_period) {
                     if (!($('#default_period_div input').is(":disabled"))) {
@@ -715,7 +760,7 @@ const app = Vue.createApp({
             let v = JSON.parse(JSON.stringify(val));
             v.page_limit = Number.parseInt(v.page_limit);
             v.default_period = Number.parseInt(v.default_period);
-            let updatePage = (v.default_period !== Number.parseInt(this.settings.default_period) || v.page_limit !== Number.parseInt(this.settings.page_limit) /*|| v.marquee !== this.settings.marquee*/ || v.colored !== this.settings.colored || v.sticky !== this.settings.sticky || v.resizable !== this.settings.resizable || v.locale !== this.settings.locale);
+            let updatePage = (v.default_period !== Number.parseInt(this.settings.default_period) || v.page_limit !== Number.parseInt(this.settings.page_limit) /*|| v.marquee !== this.settings.marquee*/ || v.colored !== this.settings.colored || v.sticky !== this.settings.sticky || v.resizable !== this.settings.resizable || v.locale !== this.settings.locale || v.filters !== this.settings.filters);
             
             let reload = false;
 
@@ -733,8 +778,14 @@ const app = Vue.createApp({
             this.loaded_settings = true;
 
             if (updatePage) {
+                // reset date filter after save filters is switched on
+                if (this.settings.filters) {
+                    this.date_filter__gt = "";
+                    this.date_filter__lt = "";
+                } else {
+                    this.setDuration();
+                }
 
-                this.setDuration();
                 if (reload) {
                     //location.reload();
                     // dirty timeout to show notie
@@ -742,7 +793,6 @@ const app = Vue.createApp({
                 } else {
                     this.debounce_emails(true);
                 }
-                //location.reload();
 
             }
             // notie.alert('success', `User settings ${update_type} successfully`)
@@ -768,10 +818,6 @@ const app = Vue.createApp({
         
         this.loadLocaleMessages();
 
-        /*if (this.loadLocaleMessages() == "falledback") {
-            console.log("Current browser "+ window.localStorage['locale'] + " locale is not supported. Falling back to default en locale!")
-        };*/
-
         $('select.dropdown option').addClass("item");  
         // check setDuration option set
         this.setDuration();
@@ -781,13 +827,8 @@ const app = Vue.createApp({
             this.loadFilters();
         }
         // check if we are on login or api_error screen
-        if ((($("div.logo.login").length > 0) || ($(".api_error_container").length > 0)) && (localStorage.getItem("fallbackLocaleData")=== null))  {
-            // dirty way with timeout =( 
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            if (($("div.logo.login").length > 0) || ($(".api_error_container").length > 0)) {
-                this.toggleLoading(false);
-            }
+        if (($("div.logo.login").length > 0) || ($(".api_error_container").length > 0)) {
+            this.toggleLoading(false);
         }
 
         this.$nextTick(function () {
@@ -834,8 +875,9 @@ const app = Vue.createApp({
                 }
                 notie.alert({type: 'error', text: text});
             }
-            //focus on password input
-            $("#login input").focus();
+            // focus on password input dirty timeout
+            setTimeout(() => $("input.ui").focus(), 500);
+
 
             // load saved page
             this.loadCurPage();

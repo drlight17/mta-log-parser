@@ -62,7 +62,8 @@
 
 /* on top from bottom offset */
 #back-to-top {
-    bottom: 30px!important;
+    bottom: 150px!important;
+    right: 50px!important;
 }
 
 /*to mark mouse over table row*/
@@ -71,28 +72,20 @@
 }
 
 /*for all tables*/
-.emails-list td:not(:last-child):not(.exclude-marquee), .emails-list th:not(.exclude-marquee) {
-    text-align: center!important;
+.emails-list td:not(:last-child), .emails-list th {
+    /*text-align: center!important;*/
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /*for resizable tables*/
 
-.emails-list:is(.resizable) td:not(:last-child):not(.exclude-marquee) {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.emails-list:is(.resizable) td, .emails-list:is(.resizable) th {
   white-space: nowrap;
-  text-align: center!important;
-}
-
-.emails-list:is(.resizable) th:not(.exclude-marquee) {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  text-align: center!important;
 }
 
 /* for non-resizable tables*/
-.emails-list:not(.resizable) td:not(:last-child):not(.exclude-marquee):hover, .emails-list:not(.resizable) th:not(:last-child):not(.exclude-marquee):hover  {
+.emails-list:not(.resizable) td:hover, .emails-list:not(.resizable) th:hover  {
     overflow: auto;
     white-space: initial!important;
     text-overflow: initial;
@@ -101,10 +94,6 @@
   table-layout: fixed;
 }
 
-.emails-list:not(.resizable) td:not(:last-child):not(.exclude-marquee), .emails-list:not(.resizable) th:not(.exclude-marquee) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 .emails-list:not(.resizable) #timestamp, .emails-list:not(.resizable) #queue_id, .emails-list:not(.resizable) #first_attempt, .emails-list:not(.resizable) #last_attempt {
     width: 8%;
@@ -127,7 +116,7 @@
 
 /* sort stylings*/
 
-.emails-list th:not(.exclude-marquee) {
+.emails-list th:not(#refresh-button), .emails-list td {
     transition: none!important;
     cursor: pointer!important;
 }
@@ -136,15 +125,18 @@
     background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7)!important;
     background-position: center right!important;
     background-repeat: no-repeat!important;
+    /*background-color: #e1dcdc!important;*/
 }
 
 .emails-list th.desc {
     background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7)!important;
     background-position: center right!important;
     background-repeat: no-repeat!important;
+    /*background-color: #e1dcdc!important;*/
 }
-
-
+/*.sorted_column {
+    background-color: #e1dcdc!important;
+}*/
 /*for sticky pager*/
 .ui.buttons {
     z-index: 5;
@@ -157,10 +149,12 @@
     flex-wrap: wrap;
 }
 
-/*change notification z-index*/
+/*change notification z-index and fix of notie blurring when modal blur is on in firefox*/
 .notie-alert {
     z-index: 1002!important;
+    filter: initial!important;
 }
+
 /*fix sematicui paddings
 .ui.fluid.container:has(.login) {
     height: 70%!important;
@@ -238,9 +232,8 @@
 }
 
 
-
 @media only screen and (min-width: 767px) and (max-width: 1000px){
-    .exclude-marquee button span, #user-settings > div.logo  button span{
+    #refresh-button button span, #user-settings > div.logo  button span{
         display:none!important
     }
 }

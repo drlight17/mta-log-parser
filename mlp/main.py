@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.1.1"
+VERSION ="1.1.2"
 
 # postfix regexp
 postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
@@ -272,7 +272,10 @@ async def main():
                 m['status']['code'] = "unknown"
                 m['status']['message'] = "no status message found"
             """subject decoder"""
-            m['subject'] = decodev2(m.get('subject'))
+            try:
+                m['subject'] = decodev2(m.get('subject'))
+            except:
+                m['subject'] = m.get('subject')
             mfrom, mto = m.get('mail_from'), m.get('mail_to')
             """samoilov to fix index out of range error"""
 

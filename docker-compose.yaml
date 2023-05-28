@@ -9,6 +9,7 @@ services:
     command: /app/run.sh ${COMMAND}
     ports:
       - ${PORT}:${PORT}
+    restart: always
     volumes:
       - .:/app
       - /tmp:/tmp
@@ -20,6 +21,7 @@ services:
   rethinkdb:
     image: rethinkdb:2.4
     container_name: rethinkdb
+    restart: always
     ports:
       - ${RETHINK_EXP_GUI_PORT}:8080
     volumes:

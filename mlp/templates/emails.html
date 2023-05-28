@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
-
 <div id="emails_list">
     <div class="top_title">
         <div class="logo">
@@ -38,6 +37,9 @@
                     </li>
                     <li v-if="localeData.tips.five" v-html="localeData.tips.five">
                     <li v-else v-html="fallbackLocaleData.tips.five">
+                    </li>
+                    <li v-if="localeData.tips.eleven" v-html="localeData.tips.eleven">
+                    <li v-else v-html="fallbackLocaleData.tips.eleven">
                     </li>
                     <li>
                     {% if settings.mta %}
@@ -183,11 +185,11 @@
                 <th v-else id="first_attempt"><i class="hourglass start icon"></i> [[ fallbackLocaleData.emails_list.first_attempt ]]</th>
                 <th v-if="localeData.emails_list.last_attempt" id="last_attempt"><i class="hourglass end icon"></i> [[ localeData.emails_list.last_attempt ]]</th>
                 <th v-else id="last_attempt"><i class="hourglass end icon"></i> [[ fallbackLocaleData.emails_list.last_attempt ]]</th>
-                <th class="exclude-marquee"><button @click="loadEmails(true)" class="ui button primary refresh-button"><i class="sync icon"></i></button></th>
+                <!--<th id="refresh-button" ><button @click="loadEmails(true)" class="ui button primary refresh-button"><i class="sync icon"></i></button></th>-->
             </tr>
         </thead>
         <tbody>
-            <tr v-for="m in emails">
+            <tr @click="show_modal(m)" v-for="m in emails">
                 <td><span>[[ m.timestamp ]]</span></td>
                 <td><span>[[ m.id ]]</span></td>
                 <td><span>[[ m.status.code ]]</span></td>
@@ -197,7 +199,7 @@
                 <td><span>[[ m.size ]]</span></td>
                 <td><span>[[ m.first_attempt ]]</span></td>
                 <td><span>[[ m.last_attempt ]]</span></td>
-                <td class="exclude-marquee"><button @click="show_modal(m)" class="ui button primary"><i class="envelope open icon"></i><span v-if="localeData.emails_list.show_button">[[ localeData.emails_list.show_button ]]</span><span v-else>[[ fallbackLocaleData.emails_list.show_button ]]</span></button></td>
+                <!--<td><button @click="show_modal(m)" class="ui button primary"><i class="envelope open icon"></i><span v-if="localeData.emails_list.show_button">[[ localeData.emails_list.show_button ]]</span><span v-else>[[ fallbackLocaleData.emails_list.show_button ]]</span></button></td>-->
             </tr>
         </tbody>
     </table>

@@ -62,13 +62,13 @@
                 // default gui settings
                 'settings': {
                     page_limit: 50,
-                    default_period: 20,
+                    default_period: 60,
                     sticky: true,
                     blurring: true,
                     //marquee: false,
                     colored: true,
                     resizable: false,
-                    filters: true,
+                    filters: false,
                     locale: "en",
                     status_color: {
                         NOFILTER: 'rgba(255, 255, 255, 1)',
@@ -77,7 +77,8 @@
                         reject: 'rgba(255, 175, 175, 1)',
                         bounced: 'rgba(186, 210, 245, 1)',
                         multiple: 'rgba(232, 179, 255, 1)',
-                        unknown: 'rgba(249, 251, 140, 1)'
+                        unknown: 'rgba(249, 251, 140, 1)',
+                        sorted: 'rgba(255, 255, 255, 0.4)'
                     },
                     status_icon: {
                         deferred: "<i class='hourglass half icon'></i>",

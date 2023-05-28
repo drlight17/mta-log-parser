@@ -1,18 +1,27 @@
-unreleased VER.
-- add multiple simultaneous text filters
-- on row click instead of show button + make refresh button like to top
+Unreleased VER.
+- add multiple text filters
 - tail realtime parsing mode + gui autorefresh (with config seconds) (?)
 - replace momentjs wih day.js or luxone(?)
+- make mailcow PR to integrate into
 - maybe scrollTo by not all refreshes (?)
-- add configurable html titles (?)
-- exclude-marquee class remove
 - remove python privex helpers code (?)
-- fix focus to password input on login load
-- save filters turn off must apply current last minutes
+- add configurable html titles (?)
+- save settings into cookies + accept cookies modal (?)
 
-VER. 1.1.1
-- ~~loading circle during api call and request waiting~~
-- 
+VER. 1.1.2
+- ~~exclude-marquee remove~~   
+- ~~fix broken colResizable~~   
+- ~~save filters turn off must apply current last minutes!~~   
+- ~~loading circle during api call and request waiting~~  
+- ~~fix focus to password input on login load~~   
+- ~~fix of emails page if localStorage is empty (force reload page on error like "Cannot read properties of undefined (reading 'log_out')")~~
+- ~~fix wrong text search filter if reload button is clicked~~  
+- ~~fix of notie z-index in firefox (under loading modal)~~ 
+- ~~fix not parsed statuses (unknown status?) for postfix~~
+- ~~on row click instead of show button~~
+- ~~make new refresh button~~
+- ~~fix settings show when reload with no locale loaded~~
+
 VER. 1.1.0
 - ~~parser cuts the 1st symbol in queue ID (E6E6462414 instead of EE6E6462414 for example)~~
 - ~~add message subject to the parser and GUI~~
@@ -75,7 +84,6 @@ VER. 1.1.0
 - ~~filter autofill on click at cells according to its type (timestamp fills date, queue id fills text queue id etc.)~~
 - ~~sticky header gui switcher~~
 - ~~cleanup from tablesorter~~
-
 VER. 1.0.0
 - ~~page goes to top when refresh without colResize~~
 - ~~save sticky header state in localStorage~~

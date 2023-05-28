@@ -3,7 +3,7 @@
   "app_title": "MTA Log Parser",
   "loading": "Loading...",
   "notie": {
-    "one": "Forbidden special character(s) in text search input: <b>&quot;",
+    "one": "Forbidden special character(s) in text search input: <b>«",
     "two": "User settings are saved successfully",
     "three": "Saved filters are loaded successfully",
     "four": "All filters are reset successfully",
@@ -67,13 +67,14 @@
     "two": "Use start and end date fields to apply date range filter",
     "three": "Use \"Refresh\" <i class=\"sync icon\"></i> button to reload email list with current applied filters",
     "four": "Use \"Reset\" <i class=\"eraser icon\"></i> button to clear all applied filters and reload email list",
-    "five": "Use \"Show\" <i class=\"envelope open icon\"></i> button to show more email information with related logs",
+    "five": "Click the row to show more corresponding email information with related logs",
     "six": "Current <code>MTA</code> is set to",
     "six_default": "Current <code>MTA</code> is set to default <strong style=\"text-transform:uppercase\">POSTFIX</strong>",
     "seven": "<code>DEFAULT_LIMIT</code> (amount of emails per page) is currently set to",
     "eight": "<code>MAX_LIMIT</code> (maximum number for <code>?limit=</code>) is currently set to",
     "nine": "<code>HOUSEKEEPING_DAYS</code> (maximum days of logs storing before cleanup) is currently set to",
-    "ten": "<code>DATETIME_FORMAT</code> (date/time format) is currently set to"
+    "ten": "<code>DATETIME_FORMAT</code> (date/time format) is currently set to",
+    "eleven": "Click cell content to set text filter and search_by value to the values of cell content and it's column accordingly"
   },
   "filters": {
     "filter_link_tip": "Click to filter by",
@@ -102,6 +103,7 @@
     "last": "Last Page",
     "previous": "Previous Page",
     "next": "Next Page",
+    "refresh": "Refresh",
     "total": "Total",
     "emails": "emails found",
     "page": "Page",
