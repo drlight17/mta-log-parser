@@ -43,8 +43,10 @@ rethink_tables = [
     ('sent_mail', ['mail_to', 'timestamp', 'first_attempt', 'last_attempt']),
 ]
 
-mail_log = env('MAIL_LOG', '/var/log/mail.log')
+mail_log_path = env('MAIL_LOG_PATH', '/var/log')
+mail_log_filename = env('MAIL_LOG_FILENAME', 'mail.log')
 
+mail_log = mail_log_path+'/'+mail_log_filename
 
 admin_pass = env('ADMIN_PASS', 'SetThis!InYourEnv')
 secret_key = env('SECRET_KEY', 'SetThis!InYourEnv')
