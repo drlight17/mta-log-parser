@@ -4,7 +4,9 @@
 
 This is a small application designed to parse the log output of SMTP servers (postfix, exim and sendmail are supported for now), and convert it into easily queryable data inside of [RethinkDB](https://rethinkdb.com/).
 
-It includes a Web UI built with [Quart](https://github.com/pgjones/quart) and [VueJS](https://vuejs.org/) - allowing
+It is the independent fork of the great [Privex inc. project](https://github.com/Privex/postfix-parser) for Postfix logs parser with GUI, but improved according to my functionality vision.
+
+It includes a Web UI built with [Quart](https://github.com/pgjones/quart) and [VueJS3](https://vuejs.org/) - allowing
 for easily navigating and filtering the log data straight from your browser.
 
 **DISCLAIMER:** The Web UI only includes a very basic password prompt which reads the password from the `.env` file.
