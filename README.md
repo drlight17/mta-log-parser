@@ -117,6 +117,10 @@ location /logs/ {
    proxy_pass http://domain.org:8487;
 }
 ```
+Etc
+========
+More info will be published in the [project wiki](https://github.com/drlight17/mta-log-parser/wiki).
+
 # License
 
 This project is licensed under the **GNU AGPL v3**
