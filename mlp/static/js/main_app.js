@@ -618,7 +618,10 @@ const app = Vue.createApp({
                 console.error('Error:', res);
                 this.toggleLoading(false);
                 this.$nextTick(function () {
-                    this.check_nothing_found(0,$('.emails-list'));
+                    // check if we are on login or api_error screen
+                    if (!(($("div.logo.login").length > 0) || ($(".api_error_container").length > 0))) {
+                        this.check_nothing_found(0,$('.emails-list'));
+                    }
                 });
             });
         },
@@ -854,9 +857,9 @@ const app = Vue.createApp({
             this.loadFilters();
         }
         // check if we are on login or api_error screen
-        if (($("div.logo.login").length > 0) || ($(".api_error_container").length > 0)) {
+        /*if (($("div.logo.login").length > 0) || ($(".api_error_container").length > 0)) {
             this.toggleLoading(false);
-        }
+        }*/
 
         this.$nextTick(function () {
             // if cur browser is mozilla turn off marquee function dirty with timeout
