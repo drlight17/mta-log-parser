@@ -39,8 +39,21 @@ import moment
 log = logging.getLogger(__name__)
 
 app = Quart(__name__)
+
 # add path prefix
 PREFIX = settings.path_prefix
+new_static_path = PREFIX+"/static"
+app.static_url_path = new_static_path
+
+'''for rule in app.url_map.iter_rules('static'):
+    app.url_map._rules.remove(rule)  # There is probably only one.'''
+
+app.url_map._rules_by_endpoint['static'] = []
+
+app.add_url_rule(f'{new_static_path}/<path:filename>',
+                 endpoint='static',
+                 view_func=app.send_static_file)
+
 app.secret_key = settings.secret_key
 
 Table = rethinkdb.query.ast.Table
@@ -49,6 +62,7 @@ QueryOrTable = Union[Table, RqlQuery]
 
 @app.route(f'{PREFIX}/', methods=['GET'])
 async def index():
+    print(settings.mail_domain)
     NOTIE_MESSAGE = await _process_notie()
 
     if 'admin' in session:
@@ -74,6 +88,7 @@ async def login():
 @app.route(f'{PREFIX}/emails', methods=['GET'])
 @app.route(f'{PREFIX}/emails/', methods=['GET'])
 async def emails_ui():
+
     if 'admin' not in session:
         session['NOTIE_MESSAGE'] = "unauth"
         return redirect(f'{PREFIX}/')

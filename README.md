@@ -1,12 +1,10 @@
-<h1><img align="center" width="100" height="60" src="https://raw.githubusercontent.com/drlight17/mta-log-parser/master/mlp/static/images/logo.png"> MTA Log Parser with Web UI</h1>
+<h1><img align="center" width="100" height="60" src="https://raw.githubusercontent.com/drlight17/mta-log-parser/mlp_v.1.1.0/mlp/static/images/logo.png"> MTA Log Parser with Web UI</h1>
 
 
 
 This is a small application designed to parse the log output of SMTP servers (postfix, exim and sendmail are supported for now), and convert it into easily queryable data inside of [RethinkDB](https://rethinkdb.com/).
 
-It is the independent fork of the great [Privex inc. Postfix logs parser with GUI project](https://github.com/Privex/postfix-parser), but improved according to my functionality vision.
-
-It includes a Web UI built with [Quart](https://github.com/pgjones/quart) and [VueJS3](https://vuejs.org/) - allowing
+It includes a Web UI built with [Quart](https://github.com/pgjones/quart) and [VueJS](https://vuejs.org/) - allowing
 for easily navigating and filtering the log data straight from your browser.
 
 **DISCLAIMER:** The Web UI only includes a very basic password prompt which reads the password from the `.env` file.
@@ -18,9 +16,9 @@ parsed data is kept in RethinkDB - thus you can run the WebUI on a separate serv
 RethinkDB server. Dockerized however is designed to run on the same server, but you can simply edit Dockerfile and docker-compose.yaml to your needs.
 
 
-![Screenshot of Log View Web UI](https://raw.githubusercontent.com/drlight17/mta-log-parser/master/screenshot1.JPG)
+![Screenshot of Log View Web UI](https://github.com/drlight17/mta-log-parser/raw/mlp_v.1.1.0/screenshot1.JPG)
 
-![Screenshot of Email Show Modal](https://raw.githubusercontent.com/drlight17/mta-log-parser/master/screenshot2.JPG)
+![Screenshot of Email Show Modal](https://github.com/drlight17/mta-log-parser/raw/mlp_v.1.1.0/screenshot2.JPG)
 
 Dockerized usage (recommended for production and development)
 ========
@@ -116,9 +114,6 @@ If you want to use nginx reverse proxy for WebUI  with the URL path, i.e."/logs"
 var into .env file):
 ```
 location /logs/ {
-   location /logs/static/ {
-       proxy_pass http://domain.org:8487/static/;
-   }
    proxy_pass http://domain.org:8487;
 }
 ```

@@ -2,8 +2,9 @@
 {% block login %}
 
     <div id="login">
-        <h1 style="text-align: center;" v-if="localeData.app_title" v-html="localeData.app_title"></h1>
-        <h1 style="text-align: center;" v-else v-html="fallbackLocaleData.app_title"></h1>
+        <h1 style="text-align: center;" v-if="localeData.app_title">[[ localeData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
+        <h1 style="text-align: center;" v-else>[[ fallbackLocaleData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
+
         <div class="logo login"><img src="static/images/logo.png"></img></div>
         <div v-if="!loading" class="ui segment form center aligned login">
             <form action="./login" method="post">

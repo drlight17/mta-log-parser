@@ -1,5 +1,6 @@
 // append path_prefix to the base_url if any is set
 const path_prefix = document.currentScript.getAttribute('path_prefix');
+//const path_prefix = ""
 const base_url = path_prefix + '/api/emails';
 // get datetime_format from .env
 var datetime_format = document.currentScript.getAttribute('datetime_format');
@@ -43,7 +44,8 @@ const app = Vue.createApp({
             count: 0,
             msg: [],
             settings: [],
-            loaded_settings: false
+            loaded_settings: false,
+            timer:''
         }
     },
     computed: {
@@ -378,6 +380,19 @@ const app = Vue.createApp({
                 this.loading = false;
             }
         },
+        check_nothing_found(count,table) {
+            // if no results don't show table and show notification
+            if (count == 0) {
+                if (this.localeData.notie.nine == undefined) {
+                    text = this.fallbackLocaleData.notie.nine
+                } else {
+                    text = this.localeData.notie.nine
+                }
+                notie.alert({type: 'info', text: text });
+                table.hide();
+                $('.JCLRgrips').hide();
+            }
+        },
         loadEmails(refresh) {
             // check if search_error clear search text
             if (this.search_error) {
@@ -430,16 +445,8 @@ const app = Vue.createApp({
                     $found_table = $('.emails-list');
                     thead = $found_table.find('thead');
                     // if no results don't show table and show notification
-                    if (this.count == 0) {
-                        if (this.localeData.notie.nine == undefined) {
-                            text = this.fallbackLocaleData.notie.nine
-                        } else {
-                            text = this.localeData.notie.nine
-                        }
-                        notie.alert({type: 'info', text: text });
-                        $found_table.hide();
-                        $('.JCLRgrips').hide();
-                    }
+                    this.check_nothing_found(this.count,$found_table);
+
                     if (refresh) {
                         // scroll to the table top
                         if ($found_table.find('td:first').length > 0) {
@@ -457,9 +464,8 @@ const app = Vue.createApp({
                                 // scrolling offset by hide-sticky-header-button height
                                 window.scrollTo({top: y, behavior: 'smooth'});
                             }, 500);
-
                         }
-                    } 
+                    }
                     // style selected column for sort
                     $found_table.find('#'+this.order).removeClass().addClass(this.order_dir);
                     // if no results don't process empty table
@@ -610,6 +616,10 @@ const app = Vue.createApp({
 
             }).catch((res) => {
                 console.error('Error:', res);
+                this.toggleLoading(false);
+                this.$nextTick(function () {
+                    this.check_nothing_found(0,$('.emails-list'));
+                });
             });
         },
         logout() {
@@ -621,7 +631,7 @@ const app = Vue.createApp({
             localStorage.setItem('localeData',localeData);
             localStorage.setItem('fallbackLocaleData',fallbackLocaleData);
             localStorage.setItem('locale',locale);
-            window.location = '/logout';
+            window.location = path_prefix+'/logout';
 
         },
         show_modal(m) {
@@ -739,16 +749,26 @@ const app = Vue.createApp({
         },
         setDuration() {
             this.$nextTick(function () {
-                if (this.settings.default_period) {
-                    if (!($('#default_period_div input').is(":disabled"))) {
-                        //var tzoffset = (new Date()).getTimezoneOffset() * 60000; //timezone offset in milliseconds
-                        var startdate = new Date(new Date(Date.now()) - this.settings.default_period * 60000/* - tzoffset*/);
-                        startdate = this.format_date(startdate,datetime_format,true);
-                        //console.log(startdate);
-                        this.date_filter__gt = startdate;
-                        this.reset_page();
+                if (!(this.settings.filters)) {
+                    //var tzoffset = (new Date()).getTimezoneOffset() * 60000; //timezone offset in milliseconds
+                    var startdate = new Date(new Date(Date.now()) - this.settings.default_period * 60000/* - tzoffset*/);
+                    startdate = this.format_date(startdate,datetime_format,true);
+                    //console.log(startdate);
+                    this.date_filter__gt = startdate;
+                    this.reset_page();
+                }
+            });
+        },
+        setRefresh() {
+            // autorefresh
+            this.$nextTick(function () {
+                clearInterval(window.app.timer);
+                window.app.timer = setInterval(function(){
+                    if (window.app.settings.refresh !== undefined) {
+                        //console.log("Page is refreshed after " + window.app.settings.refresh + " seconds passed.");
+                        window.app.loadEmails(false);
                     }
-                };
+                }, window.app.settings.refresh * 60000);
             });
         },
         loadCurPage() {
@@ -759,8 +779,9 @@ const app = Vue.createApp({
         onSettingsUpdated(val) {
             let v = JSON.parse(JSON.stringify(val));
             v.page_limit = Number.parseInt(v.page_limit);
+            v.refresh = Number.parseInt(v.refresh);
             v.default_period = Number.parseInt(v.default_period);
-            let updatePage = (v.default_period !== Number.parseInt(this.settings.default_period) || v.page_limit !== Number.parseInt(this.settings.page_limit) /*|| v.marquee !== this.settings.marquee*/ || v.colored !== this.settings.colored || v.sticky !== this.settings.sticky || v.resizable !== this.settings.resizable || v.locale !== this.settings.locale || v.filters !== this.settings.filters);
+            let updatePage = (v.default_period !== Number.parseInt(this.settings.default_period) || v.page_limit !== Number.parseInt(this.settings.page_limit) || v.refresh !== Number.parseInt(this.settings.refresh) /*|| v.marquee !== this.settings.marquee*/ || v.colored !== this.settings.colored || v.sticky !== this.settings.sticky || v.resizable !== this.settings.resizable || v.locale !== this.settings.locale || v.filters !== this.settings.filters);
             
             let reload = false;
 
@@ -786,6 +807,8 @@ const app = Vue.createApp({
                     this.setDuration();
                 }
 
+                this.setRefresh();
+
                 if (reload) {
                     //location.reload();
                     // dirty timeout to show notie
@@ -805,6 +828,9 @@ const app = Vue.createApp({
         //$('select.dropdown').addClass("menu");
         //$('select.dropdown ').addClass("dropdown ui");
 
+        // set refresh interval
+        this.setRefresh();
+
         // show loading modal on the page load
         this.toggleLoading(true);
         // check if no saved locale
@@ -819,6 +845,7 @@ const app = Vue.createApp({
         this.loadLocaleMessages();
 
         $('select.dropdown option').addClass("item");  
+        
         // check setDuration option set
         this.setDuration();
 

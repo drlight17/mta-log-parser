@@ -6,46 +6,48 @@
                 <div class="ui column wide">
                     <div class="two fields">
                         <div class="field">
-                        <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.current_lang"></label>
-                        <select name="cur-lang" id="cur-lang" v-model="settings.locale" class="ui selection dropdown">
-                            <option v-for="(item, key) in $parent.locales" v-bind:value="key"> {{ item }}</option>
-                        </select>
-                        <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.max_result"></label>
-                            <div class="ui input left icon">
-                                <input v-model="settings.page_limit" type="number" class="ui input" placeholder="Results per Page">
-                                <i class="list ol icon"/>
+                            <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.current_lang"></label>
+                            <select name="cur-lang" id="cur-lang" v-model="settings.locale" class="ui selection dropdown">
+                                <option v-for="(item, key) in $parent.locales" v-bind:value="key"> {{ item }}</option>
+                            </select>
+                            <p></p>
+                            <div class="ui field"><i class="list ol icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.page_limit"></label> {{ settings.page_limit }}</div>
+                            <div class="ui input">
+                                <input v-model="settings.page_limit" type="range" step="5" min="5" max="300" class="ui input range">
+                            </div>
+                            <div style="display:none" id="default_period_div">
+                                <div class="ui field"><i class="clock icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.show_last_min"></label> {{ settings.default_period }} <label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.show_last_min_end"></label></div>
+                                <div class="ui input">
+                                    <input v-model="settings.default_period" type="range" step="5" min="5" max="1440" class="ui input range">
                                 </div>
-                        <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.show_last_min"></label>
-                            <div id="default_period_div" class="ui input left icon">
-                                <input disabled v-model="settings.default_period" type="number" class="ui input" placeholder="Amount of minutes">
-                                <i class="clock icon"/>
-                                </div>
+                            </div>
+                            <div class="ui field"><i class="sync icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh"></label> {{ settings.refresh }} <label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh_end"></label></div>
+                            <div class="ui input">
+                                <input v-model="settings.refresh" type="range" step="1" min="1" max="60" class="ui input range" placeholder="Amount of seconds">
+                            </div>
                         </div>
                         <div class="field">
-                            <!--<div class="logout">
-                                <button @click="this.$parent.logout()" class="ui button red center"><i class="sign out alternate icon"></i><span>Log Out</span></button>
-                            </div>-->
-                            <div class="ui toggle checkbox" style="margin-top:0!important;">
+                            <div class="ui toggle checkbox">
                               <input v-if="!$parent.loading" v-model="settings.blurring" type="checkbox" :title="$parent.localeData.user_settings.blur_title" >
                               <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.blur"></label>
                             </div>
-                            <div class="ui toggle checkbox" style="margin-top:4px!important;">
+                            <div class="ui toggle checkbox">
                               <input v-if="!$parent.loading" v-model="settings.sticky" type="checkbox" :title="$parent.localeData.user_settings.sticky_title" >
                               <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.sticky"></label>
                             </div>
-                            <!--<div id="marquee_sw" class="ui toggle checkbox" style="margin-top:4px!important;">
+                            <!--<div id="marquee_sw" class="ui toggle checkbox">
                               <input v-if="!$parent.loading" v-model="settings.marquee" type="checkbox" :title="$parent.localeData.user_settings.marquee_title" >
                               <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.marquee"></label>
                             </div>-->
-                            <div class="ui toggle checkbox" style="margin-top:4px!important;">
+                            <div class="ui toggle checkbox">
                               <input v-if="!$parent.loading" v-model="settings.colored" type="checkbox" :title="$parent.localeData.user_settings.colored_title" >
                               <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.colored"></label>
                             </div>
-                            <div class="ui toggle checkbox" style="margin-top:4px!important;">
+                            <div class="ui toggle checkbox">
                               <input v-if="!$parent.loading" v-model="settings.resizable" type="checkbox" :title="$parent.localeData.user_settings.resizable_title" >
                               <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.resizable"></label>
                             </div>
-                            <div class="ui toggle checkbox" style="margin-top:4px!important;">
+                            <div class="ui toggle checkbox">
                               <input v-if="!$parent.loading" v-model="settings.filters" type="checkbox" :title="$parent.localeData.user_settings.save_and_load_title" >
                               <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.save_and_load"></label>
                             </div>
@@ -62,7 +64,8 @@
                 // default gui settings
                 'settings': {
                     page_limit: 50,
-                    default_period: 60,
+                    default_period: 30,
+                    refresh: 10,
                     sticky: true,
                     blurring: true,
                     //marquee: false,
@@ -111,6 +114,18 @@
             'settings.default_period': function(val) {
                 $('#savesettings').prop('disabled', false);
             },
+            /*'settings.refresh': _.debounce(function(val) {
+                if (val < 10) {
+                    this.settings.refresh = 10;
+                    $('#savesettings').prop('disabled', true);
+                } else {
+                    this.settings.refresh = val;
+                    $('#savesettings').prop('disabled', false);
+                }
+            }, 400),*/
+            'settings.refresh': function(val) {
+                $('#savesettings').prop('disabled', false);
+            },
             'settings.colored': function(val) {
                 $('#savesettings').prop('disabled', false);
             },
@@ -129,12 +144,14 @@
             },
             enableDuration() {
                 this.$nextTick(function () {
-                    $('#default_period_div > input').prop('disabled', false);
+                    //$('#default_period_div > input').prop('disabled', false);
+                    $('#default_period_div').show();
                 });
             },
             disableDuration() {
                 this.$nextTick(function () {
-                    $('#default_period_div > input').prop('disabled', true);
+                    //$('#default_period_div > input').prop('disabled', true);
+                    $('#default_period_div').hide();
                 });
             },
             statusResetColors() {
@@ -163,17 +180,22 @@
             },
             loadSettings() {
                 let s = this.settings;
-                if ('page_limit' in window.localStorage)
-                    s.page_limit = Number.parseInt(window.localStorage['page_limit']);
 
                 if (isNaN(s.page_limit))
                     s.page_limit = 50;
+                if ('page_limit' in window.localStorage)
+                    s.page_limit = Number.parseInt(window.localStorage['page_limit']);
 
+                if (isNaN(s.refresh))
+                    s.refresh = 10;
+                if ('refresh' in window.localStorage)
+                    s.refresh = Number.parseInt(window.localStorage['refresh']);
+
+                if (isNaN(s.default_period))
+                    s.default_period = 30;
                 if ('default_period' in window.localStorage)
                     s.default_period = Number.parseInt(window.localStorage['default_period']);
 
-                if (isNaN(s.default_period))
-                    s.default_period = 20;
 
                 if ('locale' in window.localStorage)
                     s.locale = window.localStorage['locale'];
@@ -213,12 +235,15 @@
                 // to convert it into an integer. If it's not a number, reset it back to 50.
                 if (isNaN(this.settings.page_limit)) { this.settings.page_limit = 50; }
                 this.settings.page_limit = Number.parseInt(this.settings.page_limit);
-                if (isNaN(this.settings.page_limit)) { this.settings.page_limit = 50; }
                 window.localStorage.page_limit = this.settings.page_limit;
 
-                if (isNaN(this.settings.default_period)) { this.settings.default_period = 20; }
+
+                if (isNaN(this.settings.refresh)) { this.settings.refresh = 10; }
+                this.settings.refresh = Number.parseInt(this.settings.refresh);
+                window.localStorage.refresh = this.settings.refresh;
+
+                if (isNaN(this.settings.default_period)) { this.settings.default_period = 30; }
                 this.settings.default_period = Number.parseInt(this.settings.default_period);
-                if (isNaN(this.settings.default_period)) { this.settings.default_period = 20; }
                 window.localStorage.default_period = this.settings.default_period;
                 
                 //console.log(this.settings.locale);

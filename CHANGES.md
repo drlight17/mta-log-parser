@@ -1,12 +1,21 @@
 Unreleased VER.
 - add multiple text filters
-- tail realtime parsing mode + gui autorefresh (with config seconds) (?)
 - replace momentjs wih day.js or luxone(?)
 - make mailcow PR to integrate into
 - maybe scrollTo by not all refreshes (?)
 - remove python privex helpers code (?)
-- add configurable html titles (?)
 - save settings into cookies + accept cookies modal (?)
+
+VER. 1.1.3
+- ~~tail realtime parsing mode + gui autorefresh (with config seconds)~~
+- ~~fix refresh undefined time on login page~~
+- ~~add mail_domain variable to env for the site title (or fetch from the current URL)~~
+- ~~replace input type numbers to range to prevent wrong values~~
+- ~~no table found exception process~~
+- ~~check that nothing found function added~~
+- ~~update log file in docker if rotated~~
+- ~~css hover cell link effect~~
+- ~~nginx rewrite static remove~~
 
 VER. 1.1.2
 - ~~exclude-marquee remove~~   
@@ -84,6 +93,7 @@ VER. 1.1.0
 - ~~filter autofill on click at cells according to its type (timestamp fills date, queue id fills text queue id etc.)~~
 - ~~sticky header gui switcher~~
 - ~~cleanup from tablesorter~~
+
 VER. 1.0.0
 - ~~page goes to top when refresh without colResize~~
 - ~~save sticky header state in localStorage~~

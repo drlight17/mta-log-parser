@@ -4,12 +4,14 @@
     <div class="top_title">
         <div class="logo">
             <div class="field">
-                <a href="#"><img width="60" src="{{ settings.path_prefix+url_for('static', filename='images/logo.png') }}"></img></a>
+                <a href="#"><img width="60" src="{{ url_for('static', filename='images/logo.png') }}"></img></a>
             </div>
             <div class="field title">
-                <h1 v-if="localeData.app_title" v-html="localeData.app_title"></h1>
-                <h1 v-else v-html="fallbackLocaleData.app_title"></h1>
+                <h1 v-if="localeData.app_title">[[ localeData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
+                <h1 v-else>[[ fallbackLocaleData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
+
             </div>
+            
         </div>
         <div v-if="!loading" class="logout">
             <button @click="logout()" class="ui button red center"><i class="sign out alternate icon"></i><span v-if="localeData.user_settings.log_out" v-html="localeData.user_settings.log_out"></span><span v-else v-html="fallbackLocaleData.user_settings.log_out"></span></button>

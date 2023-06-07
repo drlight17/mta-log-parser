@@ -58,6 +58,7 @@
 }
 #user-settings .checkbox {
     margin-right: 15px;
+    margin-top: 1em;
 }
 
 /* on top from bottom offset */
@@ -277,12 +278,25 @@ button:not(.navi), #footer {
     overflow: auto;
 }
 
-.filter_linked span:hover {
+.filter_linked span {
+  padding-bottom: 3px;
+  --bg-h: 1px;
+    background: linear-gradient(0deg, black, black) no-repeat left bottom / 6px var(--bg-h);
+  transition: background-size .2s;
+}
+
+.filter_linked span:where(:hover, :focus-visible) {
+    background-size: 100% var(--bg-h);
+    background-position-x: left;
+}
+
+/*.filter_linked span:hover {
     cursor: pointer;
     background-color: #ffffff9e;
-    /*transition: opacity 0.5s ease-out;*/
     transition: all .15s ease-in;
-}
+    border-radius: 5px;
+    padding: 10px;
+}*/
 
 /* modal close button fix*/
 .ui.modal > i.close.icon {
@@ -300,3 +314,8 @@ i.close.icon::before {
     text-shadow: none;
 }
 
+/* remove left and right paddings on range sliders*/
+.range {
+    padding-left:0!important;
+    padding-right:0!important;
+}

@@ -43,6 +43,8 @@ rethink_tables = [
     ('sent_mail', ['mail_to', 'timestamp', 'first_attempt', 'last_attempt']),
 ]
 
+mail_domain = env('MAIL_DOMAIN', '')
+
 mail_log_path = env('MAIL_LOG_PATH', '/var/log')
 mail_log_filename = env('MAIL_LOG_FILENAME', 'mail.log')
 
