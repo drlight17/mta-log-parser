@@ -1,5 +1,10 @@
 Unreleased VER.
-- add multiple text filters
+- add multiple simultanious text filters
+- dark theme mode
+- gui autorefresh 0 value as "no autorefresh"
+- padding to the cells in table resizable mode
+- minify
+- get rid of setTimeouts
 - replace momentjs wih day.js or luxone(?)
 - make mailcow PR to integrate into
 - maybe scrollTo by not all refreshes (?)
