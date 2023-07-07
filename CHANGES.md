@@ -1,8 +1,6 @@
 Unreleased VER.
 - add multiple simultanious text filters
 - dark theme mode
-- gui autorefresh 0 value as "no autorefresh"
-- padding to the cells in table resizable mode
 - minify
 - get rid of setTimeouts
 - replace momentjs wih day.js or luxone(?)
@@ -10,6 +8,13 @@ Unreleased VER.
 - maybe scrollTo by not all refreshes (?)
 - remove python privex helpers code (?)
 - save settings into cookies + accept cookies modal (?)
+- export to xlsx file (table) (?)
+
+VER. 1.1.4
+- ~~gui autorefresh 0 value as "no autorefresh"~~
+- ~~to fix log_lines filter 1 min timeout (504 error) by forced apply time period (in frontend)~~
+- ~~to fix mail_to filter in postfix~~
+- ~~padding to the cells in table resizable mode~~
 
 VER. 1.1.3
 - ~~tail realtime parsing mode + gui autorefresh (with config seconds)~~

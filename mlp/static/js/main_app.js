@@ -97,21 +97,35 @@ const app = Vue.createApp({
                 //this.search = this.search.slice(0,-1);
                 //return;
             } else {
-                $('#text_search').css('color', 'initial');
-                if (this.settings.filters) {
-                    this.saveFilters();
+                if (this.search_by !== "log_lines") {
+                    $('#text_search').css('color', 'initial');
+                    if (this.settings.filters) {
+                        this.saveFilters();
+                    } else {
+                        $('#default_period_div').show();
+                    }
+                    this.search_error = false;
+                    this.reset_page();
+                    
+                } else {
+                    this.setDuration_Log_lines();
                 }
-                this.search_error = false;
-                this.reset_page();
                 this.debounce_emails(true);
             }
         },
         search_by(val) {
             if (this.search !== "") {
-                if (this.settings.filters) {
-                    this.saveFilters();
+                if (this.search_by !== "log_lines") {
+                    if (this.settings.filters) {
+                        this.saveFilters();
+                    } else {
+                        $('#default_period_div').show();
+                    }
+                    this.reset_page();
+                    
+                } else {
+                    this.setDuration_Log_lines();
                 }
-                this.reset_page();
                 this.debounce_emails(true);
             }
         },
@@ -123,10 +137,15 @@ const app = Vue.createApp({
             this.debounce_emails(true);
         },
         date_filter__gt(val) {
-            if (this.settings.filters) {
-                this.saveFilters();
+            if (this.search_by !== "log_lines") {
+                if (this.settings.filters) {
+                    this.saveFilters();
+                }
+                this.reset_page();
+                
+            }  else {
+                this.setDuration_Log_lines();
             }
-            this.reset_page();
             // do not debounce on datestart change ???
             this.debounce_emails(true);
         },
@@ -380,20 +399,34 @@ const app = Vue.createApp({
                 this.loading = false;
             }
         },
-        check_nothing_found(count,table) {
+        check_nothing_found(count,table,wait) {
             // if no results don't show table and show notification
             if (count == 0) {
-                if (this.localeData.notie.nine == undefined) {
-                    text = this.fallbackLocaleData.notie.nine
-                } else {
-                    text = this.localeData.notie.nine
-                }
-                notie.alert({type: 'info', text: text });
+                // make delay for notie only, not hide operations
+                setTimeout(() => {
+                    if (this.localeData.notie.nine == undefined) {
+                        text = this.fallbackLocaleData.notie.nine
+                    } else {
+                        text = this.localeData.notie.nine
+                    }
+                    notie.alert({type: 'info', text: text });
+                }, wait);
                 table.hide();
                 $('.JCLRgrips').hide();
             }
         },
         loadEmails(refresh) {
+            var wait = 0;
+            // show 
+            if (this.search_by == "log_lines") {
+                wait = 3000;
+                if (this.localeData.notie.three == undefined) {
+                    text = this.fallbackLocaleData.notie.ten
+                } else {
+                    text = this.localeData.notie.ten
+                }
+                notie.alert({type: 'warning', text: text});
+            }
             // check if search_error clear search text
             if (this.search_error) {
                 this.search = "";
@@ -445,7 +478,7 @@ const app = Vue.createApp({
                     $found_table = $('.emails-list');
                     thead = $found_table.find('thead');
                     // if no results don't show table and show notification
-                    this.check_nothing_found(this.count,$found_table);
+                    this.check_nothing_found(this.count,$found_table,wait);
 
                     if (refresh) {
                         // scroll to the table top
@@ -620,7 +653,7 @@ const app = Vue.createApp({
                 this.$nextTick(function () {
                     // check if we are on login or api_error screen
                     if (!(($("div.logo.login").length > 0) || ($(".api_error_container").length > 0))) {
-                        this.check_nothing_found(0,$('.emails-list'));
+                        this.check_nothing_found(0,$('.emails-list'),0);
                     }
                 });
             });
@@ -750,6 +783,18 @@ const app = Vue.createApp({
         saveCurPage() {
             window.localStorage['cur_page']=this.page;
         },
+        setDuration_Log_lines() {
+            //console.log("Force heavy load search to the last 24 hours!");
+            $('#default_period_div').hide();
+            var startdate = new Date(new Date(Date.now()) - 24 * 60 * 60000/* - tzoffset*/);
+            startdate = this.format_date(startdate,datetime_format,true);
+            this.date_filter__gt = startdate;
+            this.date_filter__lt = "";
+            this.saveFilters();
+            //this.debounce_emails(true);
+            //this.reset_page();
+
+        },
         setDuration() {
             this.$nextTick(function () {
                 if (!(this.settings.filters)) {
@@ -766,12 +811,14 @@ const app = Vue.createApp({
             // autorefresh
             this.$nextTick(function () {
                 clearInterval(window.app.timer);
-                window.app.timer = setInterval(function(){
-                    if (window.app.settings.refresh !== undefined) {
-                        //console.log("Page is refreshed after " + window.app.settings.refresh + " seconds passed.");
-                        window.app.loadEmails(false);
-                    }
-                }, window.app.settings.refresh * 60000);
+                if (window.app.settings.refresh > 0) {
+                    window.app.timer = setInterval(function(){
+                        if (window.app.settings.refresh !== undefined) {
+                            //console.log("Page is refreshed after " + window.app.settings.refresh + " seconds passed.");
+                            window.app.loadEmails(false);
+                        }
+                    }, window.app.settings.refresh * 60000);
+                }
             });
         },
         loadCurPage() {

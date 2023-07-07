@@ -21,9 +21,10 @@
                                     <input v-model="settings.default_period" type="range" step="5" min="5" max="1440" class="ui input range">
                                 </div>
                             </div>
-                            <div class="ui field"><i class="sync icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh"></label> {{ settings.refresh }} <label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh_end"></label></div>
+                            <div v-if="settings.refresh !== 0" class="ui field"><i class="sync icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh"></label> {{ settings.refresh }} <label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh_end"></label></div>
+                            <div v-else class="ui field"><i class="sync icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.no_refresh"></label></div>
                             <div class="ui input">
-                                <input v-model="settings.refresh" type="range" step="1" min="1" max="60" class="ui input range" placeholder="Amount of seconds">
+                                <input v-model="settings.refresh" type="range" step="1" min="0" max="60" class="ui input range" placeholder="Amount of seconds">
                             </div>
                         </div>
                         <div class="field">

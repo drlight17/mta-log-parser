@@ -187,7 +187,7 @@ async def api_emails():
         if settings.mta == 'exim':
             recipient_match = "-> |=> |== |>> "
             #recipient_match = "->|=>|==|>> "
-        if settings.mta == 'sendmail':
+        if settings.mta == 'sendmail' or settings.mta == 'postfix':
             recipient_match = "to="
         found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(recipient_match)).filter(lambda m: m['message'].match(search_string)).run(conn)
         ids = []

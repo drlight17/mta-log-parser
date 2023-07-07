@@ -79,11 +79,11 @@
     text-overflow: ellipsis;
 }
 
-/*for resizable tables*/
+/*for resizable tables
 
 .emails-list:is(.resizable) td, .emails-list:is(.resizable) th {
   white-space: nowrap;
-}
+}*/
 
 /* for non-resizable tables*/
 .emails-list:not(.resizable) td:hover, .emails-list:not(.resizable) th:hover  {
