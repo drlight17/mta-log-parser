@@ -73,10 +73,14 @@
 }
 
 /*for all tables*/
-.emails-list td:not(:last-child), .emails-list th {
+/*.emails-list td:not(:last-child), .emails-list th {*/
+#emails-list > tbody > tr > td, #emails-list > thead > tr > th {
+/*.emails-list td, .emails-list th {*/
     /*text-align: center!important;*/
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-left: 0.78em!important;
+    padding-right: 0.78em!important;
 }
 
 /*for resizable tables
@@ -94,7 +98,6 @@
 .emails-list:not(.resizable) {
   table-layout: fixed;
 }
-
 
 .emails-list:not(.resizable) #timestamp, .emails-list:not(.resizable) #queue_id, .emails-list:not(.resizable) #first_attempt, .emails-list:not(.resizable) #last_attempt {
     width: 8%;
@@ -124,14 +127,14 @@
 
 .emails-list th.asc {
     background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7)!important;
-    background-position: center right!important;
+    background-position: bottom 7px center!important;
     background-repeat: no-repeat!important;
     /*background-color: #e1dcdc!important;*/
 }
 
 .emails-list th.desc {
     background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7)!important;
-    background-position: center right!important;
+    background-position: bottom 7px center!important;
     background-repeat: no-repeat!important;
     /*background-color: #e1dcdc!important;*/
 }
