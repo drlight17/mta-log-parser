@@ -15,10 +15,14 @@ There's also no requirement to run both the Web UI and the actual log parser/imp
 parsed data is kept in RethinkDB - thus you can run the WebUI on a separate server as long as it has access to the
 RethinkDB server. Dockerized however is designed to run on the same server, but you can simply edit Dockerfile and docker-compose.yaml to your needs.
 
+![Screenshot of Log View Dark Web UI](https://raw.githubusercontent.com/drlight17/mta-log-parser/master/screenshot3.JPG)
+
+![Screenshot of Email Show Modal Dark](https://raw.githubusercontent.com/drlight17/mta-log-parser/master/screenshot4.JPG)
 
 ![Screenshot of Log View Web UI](https://raw.githubusercontent.com/drlight17/mta-log-parser/master/screenshot1.JPG)
 
 ![Screenshot of Email Show Modal](https://raw.githubusercontent.com/drlight17/mta-log-parser/master/screenshot2.JPG)
+
 
 Dockerized usage (recommended for production and development)
 ========
