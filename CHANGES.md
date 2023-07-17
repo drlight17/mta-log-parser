@@ -10,6 +10,16 @@ Unreleased VER.
 - save settings into cookies + accept cookies modal (?)
 - export to xlsx file (table) (?)
 
+VER. 1.1.5
+- ~~dark theme mode (use inverted class for ui elements)~~
+- ~~optimize table colored_rows for dark mode~~
+- ~~default dark mode from the browser~~  
+- ~~api error darkmode~~
+- ~~save dark mode at login screen~~
+- ~~dark css for hide table header button in mobile view~~
+- ~~toggleLoading show on locale change~~
+- ~~optimization of log_lines and mail_to query filters so threr is no need for the forced 24 hours time period~~
+
 VER. 1.1.4
 - ~~gui autorefresh 0 value as "no autorefresh"~~
 - ~~to fix log_lines filter 1 min timeout (504 error) by forced apply time period (in frontend)~~

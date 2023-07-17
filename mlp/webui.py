@@ -188,28 +188,36 @@ async def api_emails():
             recipient_match = "-> |=> |== |>> "
             #recipient_match = "->|=>|==|>> "
         if settings.mta == 'sendmail' or settings.mta == 'postfix':
-            recipient_match = "to="
-        found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(recipient_match)).filter(lambda m: m['message'].match(search_string)).run(conn)
+            recipient_match = "^to="
+        found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).filter(lambda m: m['message'].match(recipient_match)).run(conn)
+        
         ids = []
         async for f in found_strings:
             ids.append(f['queue_id'])
-        _sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
+        #_sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
+        # new much more effective query method
+        _sm = _sm.get_all(r_q.args(ids), index='id')
+
+        
 
     # check log lines
     if 'log_lines' in frm:
         search_string = str(frm.pop('log_lines'))#.lower()
         found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).run(conn)
-        #print(found_strings)
         ids = []
         async for f in found_strings:
             ids.append(f['queue_id'])
-        _sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
+        #_sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
+        # new much more effective query method
+        _sm = _sm.get_all(r_q.args(ids), index='id')
         
     # Handle appending .filter() to `_sm` for each filter key in `frm`
     _sm = await _process_filters(query=_sm, frm=frm)
 
     _sm, res = await _paginate_query(_sm, frm, rt_conn=conn, rt_query=r_q, order_by=order_by, order_dir=order_dir)
     _sm = await _sm.run(conn)
+
+    #print(list(_sm))
 
     sm = []
     if type(_sm) is list:
@@ -272,29 +280,15 @@ async def _filter_form_key(fkey: str, fval: str, query: QueryOrTable) -> QueryOr
     if '.' in fkey:
         k1, k2 = fkey.split('.')
         return query.filter(lambda m: m[k1][k2] == fval)
-    # process timestamp values before filter
-    # Mon Mar 13 2023 07:00:06 GMT+00:00 ----    %a %b %d %Y %H:%M:%S %Z
-    # Mon Mar 13 2023 07:00:06 GMT 00:00
     if '__lt' in fkey:
         fkey = fkey.replace('__lt', '')
-        #print("fval: ",fval,"\n")
         fval = moment.date(fval,settings.datetime_format).date
-        #fval = parser.isoparse(fval)
-        #fval = json.dumps(fval, indent=4, sort_keys=True, default=str)
-        #fval = parser.isoparse(fval)
         fval = fval.replace(tzinfo=timezone.utc)
-        #print("processed_fval: ",fval,"\n")
         return query.filter(lambda m: m[fkey] <= fval)
     if '__gt' in fkey:
         fkey = fkey.replace('__gt', '')
-        #print("fval: ",fval,"\n")
-        #fval = datetime.strptime(fval, '%d.%m.%Y, %H:%M')
         fval = moment.date(fval,settings.datetime_format).date
-        #fval = parser.isoparse(fval)
-        #fval = json.dumps(fval, indent=4, sort_keys=True, default=str)
-        #fval = parser.isoparse(fval)
         fval = fval.replace(tzinfo=timezone.utc)
-        #print("processed_fval: ",fval,"\n")
         return query.filter(lambda m: m[fkey] >= fval)
     # full wildcard to key value (i.e. *find string*)
     rval = fval.replace('*', '')  # fval but without asterisks

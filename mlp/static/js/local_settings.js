@@ -1,6 +1,6 @@
     app.component('local-settings', {
         template: `
-        <div class="ui segment">
+        <div id="user-settings-wrapper" class="ui segment">
             <h3><i class="user icon"/><span v-if="!$parent.loading" v-html="$parent.localeData.user_settings.user_settings_title"></span></h3>
             <div class="ui form grid">
                 <div class="ui column wide">
@@ -28,6 +28,10 @@
                             </div>
                         </div>
                         <div class="field">
+                            <div class="ui toggle checkbox">
+                              <input v-if="!$parent.loading" v-model="settings.dark" type="checkbox" :title="$parent.localeData.user_settings.dark_title" >
+                              <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.dark"></label>
+                            </div>                        
                             <div class="ui toggle checkbox">
                               <input v-if="!$parent.loading" v-model="settings.blurring" type="checkbox" :title="$parent.localeData.user_settings.blur_title" >
                               <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.blur"></label>
@@ -69,6 +73,7 @@
                     refresh: 10,
                     sticky: true,
                     blurring: true,
+                    dark: false,
                     //marquee: false,
                     colored: true,
                     resizable: false,
@@ -98,6 +103,9 @@
         },
         watch: {
             'settings.blurring': function(val) {
+                $('#savesettings').prop('disabled', false);
+            },
+            'settings.dark': function(val) {
                 $('#savesettings').prop('disabled', false);
             },
             'settings.locale': function(val) {
@@ -204,7 +212,11 @@
                 if ('blurring' in window.localStorage) {
                     s.blurring = (window.localStorage['blurring']==="true");
                 }
-                
+
+                if ('dark' in window.localStorage) {
+                    s.dark = (window.localStorage['dark']==="true");
+                }
+
                 if ('sticky' in window.localStorage) {
                     s.sticky = (window.localStorage['sticky']==="true");
                 }
@@ -252,6 +264,9 @@
 
                 if (isNaN(this.settings.blurring)) { this.settings.blurring = true; }
                 window.localStorage.blurring = this.settings.blurring;
+
+                if (isNaN(this.settings.dark)) { this.settings.dark = true; }
+                window.localStorage.dark = this.settings.dark;
 
                 if (isNaN(this.settings.sticky)) { this.settings.sticky = true; }
                 window.localStorage.sticky = this.settings.sticky;

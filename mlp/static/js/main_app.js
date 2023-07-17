@@ -97,7 +97,8 @@ const app = Vue.createApp({
                 //this.search = this.search.slice(0,-1);
                 //return;
             } else {
-                if (this.search_by !== "log_lines") {
+                // no need after ver.1.1.5 query update
+                //if (this.search_by !== "log_lines") {
                     $('#text_search').css('color', 'initial');
                     if (this.settings.filters) {
                         this.saveFilters();
@@ -107,15 +108,16 @@ const app = Vue.createApp({
                     this.search_error = false;
                     this.reset_page();
                     
-                } else {
-                    this.setDuration_Log_lines();
-                }
+                //} else {
+                //    this.setDuration_Log_lines();
+                //}
                 this.debounce_emails(true);
             }
         },
         search_by(val) {
             if (this.search !== "") {
-                if (this.search_by !== "log_lines") {
+                // no need after ver.1.1.5 query update
+                //if (this.search_by !== "log_lines") {
                     if (this.settings.filters) {
                         this.saveFilters();
                     } else {
@@ -123,9 +125,9 @@ const app = Vue.createApp({
                     }
                     this.reset_page();
                     
-                } else {
-                    this.setDuration_Log_lines();
-                }
+                //} else {
+                //    this.setDuration_Log_lines();
+                //}
                 this.debounce_emails(true);
             }
         },
@@ -137,15 +139,16 @@ const app = Vue.createApp({
             this.debounce_emails(true);
         },
         date_filter__gt(val) {
-            if (this.search_by !== "log_lines") {
+            // no need after ver.1.1.5 query update
+            //if (this.search_by !== "log_lines") {
                 if (this.settings.filters) {
                     this.saveFilters();
                 }
                 this.reset_page();
                 
-            }  else {
-                this.setDuration_Log_lines();
-            }
+            //}  else {
+            //    this.setDuration_Log_lines();
+            //}
             // do not debounce on datestart change ???
             this.debounce_emails(true);
         },
@@ -390,7 +393,8 @@ const app = Vue.createApp({
             if (state) {
                 this.loading = true;
                 $("#main-wrapper").hide();
-                $('#loading-modal').modal({closable: false,blurring: this.settings.blurring,inverted: true}).modal('show');
+                var isDark = (window.localStorage['dark'] === 'true');
+                $('#loading-modal').modal({closable: false,blurring: this.settings.blurring,inverted: !isDark}).modal('show');
             } else {
                 setTimeout(() => $('#loading-modal').modal('hide'), 500);
                 //$('#loading-modal').modal('hide');
@@ -418,7 +422,8 @@ const app = Vue.createApp({
         loadEmails(refresh) {
             var wait = 0;
             // show 
-            if (this.search_by == "log_lines") {
+            // no need after ver.1.1.5 query update
+            /*if (this.search_by == "log_lines") {
                 wait = 3000;
                 if (this.localeData.notie.three == undefined) {
                     text = this.fallbackLocaleData.notie.ten
@@ -426,7 +431,8 @@ const app = Vue.createApp({
                     text = this.localeData.notie.ten
                 }
                 notie.alert({type: 'warning', text: text});
-            }
+            }*/        
+
             // check if search_error clear search text
             if (this.search_error) {
                 this.search = "";
@@ -434,8 +440,11 @@ const app = Vue.createApp({
             }
             // show loading modal on emails load
             if (refresh) {
-                $('#main-wrapper').hide(); 
-                this.toggleLoading(true);
+                $('#main-wrapper').hide();
+                // 17.07.2023 TODO check if nothing is broken
+                if (!(this.loading)) {
+                    this.toggleLoading(true);
+                }
             }
 
             var url = base_url, queries = 0;
@@ -477,6 +486,7 @@ const app = Vue.createApp({
                 this.$nextTick(function () {
                     $found_table = $('.emails-list');
                     thead = $found_table.find('thead');
+
                     // if no results don't show table and show notification
                     this.check_nothing_found(this.count,$found_table,wait);
 
@@ -518,7 +528,7 @@ const app = Vue.createApp({
                         
                         // add sticky table header
                         if (this.settings.sticky) {
-                            thead.first().css({'top': 0, 'position':'sticky', 'z-index': 1, 'background':'white' })/*.addClass('sticky-visible')*/;
+                            thead.first().css({'top': 0, 'position':'sticky', 'z-index': 1, 'background':'inherit' })/*.addClass('sticky-visible')*/;
                             // add show/hide sticky header button 
                             if (window.matchMedia('(max-width: 768px)').matches)
                             {
@@ -573,20 +583,19 @@ const app = Vue.createApp({
                     }
                     if (this.settings.colored) {
                         var filter_email = $('#filter-email');
-                        $found_table.find('td:contains("NOFILTER")').closest('tr').css('background-color',this.settings.status_color['NOFILTER']);
-                        $('#filter-email option[value="NOFILTER"]').css('background-color',this.settings.status_color['NOFILTER']);
-                        $found_table.find('td:contains("deferred")').closest('tr').css('background-color',this.settings.status_color['deferred']);
-                        $('#filter-email option[value="deferred"]').css('background-color',this.settings.status_color['deferred']);
-                        $found_table.find('td:contains("sent")').closest('tr').css('background-color',this.settings.status_color['sent']);
-                        $('#filter-email option[value="sent"]').css('background-color',this.settings.status_color['sent']);
-                        $found_table.find('td:contains("reject")').closest('tr').css('background-color',this.settings.status_color['reject']);
-                        $('#filter-email option[value="reject"]').css('background-color',this.settings.status_color['reject']);
-                        $found_table.find('td:contains("bounced")').closest('tr').css('background-color',this.settings.status_color['bounced']);
-                        $('#filter-email option[value="bounced"]').css('background-color',this.settings.status_color['bounced']);
-                         $found_table.find('td:contains("multiple")').closest('tr').css('background-color',this.settings.status_color['multiple']);
-                        $('#filter-email option[value="multiple"]').css('background-color',this.settings.status_color['multiple']);
-                         $found_table.find('td:contains("unknown")').closest('tr').css('background-color',this.settings.status_color['unknown']);
-                        $('#filter-email option[value="unknown"]').css('background-color',this.settings.status_color['unknown']);
+
+                        for (let x in this.settings.status_color) {
+                            var color = this.settings.status_color[x];
+                            // coloring based on dark mode
+                            if (x != 'NOFILTER') {
+                                if (this.settings.dark) {
+                                    color = color.slice(0, -2) + '.4)';
+                                }
+                            }
+                            $found_table.find('td:contains("'+x+'")').closest('tr').css('background-color',color);
+                            $('#filter-email option[value="'+x+'"]').css('background-color',color);
+                        } 
+
                         filter_email.css("background-color", filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor);
                         filter_email.one('change', function () {
                             filter_email.css("background-color", filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor);
@@ -645,6 +654,9 @@ const app = Vue.createApp({
                         datetime: datetime_format
                       }
                     });
+
+                    // set dark mode
+                    this.setDark($found_table);
                 });
 
             }).catch((res) => {
@@ -659,14 +671,16 @@ const app = Vue.createApp({
             });
         },
         logout() {
-            // keep locale settings
+            // keep locale and mode settings
             var localeData = localStorage.getItem('localeData');
             var fallbackLocaleData = localStorage.getItem('fallbackLocaleData');
             var locale = localStorage.getItem('locale');
+            var dark = localStorage.getItem('dark');
             localStorage.clear();
             localStorage.setItem('localeData',localeData);
             localStorage.setItem('fallbackLocaleData',fallbackLocaleData);
             localStorage.setItem('locale',locale);
+            localStorage.setItem('dark',dark);
             window.location = path_prefix+'/logout';
 
         },
@@ -691,8 +705,11 @@ const app = Vue.createApp({
                     $('.ui.modal>.header').css('background-color',this.settings.status_color[m.status.code].slice(0, -2) + '.4)');
 
                 } else {
-                    $('#email-metadata td:contains("'+m.status.code+'")').css('background-color',this.settings.status_color['NOFILTER']);
-                    $('.ui.modal>.header').css('background-color',this.settings.status_color['NOFILTER']);
+                    // change to inherit due to dark mode changes
+                    //$('#email-metadata td:contains("'+m.status.code+'")').css('background-color',this.settings.status_color['NOFILTER']);
+                    //$('.ui.modal>.header').css('background-color',this.settings.status_color['NOFILTER']);
+                    $('#email-metadata td:contains("'+m.status.code+'")').css('background-color','inherit');
+                    $('.ui.modal>.header').css('background-color','inherit');
                 }
             });
         },
@@ -783,18 +800,15 @@ const app = Vue.createApp({
         saveCurPage() {
             window.localStorage['cur_page']=this.page;
         },
-        setDuration_Log_lines() {
-            //console.log("Force heavy load search to the last 24 hours!");
+        // no need after ver.1.1.5 query update
+        /*setDuration_Log_lines() {
             $('#default_period_div').hide();
-            var startdate = new Date(new Date(Date.now()) - 24 * 60 * 60000/* - tzoffset*/);
+            var startdate = new Date(new Date(Date.now()) - 24 * 60 * 60000);
             startdate = this.format_date(startdate,datetime_format,true);
             this.date_filter__gt = startdate;
             this.date_filter__lt = "";
             this.saveFilters();
-            //this.debounce_emails(true);
-            //this.reset_page();
-
-        },
+        },*/
         setDuration() {
             this.$nextTick(function () {
                 if (!(this.settings.filters)) {
@@ -821,6 +835,45 @@ const app = Vue.createApp({
                 }
             });
         },
+        setDark(table) {
+            this.$nextTick(function () {
+                //console.log(window.app.settings.dark);
+                if ('dark' in window.localStorage) {
+                    if (window.localStorage['dark'] === 'true') {
+                        $('#app').addClass('dark');
+                        $('#user-settings-wrapper').addClass('inverted');
+                        $('#user-settings-wrapper > div').addClass('inverted');
+                        $('#tips > div').addClass('inverted');
+                        $('#filters-wrapper').addClass('inverted');
+                        //$('.dimmer').addClass('inverted');
+                        if (table) {
+                            table.addClass('inverted');
+                        }
+                        // dirty wait =(
+                        if (($("div.logo.login").length > 0) || ($('.api_error_container').length > 0)) {
+                            setTimeout(() => {
+                                $('#login-form-wrapper').addClass('inverted');
+                                $('#footer').addClass('inverted');
+                                $('.api_error_container').addClass('inverted');
+                            }, 500);
+                            
+                        } else {
+                            $('#footer').addClass('inverted');
+                        }
+                    } else {
+                        $('#app').removeClass('dark');
+                        $('#user-settings-wrapper').removeClass('inverted');
+                        $('#user-settings-wrapper > div').removeClass('inverted');
+                        $('#tips > div').removeClass('inverted');
+                        $('#filters-wrapper').removeClass('inverted');
+                        if (table) {
+                            table.removeClass('inverted');
+                        }
+                        $('#footer').removeClass('inverted');
+                    }
+                }
+            })
+        },
         loadCurPage() {
             if ('cur_page' in window.localStorage) {
                 this.page = Number.parseInt(window.localStorage['cur_page']);
@@ -831,7 +884,7 @@ const app = Vue.createApp({
             v.page_limit = Number.parseInt(v.page_limit);
             v.refresh = Number.parseInt(v.refresh);
             v.default_period = Number.parseInt(v.default_period);
-            let updatePage = (v.default_period !== Number.parseInt(this.settings.default_period) || v.page_limit !== Number.parseInt(this.settings.page_limit) || v.refresh !== Number.parseInt(this.settings.refresh) /*|| v.marquee !== this.settings.marquee*/ || v.colored !== this.settings.colored || v.sticky !== this.settings.sticky || v.resizable !== this.settings.resizable || v.locale !== this.settings.locale || v.filters !== this.settings.filters);
+            let updatePage = (v.default_period !== Number.parseInt(this.settings.default_period) || v.page_limit !== Number.parseInt(this.settings.page_limit) || v.refresh !== Number.parseInt(this.settings.refresh) /*|| v.marquee !== this.settings.marquee*/ || v.dark !== this.settings.dark || v.colored !== this.settings.colored || v.sticky !== this.settings.sticky || v.resizable !== this.settings.resizable || v.locale !== this.settings.locale || v.filters !== this.settings.filters);
             
             let reload = false;
 
@@ -861,6 +914,8 @@ const app = Vue.createApp({
 
                 if (reload) {
                     //location.reload();
+                    // show loading modal before reload
+                    this.toggleLoading(true);
                     // dirty timeout to show notie
                     setTimeout(() => location.reload(), 500);
                 } else {
@@ -877,6 +932,14 @@ const app = Vue.createApp({
         //TODO need to fix dropdown update
         //$('select.dropdown').addClass("menu");
         //$('select.dropdown ').addClass("dropdown ui");
+        //console.log(window.matchMedia('(prefers-color-scheme: dark)'));
+        // detect dark mode sample code
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && (localStorage.getItem('dark') === null)) {
+            this.settings.dark = true;
+            localStorage.setItem('dark','true');
+        }
+
+        this.setDark();
 
         // set refresh interval
         this.setRefresh();

@@ -3,7 +3,7 @@
 <div id="emails_list">
     <div class="top_title">
         <div class="logo">
-            <div class="field">
+            <div class="field wrapper">
                 <a href="#"><img width="60" src="{{ url_for('static', filename='images/logo.png') }}"></img></a>
             </div>
             <div class="field title">
@@ -80,7 +80,7 @@
             </div>
         </div>
     </div>
-    <div v-if="!loading" class="ui segment stackable two column grid">
+    <div id="filters-wrapper" v-if="!loading" class="ui segment stackable two column grid">
         <div class="eight wide column">
             <h3><span v-if="localeData.filters.search" v-html="localeData.filters.search"></span><span v-else v-html="fallbackLocaleData.filters.search"></span></h3>
             <div class="ui form">
@@ -140,7 +140,7 @@
             <div class="ui form">
                 <div class="three fields">
                   <div class="field">
-                    <div class="ui calendar" id="rangestart">
+                    <div class="ui calendar" :class="{ inverted: settings.dark }" id="rangestart">
                       <div class="ui input left icon">
                         <i class="calendar icon"></i>
                         <input v-if="localeData.filters.date_filter__gt_placeholder" v-model="date_filter__gt" type="text" :placeholder="localeData.filters.date_filter__gt_placeholder">
@@ -149,7 +149,7 @@
                     </div>
                   </div>
                   <div class="field">
-                    <div class="ui calendar" id="rangeend">
+                    <div class="ui calendar" :class="{ inverted: settings.dark }" id="rangeend">
                       <div class="ui input left icon">
                         <i class="calendar icon"></i>
                         <input v-if="localeData.filters.date_filter__lt_placeholder" v-model="date_filter__lt" type="text" :placeholder="localeData.filters.date_filter__lt_placeholder">
@@ -208,14 +208,14 @@
 
     <pager v-model="page" :page-count="page_count" :emails-count="count"></pager>
 
-    <div class="ui modal" id="mail-modal">
+    <div class="ui modal" id="mail-modal" :class="{ inverted: settings.dark }">
         <i class="close icon"></i>
-        <div class="header" v-if="msg.id">
+        <div class="header" style="background-color: inherit" v-if="msg.id">
             <span v-if="localeData.emails_list.email">[[ localeData.emails_list.email ]]</span><span v-else>[[ fallbackLocaleData.emails_list.email ]]</span> [[ msg.id ]]
         </div>
         <div class="content" v-if="msg.id">
             <h3><i class="envelope open icon"></i><span v-if="localeData.emails_list.email_pars">[[ localeData.emails_list.email_pars ]]</span><span v-else>[[ fallbackLocaleData.emails_list.email_pars ]]</span></h3>
-            <table class="ui definition table" id="email-metadata">
+            <table class="ui definition table" id="email-metadata" :class="{ inverted: settings.dark }">
                 <tbody>
                     <tr>
                         <td v-if="localeData.emails_list.timestamp"><i class="clock icon"></i> [[ localeData.emails_list.timestamp ]]</td>

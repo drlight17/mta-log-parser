@@ -58,7 +58,7 @@
     <title v-if="localeData.app_title">[[ localeData.app_title ]] {{ settings.mail_domain }}</title>
     <title v-else>[[ fallbackLocaleData.app_title ]] {{ settings.mail_domain }}</title>
 
-    <div class="ui basic modal" id="loading-modal"  style="background: transparent!important; box-shadow: initial!important" >
+    <div class="ui basic modal" id="loading-modal"  :class="{ inverted: settings.dark }" style="background: transparent!important; box-shadow: initial!important" >
             <div class="ui active huge indeterminate text loader">
                 <span v-if="localeData.loading" v-html="localeData.loading"></span>
                 <span v-else v-html="fallbackLocaleData.loading"></span>

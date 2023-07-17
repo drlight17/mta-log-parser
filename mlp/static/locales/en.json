@@ -51,6 +51,8 @@
     "no_refresh": "No autorefresh",
     "refresh": "Refresh every",
     "refresh_end": "min",
+    "dark": "Dark mode",
+    "dark_title": "Switch current appearance mode (default is based on the browser mode)",
     "blur": "Blur effect",
     "blur_title": "Switch blur modal appearing effect if you have performance issues",
     "sticky": "Sticky table header",

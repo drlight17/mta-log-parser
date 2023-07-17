@@ -2,6 +2,52 @@
 #app {
     max-width: 100%;
 }*/
+/*dark skin*/
+#app.dark , #app.dark #main-wrapper, #app.dark #navi  {
+    background-color: dimgrey;
+}
+
+#app.dark .top_title {
+    color: white;
+}
+
+#app.dark .ui.inverted.segment, .ui.inverted.segments .segment, .ui.primary.inverted.segment {
+    background: #2b2b2b;
+}
+
+#app.dark #emails_list > div.top_title > div.logo > div.field.wrapper, #app.dark div.logo.login {
+    filter: invert(1);
+}
+
+#app.dark i.close.icon::before {
+    color: white!important;
+}
+
+#app.dark .ui.toggle.checkbox input:focus:checked~label {
+    color:inherit;
+}
+
+#app.dark .ui.toggle.checkbox label::before {
+    background: black;
+}
+
+#app.dark .ui.toggle.checkbox input:checked~label::before {
+    background: #2185d0;
+}
+
+/*#app.dark #emails-list > thead {
+    background: inherit!important;
+}*/
+
+#app.dark .hide-sticky-header-button {
+    background-color: #1b1c1d
+}
+
+/* fix of calendar arrow*/
+.ui.bottom.left.popup::before {
+    z-index: -1;
+}
+
 /*logo*/
 #main-wrapper {
     display: flex;
@@ -227,6 +273,10 @@
         transition: opacity 0.5s ease-out;
         z-index: 4;
         cursor: pointer;
+    }
+
+    #app.dark #emails-list > thead {
+        background-color: #1b1c1d!important;
     }
 
     #by {
