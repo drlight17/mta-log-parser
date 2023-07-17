@@ -855,7 +855,7 @@ const app = Vue.createApp({
                                 $('#login-form-wrapper').addClass('inverted');
                                 $('#footer').addClass('inverted');
                                 $('.api_error_container').addClass('inverted');
-                            }, 500);
+                            }, 1000);
                             
                         } else {
                             $('#footer').addClass('inverted');
