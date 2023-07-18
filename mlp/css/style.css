@@ -1,0 +1,388 @@
+/*app
+#app {
+    max-width: 100%;
+}*/
+/*dark skin*/
+#app.dark , #app.dark #main-wrapper, #app.dark #navi  {
+    background-color: dimgrey;
+}
+
+#app.dark .top_title {
+    color: white;
+}
+
+#app.dark .ui.inverted.segment, .ui.inverted.segments .segment, .ui.primary.inverted.segment {
+    background: #2b2b2b;
+}
+
+#app.dark #emails_list > div.top_title > div.logo > div.field.wrapper, #app.dark div.logo.login {
+    filter: invert(1);
+}
+
+#app.dark i.close.icon::before {
+    color: white!important;
+}
+
+#app.dark .ui.toggle.checkbox input:focus:checked~label {
+    color:inherit;
+}
+
+#app.dark .ui.toggle.checkbox label::before {
+    background: black;
+}
+
+#app.dark .ui.toggle.checkbox input:checked~label::before {
+    background: #2185d0;
+}
+
+/*#app.dark #emails-list > thead {
+    background: inherit!important;
+}*/
+
+#app.dark .hide-sticky-header-button {
+    /*background-color: #1b1c1d;*/
+    background-color: inherit!important;
+}
+
+/* fix of calendar arrow*/
+.ui.bottom.left.popup::before {
+    z-index: -1;
+}
+
+/* for tips details tag */
+details {
+    display: inline!important;
+}
+
+details[open] {
+    display: contents!important;
+}
+
+details[open] > summary {
+    display: none!important;
+}
+
+/*logo*/
+#main-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+.logo img {
+    width: 100px;
+    height: 60px;
+}
+.api_error_container {
+    width: 100%;
+}
+.logo, .logout {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 1em;
+    justify-content: center;
+}
+#login > div.logo.login {
+    width: 100%;
+}
+#login {
+    margin-top: 20vh;
+}
+.logo img {
+    box-shadow: 3px 3px 3px 0 rgba(34,36,38,.15);
+}
+.title {
+    text-overflow: ellipsis;
+    /*white-space: nowrap;*/
+    overflow: hidden;
+}
+.title h1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-left: 20px;
+    margin-right: 20px;
+
+}
+#main-wrapper > h1 {
+    text-align: center;
+}
+.top_title {
+    display: flex;
+    justify-content: space-between;
+}
+/* logout section*/
+.logout button {
+    max-width: 100px;
+    margin-bottom: 1em;
+}
+#user-settings .checkbox {
+    margin-right: 15px;
+    margin-top: 1em;
+}
+
+/* on top from bottom offset */
+#back-to-top {
+    bottom: 150px!important;
+    right: 50px!important;
+}
+
+/*to mark mouse over table row*/
+.emails-list tr:hover td{
+    background-color: rgb(255 255 255 / 40%);
+}
+
+/*for all tables*/
+/*.emails-list td:not(:last-child), .emails-list th {*/
+#emails-list > tbody > tr > td, #emails-list > thead > tr > th {
+/*.emails-list td, .emails-list th {*/
+    /*text-align: center!important;*/
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 0.78em!important;
+    padding-right: 0.78em!important;
+}
+
+/*for resizable tables
+
+.emails-list:is(.resizable) td, .emails-list:is(.resizable) th {
+  white-space: nowrap;
+}*/
+
+/* for non-resizable tables*/
+.emails-list:not(.resizable) td:hover, .emails-list:not(.resizable) th:hover  {
+    overflow: auto;
+    white-space: initial!important;
+    text-overflow: initial;
+}
+.emails-list:not(.resizable) {
+  table-layout: fixed;
+}
+
+.emails-list:not(.resizable) #timestamp, .emails-list:not(.resizable) #queue_id, .emails-list:not(.resizable) #first_attempt, .emails-list:not(.resizable) #last_attempt {
+    width: 8%;
+}
+.emails-list:not(.resizable) #status, .emails-list:not(.resizable) #size {
+    width: 7%;
+}
+.emails-list:not(.resizable) #subject {
+    width: 25%;
+}
+
+
+.ui.form {
+    max-width: initial!important;
+}
+
+.ui.button>.icon {
+    margin:0!important;
+}
+
+/* sort stylings*/
+
+.emails-list th:not(#refresh-button), .emails-list td {
+    transition: none!important;
+    cursor: pointer!important;
+}
+
+.emails-list th.asc {
+    background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7)!important;
+    background-position: bottom 7px center!important;
+    background-repeat: no-repeat!important;
+    /*background-color: #e1dcdc!important;*/
+}
+
+.emails-list th.desc {
+    background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7)!important;
+    background-position: bottom 7px center!important;
+    background-repeat: no-repeat!important;
+    /*background-color: #e1dcdc!important;*/
+}
+/*.sorted_column {
+    background-color: #e1dcdc!important;
+}*/
+/*for sticky pager*/
+.ui.buttons {
+    z-index: 5;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    opacity:1;
+    background: white;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/*change notification z-index and fix of notie blurring when modal blur is on in firefox*/
+.notie-alert {
+    z-index: 1002!important;
+    filter: initial!important;
+}
+
+/*fix sematicui paddings
+.ui.fluid.container:has(.login) {
+    height: 70%!important;
+}*/
+
+.ui.fluid.container {
+        margin-top:1em;
+        width: 100%!important;
+        height: initial;
+
+}
+
+@media only screen and (min-width: 1400px) {
+    .ui.fluid.container {
+        padding-left: 12em;
+        padding-right: 12em;
+    }
+}
+@media only screen and (max-width: 1400px) {
+    .ui.fluid.container {
+        padding-left: 1em;
+        padding-right: 1em;
+    }
+    
+    
+}
+/*fix semanticui dropdown style*/
+.ui.selection.dropdown {
+    padding:initial!important;
+}
+
+#user-settings, #tips {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+/*to fill empty space vertically in #user-settings and #tips*/
+.ui.segment:last-child {
+    flex: 1;
+}
+
+#by {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: initial;
+    margin-bottom: initial;
+}
+
+@media only screen and (max-width: 767px){
+    #user-settings, #tips {
+        padding-left: 0;
+        padding-right: 0;
+        }
+
+    /* sticky header button styling */
+    .hide-sticky-header-button {
+        width: 100%;
+        text-align: center;
+        /*position: sticky;*/
+        top: 0px;
+        opacity: .85;
+        padding: 10px;
+        background-color: #fff;
+        transition: opacity 0.5s ease-out;
+        z-index: 4;
+        cursor: pointer;
+    }
+
+    /*#app.dark #emails-list > thead {
+        background-color: #1b1c1d!important;
+    }*/
+
+    #by {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+}
+
+
+@media only screen and (min-width: 767px) and (max-width: 1000px){
+    #refresh-button button span, #user-settings > div.logo  button span{
+        display:none!important
+    }
+}
+
+.ui.grid+.grid {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+/*all buttons except ui.buttons div*/
+button:not(.navi), #footer {
+    width:100%;
+}
+/* fix of calendar z-index over modals*/
+.ui.popup {
+    z-index:6!important;
+}
+/* calendar  ellipsis hidden inputs*/
+#rangestart input, #rangeend input {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* fix of modal long strings*/
+/*#email-metadata {
+    table-layout: fixed
+}
+
+#email-metadata td {     
+    white-space: break-spaces;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+
+#email-metadata td:hover {
+    overflow: auto;
+    text-overflow: initial; 
+}
+*/
+#mail-modal > div.content > ul {
+    overflow: auto;
+}
+
+.filter_linked span {
+  padding-bottom: 3px;
+  --bg-h: 1px;
+    background: linear-gradient(0deg, black, black) no-repeat left bottom / 6px var(--bg-h);
+  transition: background-size .2s;
+}
+
+.filter_linked span:where(:hover, :focus-visible) {
+    background-size: 100% var(--bg-h);
+    background-position-x: left;
+}
+
+/*.filter_linked span:hover {
+    cursor: pointer;
+    background-color: #ffffff9e;
+    transition: all .15s ease-in;
+    border-radius: 5px;
+    padding: 10px;
+}*/
+
+/* modal close button fix*/
+.ui.modal > i.close.icon {
+    top: -2.5rem !important;
+    right: -2.5rem !important;
+}
+
+i.close.icon::before {
+    cursor: pointer;
+    position: absolute;
+    font-size: 25px;
+    color: black;
+    left: -30px;
+    top: 45px;
+    text-shadow: none;
+}
+
+/* remove left and right paddings on range sliders*/
+.range {
+    padding-left:0!important;
+    padding-right:0!important;
+}
