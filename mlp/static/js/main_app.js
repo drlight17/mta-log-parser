@@ -205,7 +205,8 @@ const app = Vue.createApp({
                         window.localStorage.setItem("localeData", JSON.stringify(json_data));
                         $(".logo").hide();
                         $('#user-settings').hide();
-                        setTimeout(() => location.reload(), 1000);
+                        //setTimeout(() => location.reload(), 1000);
+                        location.reload();
                     })
                     // set fallback en locale if no current browser locale is supported
                     .fail(function(json_data) {                        
@@ -214,7 +215,8 @@ const app = Vue.createApp({
                         window.localStorage.setItem("falled_back", true);
                         $(".logo").hide();
                         $('#user-settings').hide();
-                        setTimeout(() => location.reload(), 1000);
+                        //setTimeout(() => location.reload(), 1000);
+                        location.reload()
                     })
 
             }
@@ -396,10 +398,10 @@ const app = Vue.createApp({
                 var isDark = (window.localStorage['dark'] === 'true');
                 $('#loading-modal').modal({closable: false,blurring: this.settings.blurring,inverted: !isDark}).modal('show');
             } else {
-                setTimeout(() => $('#loading-modal').modal('hide'), 500);
-                //$('#loading-modal').modal('hide');
-                setTimeout(() => $("#main-wrapper").show(), 500);
-                //$("#main-wrapper").show()
+                //setTimeout(() => $('#loading-modal').modal('hide'), 500);
+                $('#loading-modal').modal('hide');
+                //setTimeout(() => $("#main-wrapper").show(), 500);
+                $("#main-wrapper").show()
                 this.loading = false;
             }
         },
@@ -407,14 +409,14 @@ const app = Vue.createApp({
             // if no results don't show table and show notification
             if (count == 0) {
                 // make delay for notie only, not hide operations
-                setTimeout(() => {
+                //setTimeout(() => {
                     if (this.localeData.notie.nine == undefined) {
                         text = this.fallbackLocaleData.notie.nine
                     } else {
                         text = this.localeData.notie.nine
                     }
                     notie.alert({type: 'info', text: text });
-                }, wait);
+                //}, wait);
                 table.hide();
                 $('.JCLRgrips').hide();
             }
@@ -494,7 +496,7 @@ const app = Vue.createApp({
                         // scroll to the table top
                         if ($found_table.find('td:first').length > 0) {
                             // dirty 500 ms waiting of scrollTo complete =(
-                            setTimeout(() => {
+                            //setTimeout(() => {
                                 const element = $found_table.find('td:first')[0];
                                 //console.log(thead.height());
                                 var yOffset = 0;
@@ -506,7 +508,7 @@ const app = Vue.createApp({
                                 const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
                                 // scrolling offset by hide-sticky-header-button height
                                 window.scrollTo({top: y, behavior: 'smooth'});
-                            }, 500);
+                            //}, 500);
                         }
                     }
                     // style selected column for sort
@@ -547,7 +549,9 @@ const app = Vue.createApp({
                             // add class resizable
                             $found_table.addClass('resizable');
                             // dirty fix of callResizableTableColumns with 500 ms timeout
-                            setTimeout(() => this.callResizableTableColumns($found_table), 500);
+                            //setTimeout(() => this.callResizableTableColumns($found_table), 500);
+                            this.callResizableTableColumns($found_table);
+
                             if (this.localeData.user_settings.resizable_title_tip == undefined) {
                                 text = this.fallbackLocaleData.user_settings.resizable_title_tip
                             } else {
@@ -660,7 +664,7 @@ const app = Vue.createApp({
                 });
 
             }).catch((res) => {
-                console.error('Error:', res);
+                //console.error('Error:', res);
                 this.toggleLoading(false);
                 this.$nextTick(function () {
                     // check if we are on login or api_error screen
@@ -849,14 +853,16 @@ const app = Vue.createApp({
                         if (table) {
                             table.addClass('inverted');
                         }
-                        // dirty wait =(
                         if (($("div.logo.login").length > 0) || ($('.api_error_container').length > 0)) {
-                            setTimeout(() => {
-                                $('#login-form-wrapper').addClass('inverted');
-                                $('#footer').addClass('inverted');
-                                $('.api_error_container').addClass('inverted');
-                            }, 1000);
-                            
+                            this.waitForElm('#login-form-wrapper').then((elm) => {
+                                $(elm).addClass('inverted');
+                            });
+                            this.waitForElm('#footer').then((elm) => {
+                                $(elm).addClass('inverted');
+                            });
+                            this.waitForElm('.api_error_container').then((elm) => {
+                                $(elm).addClass('inverted');
+                            });
                         } else {
                             $('#footer').addClass('inverted');
                         }
@@ -917,7 +923,8 @@ const app = Vue.createApp({
                     // show loading modal before reload
                     this.toggleLoading(true);
                     // dirty timeout to show notie
-                    setTimeout(() => location.reload(), 500);
+                    //setTimeout(() => location.reload(), 2000);
+                    location.reload();
                 } else {
                     this.debounce_emails(true);
                 }
@@ -925,7 +932,26 @@ const app = Vue.createApp({
             }
             // notie.alert('success', `User settings ${update_type} successfully`)
         },
+        // function for setTimeout in waiting loops
+        waitForElm(selector) {
+            return new Promise(resolve => {
+                if (document.querySelector(selector)) {
+                    return resolve(document.querySelector(selector));
+                }
 
+                const observer = new MutationObserver(mutations => {
+                    if (document.querySelector(selector)) {
+                        resolve(document.querySelector(selector));
+                        observer.disconnect();
+                    }
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            });
+        }
     },
     mounted() {
 
@@ -1016,7 +1042,11 @@ const app = Vue.createApp({
                 notie.alert({type: 'error', text: text});
             }
             // focus on password input dirty timeout
-            setTimeout(() => $("input.ui").focus(), 500);
+            //setTimeout(() => $("input.ui").focus(), 1000);
+            
+            this.waitForElm('input.ui').then((elm) => {
+                elm.focus();
+            });
 
 
             // load saved page

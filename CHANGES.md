@@ -1,14 +1,17 @@
 Unreleased VER.
 - add multiple simultanious text filters
-- dark theme mode
 - minify
-- get rid of setTimeouts
 - replace momentjs wih day.js or luxone(?)
 - make mailcow PR to integrate into
 - maybe scrollTo by not all refreshes (?)
 - remove python privex helpers code (?)
 - save settings into cookies + accept cookies modal (?)
 - export to xlsx file (table) (?)
+
+VER. 1.1.6
+- ~~default_period GUI minutes after 60 to hours and after 1440 to days~~
+- ~~some gui and tips polish~~
+- ~~dirty waits (like in setDark() for 1000 ms) replace with waitForElm or remove waits~~
 
 VER. 1.1.5
 - ~~dark theme mode (use inverted class for ui elements)~~

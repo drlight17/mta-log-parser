@@ -16,9 +16,9 @@
                                 <input v-model="settings.page_limit" type="range" step="5" min="5" max="300" class="ui input range">
                             </div>
                             <div style="display:none" id="default_period_div">
-                                <div class="ui field"><i class="clock icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.show_last_min"></label> {{ settings.default_period }} <label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.show_last_min_end"></label></div>
+                                <div v-if="!$parent.loading" :title="$parent.localeData.tips.twelve" class="ui field"><i class="clock icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.show_last_min"></label> {{ settings.default_period_processed }} </div>
                                 <div class="ui input">
-                                    <input v-model="settings.default_period" type="range" step="5" min="5" max="1440" class="ui input range">
+                                    <input v-if="!$parent.loading" v-model="settings.default_period" type="range" step="5" min="5" max="4320" :title="$parent.localeData.tips.twelve" class="ui input range">
                                 </div>
                             </div>
                             <div v-if="settings.refresh !== 0" class="ui field"><i class="sync icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh"></label> {{ settings.refresh }} <label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh_end"></label></div>
@@ -70,6 +70,7 @@
                 'settings': {
                     page_limit: 50,
                     default_period: 30,
+                    default_period_processed: '',
                     refresh: 10,
                     sticky: true,
                     blurring: true,
@@ -120,8 +121,15 @@
             'settings.page_limit': function(val) {
                 $('#savesettings').prop('disabled', false);
             },
-            'settings.default_period': function(val) {
+            /*'settings.default_period': function(val) {
                 $('#savesettings').prop('disabled', false);
+            },*/
+            //'settings.default_period': _.debounce(function(val) {
+            'settings.default_period': function(val) {
+                //console.log(this.ConvertMinutes(val));
+                this.settings.default_period_processed = this.ConvertMinutes(val);
+                $('#savesettings').prop('disabled', false);
+            //}, 50),
             },
             /*'settings.refresh': _.debounce(function(val) {
                 if (val < 10) {
@@ -146,6 +154,18 @@
             },
         },
         methods: {
+            //minutes to hour (and days) converter
+            ConvertMinutes(num){
+              d = Math.floor(num/1440); // 60*24
+              h = Math.floor((num-(d*1440))/60);
+              m = Math.round(num%60);
+
+              if(d>0){
+                return(d + " " + this.$parent.localeData.user_settings.days + " " + h + " " + this.$parent.localeData.user_settings.hours + " " + m + " " + this.$parent.localeData.user_settings.minutes);
+              }else{
+                return(h + " " + this.$parent.localeData.user_settings.hours + " " + m + " " + this.$parent.localeData.user_settings.minutes);
+              }
+            },
             disableButton() {
                 this.$nextTick(function () {
                     $('#savesettings').prop('disabled', true);
@@ -204,7 +224,9 @@
                     s.default_period = 30;
                 if ('default_period' in window.localStorage)
                     s.default_period = Number.parseInt(window.localStorage['default_period']);
-
+                this.$nextTick(function () {
+                    s.default_period_processed = this.ConvertMinutes(s.default_period);
+                })
 
                 if ('locale' in window.localStorage)
                     s.locale = window.localStorage['locale'];

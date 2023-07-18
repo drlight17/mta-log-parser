@@ -46,8 +46,11 @@
     "user_settings_title": "User settings",
     "current_lang": "Current language:",
     "page_limit": "Maximum results per page:",
-    "show_last_min": "Show logs for last",
+    "show_last_min": "Show logs for",
     "show_last_min_end": "min",
+    "minutes": "minute(s)",
+    "hours": "hour(s)",
+    "days": "day(s)",
     "no_refresh": "No autorefresh",
     "refresh": "Refresh every",
     "refresh_end": "min",
@@ -81,7 +84,8 @@
     "eight": "<code>MAX_LIMIT</code> (maximum number for <code>?limit=</code>) is currently set to",
     "nine": "<code>HOUSEKEEPING_DAYS</code> (maximum days of logs storing before cleanup) is currently set to",
     "ten": "<code>DATETIME_FORMAT</code> (date/time format) is currently set to",
-    "eleven": "Click cell content to set text filter and search_by value to the values of cell content and it's column accordingly"
+    "eleven": "Click cell content to set text filter and search_by value to the values of cell content and it's column accordingly",
+    "twelve": "If \"Save filters\" is off then you can only change end date field, start date is dynamically filled based on the \"Show logs for\" <i class=\"clock icon\"></i> slider value!"
   },
   "filters": {
     "filter_link_tip": "Click to filter by",

@@ -31,6 +31,9 @@
                     <li v-if="localeData.tips.two" v-html="localeData.tips.two">
                     <li v-else v-html="fallbackLocaleData.tips.two">
                     </li>
+                    <li v-if="localeData.tips.twelve" v-html="localeData.tips.twelve">
+                    <li v-else v-html="fallbackLocaleData.tips.twelve">
+                    </li>
                     <li v-if="localeData.tips.three" v-html="localeData.tips.three">
                     <li v-else v-html="fallbackLocaleData.tips.three">
                     </li>
@@ -140,7 +143,7 @@
             <div class="ui form">
                 <div class="three fields">
                   <div class="field">
-                    <div class="ui calendar" :class="{ inverted: settings.dark }" id="rangestart">
+                    <div class="ui calendar" :class="{ inverted: settings.dark, disabled: !settings.filters }" id="rangestart">
                       <div class="ui input left icon">
                         <i class="calendar icon"></i>
                         <input v-if="localeData.filters.date_filter__gt_placeholder" v-model="date_filter__gt" type="text" :placeholder="localeData.filters.date_filter__gt_placeholder">
