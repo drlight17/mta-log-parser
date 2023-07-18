@@ -73,7 +73,7 @@
   },
   "tips": {
     "title": "Emails filtering tips and some other info",
-    "one": "All your text search requests are wildcards, so search string will match start, middle or end of found strings. For example <code><strong>qwerty</strong></code> will match <strong>qwerty@mail.com</strong>, <strong>user@qwerty.com</strong> and <strong>user@mail.qwerty</strong>",
+    "one": "All your text search requests are wildcards, so search string will match start, middle or end of found strings. <details><summary>[...]</summary>For example <code><strong>qwerty</strong></code> will match <strong>qwerty@mail.com</strong>, <strong>user@qwerty.com</strong> and <strong>user@mail.qwerty</strong></details>",
     "two": "Use start and end date fields to apply date range filter",
     "three": "Use \"Refresh\" <i class=\"sync icon\"></i> button to reload email list with current applied filters",
     "four": "Use \"Reset\" <i class=\"eraser icon\"></i> button to clear all applied filters and reload email list",
@@ -85,7 +85,7 @@
     "nine": "<code>HOUSEKEEPING_DAYS</code> (maximum days of logs storing before cleanup) is currently set to",
     "ten": "<code>DATETIME_FORMAT</code> (date/time format) is currently set to",
     "eleven": "Click cell content to set text filter and search_by value to the values of cell content and it's column accordingly",
-    "twelve": "If \"Save filters\" is off then you can only change end date field, start date is dynamically filled based on the \"Show logs for\" <i class=\"clock icon\"></i> slider value!"
+    "twelve": "If \"Save filters\" is off then you can only change end date field, start date is dynamically filled based on <details><summary>[...]</summary>the \"Show logs for\" <i class=\"clock icon\"></i> slider value!</details>"
   },
   "filters": {
     "filter_link_tip": "Click to filter by",

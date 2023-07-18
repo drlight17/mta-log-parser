@@ -40,12 +40,26 @@
 }*/
 
 #app.dark .hide-sticky-header-button {
-    background-color: #1b1c1d
+    /*background-color: #1b1c1d;*/
+    background-color: inherit!important;
 }
 
 /* fix of calendar arrow*/
 .ui.bottom.left.popup::before {
     z-index: -1;
+}
+
+/* for tips details tag */
+details {
+    display: inline!important;
+}
+
+details[open] {
+    display: contents!important;
+}
+
+details[open] > summary {
+    display: none!important;
 }
 
 /*logo*/
@@ -275,9 +289,9 @@
         cursor: pointer;
     }
 
-    #app.dark #emails-list > thead {
+    /*#app.dark #emails-list > thead {
         background-color: #1b1c1d!important;
-    }
+    }*/
 
     #by {
         width: 100%;
