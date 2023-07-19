@@ -60,7 +60,7 @@ path_prefix = env('PATH_PREFIX', '')
 housekeeping_days = env_int('HOUSEKEEPING_DAYS', '')
 
 # add datetime_format var from env
-datetime_format = env('DATETIME_FORMAT', '')
+datetime_format = env('DATETIME_FORMAT', 'HH:mm:ss, DD.MM.YYYY')
 
 # add mta var from env
 mta = env('MTA', '')
