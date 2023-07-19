@@ -1,5 +1,6 @@
 Unreleased VER.
 - add multiple simultanious text filters
+- docker update procedure
 - minify
 - replace momentjs wih day.js or luxone(?)
 - make mailcow PR to integrate into
@@ -8,7 +9,7 @@ Unreleased VER.
 - save settings into cookies + accept cookies modal (?)
 - export to xlsx file (table) (?)
 
-VER. 1.1.6
+VER. 1.1.6.1
 - ~~default_period GUI minutes after 60 to hours and after 1440 to days~~
 - ~~some gui and tips polish~~
 - ~~dirty waits (like in setDark() for 1000 ms) replace with waitForElm or remove waits~~
