@@ -490,7 +490,8 @@ const app = Vue.createApp({
                 this.page_count = res['total_pages'];
                 this.count = res['count'];
 
-                //setTimeout(() => this.toggleLoading(false), 1000);
+                // to avoid setTimeout
+                this.toggleLoading(true);
                 this.toggleLoading(false);
 
                 // add advanced gui features
@@ -504,20 +505,17 @@ const app = Vue.createApp({
                     if (refresh) {
                         // scroll to the table top
                         if ($found_table.find('td:first').length > 0) {
-                            // dirty 500 ms waiting of scrollTo complete =(
-                            //setTimeout(() => {
-                                const element = $found_table.find('td:first')[0];
-                                //console.log(thead.height());
-                                var yOffset = 0;
-                                if (this.settings.resizable) {
-                                    yOffset = -25; 
-                                } else {
-                                    yOffset = -thead.height();
-                                }
-                                const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                                // scrolling offset by hide-sticky-header-button height
-                                window.scrollTo({top: y, behavior: 'smooth'});
-                            //}, 500);
+                            const element = $found_table.find('td:first')[0];
+                            //console.log(thead.height());
+                            var yOffset = 0;
+                            if (this.settings.resizable) {
+                                yOffset = -25; 
+                            } else {
+                                yOffset = -thead.height();
+                            }
+                            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                            // scrolling offset by hide-sticky-header-button height
+                            window.scrollTo({top: y, behavior: 'smooth'});
                         }
                     }
                     // style selected column for sort
@@ -543,8 +541,6 @@ const app = Vue.createApp({
                             // add show/hide sticky header button 
                             if (window.matchMedia('(max-width: 768px)').matches)
                             {
-                                // TODO dirty 500 ms waiting of scrollIntoView complete =(
-                                //setTimeout(() => window.app.checkButtonArrow(thead), 500);
                                 window.app.checkButtonArrow(thead);
 
                                 // check visibility state
@@ -684,7 +680,7 @@ const app = Vue.createApp({
                     });
                     // set dark mode
                     this.setDark($(elm));
-                    
+                    // to avoid setTimeout
                     this.toggleLoading(true);
                     this.toggleLoading(false);
                 });
@@ -939,7 +935,7 @@ const app = Vue.createApp({
                     //location.reload();
                     // show loading modal before reload
                     this.toggleLoading(true);
-                    // dirty timeout to show notie
+                    // timeout to show notie
                     //setTimeout(() => location.reload(), 2000);
                     location.reload();
                 } else {
@@ -1058,7 +1054,7 @@ const app = Vue.createApp({
                 }
                 notie.alert({type: 'error', text: text});
             }
-            // focus on password input dirty timeout
+            // focus on password input timeout
             //setTimeout(() => $("input.ui").focus(), 1000);
             
             this.waitForElm('input.ui').then((elm) => {
