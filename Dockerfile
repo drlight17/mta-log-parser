@@ -3,7 +3,5 @@ RUN apk update
 RUN apk add bash ncurses musl-dev gcc flock
 RUN pip3 install -U pipenv
 WORKDIR /app
-COPY Pipfile /app/
+COPY . /app/
 RUN pipenv install
-
-
