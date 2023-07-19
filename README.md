@@ -59,6 +59,21 @@ crontab -e
 
 # Rethinkdb web gui is available on the port 8080 (you may change expose port in .env).
 ```
+Dockerized update version
+========
+```
+# Stop containers
+docker-compose down
+
+# Remove image
+docker rmi drlight17/mta-log-parser:latest
+
+# Start container with pulling updated image
+docker-compose up -d
+
+```
+
+
 
 Install in your system (not recommended)
 ========
