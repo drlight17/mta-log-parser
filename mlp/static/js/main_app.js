@@ -405,17 +405,26 @@ const app = Vue.createApp({
                 this.loading = false;
             }
         },
-        check_nothing_found(count,table,wait) {
+        check_nothing_found(count,table,error) {
             // if no results don't show table and show notification
             if (count == 0) {
                 // make delay for notie only, not hide operations
                 //setTimeout(() => {
+                if (!(error)) {
                     if (this.localeData.notie.nine == undefined) {
                         text = this.fallbackLocaleData.notie.nine
                     } else {
                         text = this.localeData.notie.nine
                     }
                     notie.alert({type: 'info', text: text });
+                } else {
+                    if (this.localeData.notie.nine == undefined) {
+                        text = this.fallbackLocaleData.notie.eight
+                    } else {
+                        text = this.localeData.notie.eight
+                    }
+                    notie.alert({type: 'error', text: text });
+                }
                 //}, wait);
                 table.hide();
                 $('.JCLRgrips').hide();
@@ -490,7 +499,7 @@ const app = Vue.createApp({
                     thead = $found_table.find('thead');
 
                     // if no results don't show table and show notification
-                    this.check_nothing_found(this.count,$found_table,wait);
+                    this.check_nothing_found(this.count,$found_table,false);
 
                     if (refresh) {
                         // scroll to the table top
@@ -664,14 +673,22 @@ const app = Vue.createApp({
                 });
 
             }).catch((res) => {
-                //console.error('Error:', res);
+                console.error('Error:', res);
                 this.toggleLoading(false);
-                this.$nextTick(function () {
-                    // check if we are on login or api_error screen
-                    if (!(($("div.logo.login").length > 0) || ($(".api_error_container").length > 0))) {
-                        this.check_nothing_found(0,$('.emails-list'),0);
-                    }
+                this.waitForElm('#emails-list').then((elm) => {
+                    this.$nextTick(function () {
+                        // check if we are on login or api_error screen
+                        if (!(($("div.logo.login").length > 0) || ($(".api_error_container").length > 0))) {
+                            this.check_nothing_found(0,$(elm),true);
+                        }
+                    });
+                    // set dark mode
+                    this.setDark($(elm));
+                    
+                    this.toggleLoading(true);
+                    this.toggleLoading(false);
                 });
+
             });
         },
         logout() {

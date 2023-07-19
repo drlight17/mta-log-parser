@@ -10,7 +10,7 @@
     "five": "Invalid password",
     "six": "You must log in to access this",
     "seven": "You have been successfully logged out",
-    "eight": "API call error",
+    "eight": "API call error. Wrong call or no connection with Rethinkdb!",
     "nine": "No messages found matching the search criteria",
     "ten": "Search by all log lines is chosen. Only last 24 hours is available for this search!"
   },
