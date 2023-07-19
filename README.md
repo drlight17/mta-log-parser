@@ -59,7 +59,7 @@ crontab -e
 
 # Rethinkdb web gui is available on the port 8080 (you may change expose port in .env).
 ```
-Dockerized update version
+Dockerized upgrade version
 ========
 ```
 # Stop containers
