@@ -1,1 +1,28 @@
+version: '3.9'
 
+services:
+  mlp:
+    container_name: mta-log-parser
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: /app/run.sh ${COMMAND}
+    ports:
+      - ${PORT}:${PORT}
+    restart: always
+    volumes:
+      - .:/app
+      - /tmp:/tmp
+      - ${MAIL_LOG_PATH}:${MAIL_LOG_PATH}
+
+    depends_on:
+      - rethinkdb
+
+  rethinkdb:
+    image: rethinkdb:2.4
+    container_name: rethinkdb
+    ports:
+      - ${RETHINK_EXP_GUI_PORT}:8080
+    restart: always
+    volumes:
+      - ./:/data
