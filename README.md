@@ -36,6 +36,11 @@ git clone https://github.com/drlight17/mta-log-parser
 cd mta-log-parser
 cp example.env .env
 
+# If you want to build your image of mta-log-parser then copy Dockerfile and docker-compose.yaml files from build
+# dir to the root path (recommended for development). If you want to user complete image downloaded from docker hub then pass this step (recommended for production).
+yes | cp -rf ./build/Dockerfile ./Dockerfile
+yes | cp -rf ./build/docker-compose.yaml ./docker-compose.yaml
+
 # Adjust the example .env as needed. Make sure you set SECRET_KEY to a long random string, and change ADMIN_PASS 
 # to the password you want to use to log into the web application. Other variables are described. 
 nano .env
