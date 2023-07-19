@@ -66,7 +66,7 @@ Dockerized upgrade version
 docker-compose down
 
 # Remove image
-docker rmi drlight17/mta-log-parser:latest
+docker rmi drlight17/mta-log-parser
 
 # Start container with pulling updated image
 docker-compose up -d
