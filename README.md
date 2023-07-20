@@ -64,14 +64,7 @@ crontab -e
 Dockerized upgrade version
 ========
 ```
-# Stop containers
-docker-compose down
-
-# Remove image
-docker rmi drlight17/mta-log-parser
-
-# Start container with pulling updated image
-docker-compose up -d
+Simply run upgrade.sh
 
 ```
 
