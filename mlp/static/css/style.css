@@ -66,6 +66,10 @@ details[open] > summary {
     display: none!important;
 }
 
+summary {
+    cursor: pointer;
+}
+
 /* autorefresh rotation icon */
 .rotate{
   animation: rotate 1.5s linear infinite; 
@@ -339,17 +343,19 @@ button:not(.navi), #footer {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
 /* fix of modal long strings*/
 /*#email-metadata {
     table-layout: fixed
-}
+}*/
 
 #email-metadata td {     
-    white-space: break-spaces;
+    /*white-space: break-spaces;*/
     overflow: hidden;
     text-overflow: ellipsis; 
+    max-width: 400px;
 }
-
+/*
 #email-metadata td:hover {
     overflow: auto;
     text-overflow: initial; 
