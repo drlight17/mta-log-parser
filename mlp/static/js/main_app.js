@@ -7,6 +7,8 @@ var datetime_format = document.currentScript.getAttribute('datetime_format');
 if (datetime_format == '') {
         datetime_format = 'YYYY-MM-DDTHH:mm:ss.sssZ';
 }
+// get mail_domain from .env
+var mail_domain = document.currentScript.getAttribute('mail_domain');
 // get HOUSEKEEPING_DAYS from .env
 var housekeeping_days = document.currentScript.getAttribute('housekeeping_days');
 if (housekeeping_days == '') {
@@ -45,7 +47,10 @@ const app = Vue.createApp({
             msg: [],
             settings: [],
             loaded_settings: false,
-            timer:''
+            timer:'',
+            contdown_sec: 0,
+            contdown: '',
+            contdown_timer: 0
         }
     },
     computed: {
@@ -221,7 +226,36 @@ const app = Vue.createApp({
 
             }
         },
+        //seconds to hours and days converter
+        ConvertSeconds(totalSeconds,show_sec) {
+            //return (new Date(num * 1000).toISOString().substring(14, 19));
+            d = Math.floor(totalSeconds/60/1440); // 60*24
+            h = Math.floor((totalSeconds/60-(d*1440))/60);
+            //h = Math.floor(totalSeconds / 3600);
+            totalSeconds %= 3600;
+            m = Math.floor(totalSeconds / 60);
+            s = totalSeconds % 60;
 
+            output = '';
+
+            if (d>0) {
+                output += d + " " + this.localeData.user_settings.days;
+            }
+
+            if (h>0) {
+                output += " " + h + " " + this.localeData.user_settings.hours;
+            }
+
+            if (m>0) {
+                output += " " + m + " " + this.localeData.user_settings.minutes;
+            }
+
+            if (show_sec) {
+                output += " " + s + " " + this.localeData.user_settings.seconds;
+            }
+
+            return output;
+        },
         ToggleStickyHeader(thead) {
 
             $('.hide-sticky-header-button i').toggleClass('down').toggleClass('up');
@@ -432,6 +466,10 @@ const app = Vue.createApp({
         },
         loadEmails(refresh) {
             var wait = 0;
+
+            // call to resresh countdown
+            this.setRefresh();
+
             // show 
             // no need after ver.1.1.5 query update
             /*if (this.search_by == "log_lines") {
@@ -491,8 +529,10 @@ const app = Vue.createApp({
                 this.count = res['count'];
 
                 // to avoid setTimeout
-                this.toggleLoading(true);
-                this.toggleLoading(false);
+                /*if (!(this.loading)) {
+                    this.toggleLoading(true);  
+                }*/
+               this.toggleLoading(false);
 
                 // add advanced gui features
                 this.$nextTick(function () {
@@ -838,18 +878,32 @@ const app = Vue.createApp({
                 }
             });
         },
+        countdown (time) {
+          // Update every second
+            clearInterval(this.contdown_timer);
+            if (time >= 1) {
+                this.contdown_timer = setInterval(function() {
+                    window.app.contdown_sec = --time;
+                    window.app.contdown = window.app.ConvertSeconds(window.app.contdown_sec,true);
+                }, 1000);
+            }
+        },
         setRefresh() {
             // autorefresh
             this.$nextTick(function () {
                 clearInterval(window.app.timer);
                 if (window.app.settings.refresh > 0) {
+                    window.app.contdown_sec = window.app.settings.refresh * 60;
                     window.app.timer = setInterval(function(){
                         if (window.app.settings.refresh !== undefined) {
-                            //console.log("Page is refreshed after " + window.app.settings.refresh + " seconds passed.");
                             window.app.loadEmails(false);
                         }
                     }, window.app.settings.refresh * 60000);
+                } else {
+                    window.app.contdown_sec = 0;
+                    window.app.contdown = '';
                 }
+                window.app.countdown (window.app.contdown_sec);
             });
         },
         setDark(table) {
@@ -971,8 +1025,8 @@ const app = Vue.createApp({
         //TODO need to fix dropdown update
         //$('select.dropdown').addClass("menu");
         //$('select.dropdown ').addClass("dropdown ui");
-        //console.log(window.matchMedia('(prefers-color-scheme: dark)'));
-        // detect dark mode sample code
+
+                // detect dark mode
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && (localStorage.getItem('dark') === null)) {
             this.settings.dark = true;
             localStorage.setItem('dark','true');
@@ -1011,6 +1065,10 @@ const app = Vue.createApp({
         }*/
 
         this.$nextTick(function () {
+            // apply mail domain from current domain URL if .env MAIL_DOMAIN is empty
+            if (mail_domain == '') {
+                $('h1 > span').text(window.location.hostname);
+            }
             // if cur browser is mozilla turn off marquee function dirty with timeout
             /*if (navigator.userAgent.search("Firefox") > -1) {
                 setTimeout(() => $('#marquee_sw input').prop('disabled', true), 1000);

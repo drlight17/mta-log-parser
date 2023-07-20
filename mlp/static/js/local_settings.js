@@ -121,15 +121,9 @@
             'settings.page_limit': function(val) {
                 $('#savesettings').prop('disabled', false);
             },
-            /*'settings.default_period': function(val) {
-                $('#savesettings').prop('disabled', false);
-            },*/
-            //'settings.default_period': _.debounce(function(val) {
             'settings.default_period': function(val) {
-                //console.log(this.ConvertMinutes(val));
-                this.settings.default_period_processed = this.ConvertMinutes(val);
+                this.settings.default_period_processed = this.$parent.ConvertSeconds(val*60,false);
                 $('#savesettings').prop('disabled', false);
-            //}, 50),
             },
             /*'settings.refresh': _.debounce(function(val) {
                 if (val < 10) {
@@ -154,18 +148,6 @@
             },
         },
         methods: {
-            //minutes to hour (and days) converter
-            ConvertMinutes(num){
-              d = Math.floor(num/1440); // 60*24
-              h = Math.floor((num-(d*1440))/60);
-              m = Math.round(num%60);
-
-              if(d>0){
-                return(d + " " + this.$parent.localeData.user_settings.days + " " + h + " " + this.$parent.localeData.user_settings.hours + " " + m + " " + this.$parent.localeData.user_settings.minutes);
-              }else{
-                return(h + " " + this.$parent.localeData.user_settings.hours + " " + m + " " + this.$parent.localeData.user_settings.minutes);
-              }
-            },
             disableButton() {
                 this.$nextTick(function () {
                     $('#savesettings').prop('disabled', true);
@@ -225,7 +207,7 @@
                 if ('default_period' in window.localStorage)
                     s.default_period = Number.parseInt(window.localStorage['default_period']);
                 this.$nextTick(function () {
-                    s.default_period_processed = this.ConvertMinutes(s.default_period);
+                    s.default_period_processed = this.$parent.ConvertSeconds(s.default_period*60,false);
                 })
 
                 if ('locale' in window.localStorage)

@@ -15,8 +15,12 @@
     background: #2b2b2b;
 }
 
-#app.dark #emails_list > div.top_title > div.logo > div.field.wrapper, #app.dark div.logo.login {
+/*#app.dark #emails_list > div.top_title > div.logo > div.field.wrapper, #app.dark div.logo.login {
     filter: invert(1);
+}*/
+
+#app.dark .top_title {
+    text-shadow: 3px 1px 3px black;
 }
 
 #app.dark i.close.icon::before {
@@ -62,6 +66,15 @@ details[open] > summary {
     display: none!important;
 }
 
+/* autorefresh rotation icon */
+.rotate{
+  animation: rotate 1.5s linear infinite; 
+}
+@keyframes rotate{
+  to{ transform: rotate(360deg); }
+}
+
+
 /*logo*/
 #main-wrapper {
     display: flex;
@@ -91,6 +104,7 @@ details[open] > summary {
 }
 .logo img {
     box-shadow: 3px 3px 3px 0 rgba(34,36,38,.15);
+    background: white;
 }
 .title {
     text-overflow: ellipsis;
