@@ -63,12 +63,8 @@ crontab -e
 ```
 Dockerized upgrade version
 ========
-```
+
 Simply run upgrade.sh
-
-```
-
-
 
 Install in your system (not recommended)
 ========
