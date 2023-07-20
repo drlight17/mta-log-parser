@@ -7,6 +7,8 @@ This is a small application designed to parse the log output of SMTP servers (po
 It includes a Web UI built with [Quart](https://github.com/pgjones/quart) and [VueJS](https://vuejs.org/) - allowing
 for easily navigating and filtering the log data straight from your browser.
 
+This is a fork of abandoned [Privex postfix log parser](https://github.com/Privex/postfix-parser).
+
 **DISCLAIMER:** The Web UI only includes a very basic password prompt which reads the password from the `.env` file.
 This application is NOT intended to be public facing - we strongly recommend for production use-cases that it's
 kept restricted within a corporate VPN / LAN.
