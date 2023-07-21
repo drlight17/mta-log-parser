@@ -7,6 +7,12 @@ Unreleased VER.
 - save settings into cookies + accept cookies modal (?)
 - export to xlsx file (table) (?)
 
+VER. 1.1.7.1
+- ~~fix #filter-email coloring in all modes and with resetfilters button~~
+- ~~loading circle after full page reload in dark mode~~
+- ~~wrong row coloring if there are status keywords in table tds~~
+- ~~fix link line color in dark mode~~ 
+
 VER. 1.1.7
 - ~~"before refresh" timer in GUI~~
 - ~~dont show loading circle when autorefresh~~ 

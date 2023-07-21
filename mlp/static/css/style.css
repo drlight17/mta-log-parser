@@ -39,6 +39,11 @@
     background: #2185d0;
 }
 
+#app.dark select, #app.dark input {
+    background-color: #696969;
+    color: white;
+}
+
 /*#app.dark #emails-list > thead {
     background: inherit!important;
 }*/
@@ -46,6 +51,18 @@
 #app.dark .hide-sticky-header-button {
     /*background-color: #1b1c1d;*/
     background-color: inherit!important;
+}
+
+#app.dark .filter_linked span {
+    padding-bottom: 3px;
+    --bg-h: 1px;
+    background: linear-gradient(0deg, white, white) no-repeat left bottom / 6px var(--bg-h);
+    transition: background-size .2s;
+
+}
+#app.dark .filter_linked span:where(:hover, :focus-visible) {
+    background-size: 100% var(--bg-h);
+    background-position-x: left;
 }
 
 /* fix of calendar arrow*/
@@ -147,7 +164,7 @@ summary {
 
 /*to mark mouse over table row*/
 .emails-list tr:hover td{
-    background-color: rgb(255 255 255 / 40%);
+    background-color: rgb(255 255 255 / 30%);
 }
 
 /*for all tables*/
@@ -306,10 +323,6 @@ summary {
         z-index: 4;
         cursor: pointer;
     }
-
-    /*#app.dark #emails-list > thead {
-        background-color: #1b1c1d!important;
-    }*/
 
     #by {
         width: 100%;

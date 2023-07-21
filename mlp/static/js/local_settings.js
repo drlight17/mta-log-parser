@@ -81,14 +81,23 @@
                     filters: false,
                     locale: "en",
                     status_color: {
-                        NOFILTER: 'rgba(255, 255, 255, 1)',
+                        /*NOFILTER: 'rgba(255, 255, 255, 1)',
                         deferred: 'rgba(247, 201, 116, 1)',
                         sent: 'rgba(164, 237, 164, 1)',
                         reject: 'rgba(255, 175, 175, 1)',
                         bounced: 'rgba(186, 210, 245, 1)',
                         multiple: 'rgba(232, 179, 255, 1)',
                         unknown: 'rgba(249, 251, 140, 1)',
-                        sorted: 'rgba(255, 255, 255, 0.4)'
+                        sorted: 'rgba(255, 255, 255, 0.4)'*/
+                        NOFILTER: '#ffffff',
+                        NOFILTER_dark: '#696969',
+                        deferred: '#f7c974',
+                        sent: '#a4eda4',
+                        reject: '#ffafaf',
+                        bounced: '#bad2f5',
+                        multiple: '#e8b3ff',
+                        unknown: '#f9fb8c',
+                        sorted: 'rgb(255 255 255 / 30%)'
                     },
                     status_icon: {
                         deferred: "<i class='hourglass half icon'></i>",
@@ -169,14 +178,14 @@
                 let s = this.settings;
                 this.$nextTick(function () {
                     var filter_email = $('#filter-email');
-                    $('#filter-email option[value="NOFILTER"]').css('background-color',s.status_color.NOFILTER);
+                    $('#filter-email option[value="NOFILTER"]').css({'background-color': s.status_color.NOFILTER, 'color': 'black'});
                     $('#filter-email option[value="deferred"]').css('background-color',s.status_color.NOFILTER);
                     $('#filter-email option[value="sent"]').css('background-color',s.status_color.NOFILTER);
                     $('#filter-email option[value="bounced"]').css('background-color',s.status_color.NOFILTER);
                     $('#filter-email option[value="reject"]').css('background-color',s.status_color.NOFILTER);
                     $('#filter-email option[value="multiple"]').css('background-color',s.status_color.NOFILTER);
                     $('#filter-email option[value="unknown"]').css('background-color',s.status_color.NOFILTER);
-                    filter_email.css("background-color", filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor);
+                    //filter_email.css({"background-color": filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': 'black'});
                 });
             },
             clearFilters() {
