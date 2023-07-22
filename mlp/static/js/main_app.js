@@ -1079,11 +1079,22 @@ const app = Vue.createApp({
         //$('select.dropdown').addClass("menu");
         //$('select.dropdown ').addClass("dropdown ui");
 
-                // detect dark mode
+        // detect dark mode
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && (localStorage.getItem('dark') === null)) {
             this.settings.dark = true;
             localStorage.setItem('dark','true');
         }
+
+        // fix of footer position
+        this.waitForElm('#footer').then((elm) => {
+            //$(elm).addClass('inverted');
+            if ($("div.logo.login").length > 0) {
+                $(elm).css({'position':'absolute', 'bottom': 0, 'width': '99%'});
+            }
+        });
+        
+        
+        
 
         this.setDark();
 

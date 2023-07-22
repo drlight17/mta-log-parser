@@ -48,6 +48,7 @@
     "page_limit": "Maximum results per page:",
     "show_last_min": "Show logs for",
     "show_last_min_end": "min",
+    "show_last_min_title":"If \"Save filters\" is off then you can only change end date field, start date is dynamically filled based on the \"Show logs for\" slider value!",
     "seconds": "second(s)",
     "minutes": "minute(s)",
     "hours": "hour(s)",

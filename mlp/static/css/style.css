@@ -109,16 +109,18 @@ summary {
 }
 .api_error_container {
     width: 100%;
+    overflow: auto;
 }
 .logo, .logout {
     display: inline-flex;
     flex-direction: row;
     align-items: center;
     margin-bottom: 1em;
-    justify-content: center;
+    justify-content: flex-start;
 }
 #login > div.logo.login {
     width: 100%;
+    justify-content: center;
 }
 #login {
     margin-top: 20vh;
@@ -334,6 +336,18 @@ summary {
 @media only screen and (min-width: 767px) and (max-width: 1000px){
     #refresh-button button span, #user-settings > div.logo  button span{
         display:none!important
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    .title {
+        max-width: 40%;
+    }
+}
+
+@media only screen and (max-width: 375px) {
+    .title {
+        display: none;
     }
 }
 
