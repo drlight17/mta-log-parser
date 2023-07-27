@@ -141,9 +141,10 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
     multiple_recipients = []
     counter = 0
     same_qid = ''
-    with open(logfile, 'r') as f:
+    # avoid utf-8 codec error
+    with open(logfile, 'rb') as f:
         while True:
-            line = f.readline()
+            line = f.readline().decode(errors='replace')
             if not line: break
 
             m = match.match(line)
