@@ -196,7 +196,7 @@ async def api_emails():
             ids.append(f['queue_id'])
         #_sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
         # new much more effective query method
-        _sm = _sm.get_all(r_q.args(ids), index='id')
+        _sm = _sm.get_all(r_q.args(ids), index='id').distinct()
 
         
 
@@ -209,13 +209,13 @@ async def api_emails():
             ids.append(f['queue_id'])
         #_sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
         # new much more effective query method
-        _sm = _sm.get_all(r_q.args(ids), index='id')
+        _sm = _sm.get_all(r_q.args(ids), index='id').distinct()
         
     # Handle appending .filter() to `_sm` for each filter key in `frm`
     _sm = await _process_filters(query=_sm, frm=frm)
 
     _sm, res = await _paginate_query(_sm, frm, rt_conn=conn, rt_query=r_q, order_by=order_by, order_dir=order_dir)
-    _sm = await _sm.distinct().run(conn)
+    _sm = await _sm.run(conn)
 
     #print(list(_sm))
 
