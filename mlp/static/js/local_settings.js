@@ -105,7 +105,9 @@
                         reject: "<i class='times icon'></i>",
                         bounced: "<i class='reply icon'></i>",
                         multiple: "<i class='tasks icon'></i>",
-                        unknown: "<i class='question icon'></i>"
+                        unknown: "<i class='question icon'></i>",
+                        tls: "<i class='lock icon'></i>",
+                        no_tls: "<i class='lock open icon'></i>"
                     }
                 },
             };

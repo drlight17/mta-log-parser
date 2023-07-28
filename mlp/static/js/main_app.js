@@ -104,7 +104,11 @@ const app = Vue.createApp({
             } else {
                 // no need after ver.1.1.5 query update
                 //if (this.search_by !== "log_lines") {
-                    $('#text_search').css('color', 'initial');
+                    if (this.settings.dark) {
+                        $('#text_search').css('color', 'white');
+                    } else {
+                        $('#text_search').css('color', 'initial');
+                    }
                     if (this.settings.filters) {
                         this.saveFilters();
                     } else {
@@ -361,7 +365,6 @@ const app = Vue.createApp({
                 return string;
             }
         },
-        // TODO refactor messages based on locale and new functions
         addFilterLink(element) {
             $td = element.find('td');
             if (this.localeData.filters.filter_link_tip == undefined) {
@@ -793,8 +796,25 @@ const app = Vue.createApp({
             $('body').addClass('scrolling');
             // apply styling to modal
             this.$nextTick(function () {
+                
                 $('#mail-modal > div.header > span > i').remove();
                 $('#mail-modal > div.header > span').prepend(this.settings.status_icon[m.status.code]);
+                // TLS encryption logo and title
+                if ($('#mail-modal > div.content > ul').text().indexOf("TLS") >=0 ) {
+                    if (this.localeData.emails_list.status_tls == undefined) {
+                        text = this.fallbackLocaleData.emails_list.status_tls
+                    } else {
+                        text = this.localeData.emails_list.status_tls
+                    }
+                    $('#mail-modal > div.header > span').prepend(" ").prepend(this.settings.status_icon["tls"]).attr('title', text);
+                } else {
+                    if (this.localeData.emails_list.status_notls == undefined) {
+                        text = this.fallbackLocaleData.emails_list.status_notls
+                    } else {
+                        text = this.localeData.emails_list.status_notls
+                    }
+                    $('#mail-modal > div.header > span').prepend(" ").prepend(this.settings.status_icon["no_tls"]).attr('title', text);
+                }
                 if (this.settings.colored) {
 
                     /*$('#email-metadata td:contains("'+m.status.code+'")').css('background-color',this.settings.status_color[m.status.code].slice(0, -2) + '.4)');

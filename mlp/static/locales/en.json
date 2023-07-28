@@ -27,6 +27,8 @@
     "status": "Full status",
     "status_code": "Status",
     "status_message": "Message",
+    "status_tls": "TLS encrypted connection",
+    "status_notls": "non-TLS encrypted connection",
     "client": "Client",
     "relay": "Relay (Dest. SMTP server)",
     "log_lines": "Related Log Lines",

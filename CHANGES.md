@@ -7,6 +7,10 @@ Unreleased VER.
 - save settings into cookies + accept cookies modal (?)
 - export to xlsx file (table) (?)
 
+VER. 1.1.7.2
+- ~~BUG: log_lines filter outputs the same id emails (only exim?)~~
+- ~~BUG: dark mode filling text search with black font color instead of white~~
+- ~~add TLS encrypted connection icon to message status (maybe TLS info on icon hover?)~~
 VER. 1.1.7.1
 - ~~fix #filter-email coloring in all modes and with resetfilters button~~
 - ~~loading circle after full page reload in dark mode~~

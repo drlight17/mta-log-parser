@@ -215,7 +215,7 @@ async def api_emails():
     _sm = await _process_filters(query=_sm, frm=frm)
 
     _sm, res = await _paginate_query(_sm, frm, rt_conn=conn, rt_query=r_q, order_by=order_by, order_dir=order_dir)
-    _sm = await _sm.run(conn)
+    _sm = await _sm.distinct().run(conn)
 
     #print(list(_sm))
 
