@@ -35,12 +35,13 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.1.7.2"
+VERSION ="1.1.7.3"
 
 # postfix regexp
 postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
 """(0) Regex to match the Date/Time at the start of each log line"""
-postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
+# postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
+postf_match += r'\:[ \t]([A-F0-9]{1,15})\:[ \t]+?(.*)'
 """Regex to match the (1) Queue ID and the (2) Log Message"""
 
 # exim regexp (for syslog and separate mainlog)
@@ -144,10 +145,12 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
     # avoid utf-8 codec error
     with open(logfile, 'rb') as f:
         while True:
+
             line = f.readline().decode(errors='replace')
             if not line: break
 
             m = match.match(line)
+
             if not m: continue
 
             dtime, qid, msg = m.groups()
@@ -155,29 +158,32 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             """Mar 13 10:57:04
             dtime = datetime.strptime(dtime, '%b %d %H:%M:%S').replace(year=datetime.today().year).strftime('%d.%m.%Y-%H:%M:%S')
             print("New time stamp: "+ dtime)"""
+            #log.info(m)
             #print("m.groups[1]: ",m.groups()[1])# - queue_id
             #print("m.groups[2]: ",m.groups()[2])# - message
             # merge multiple mail_to strings into one for the one queue_id
 
                 #m['mail_to'] += ", "+recipients
                 #print("mail_to: ",m['mail_to'])
-                
+            #print("mail_to: ",m['mail_to'])
             if qid not in messages:
                 messages[qid] = PostfixMessage(timestamp=dtime, queue_id=qid)
             messages[qid].merge(await parse_line(msg))
-
-            cheking_mailto = messages[qid]['mail_to']
+            #print(messages[qid])
+            #print(msg)
+            checking_mailto = messages[qid]['mail_to']
             if qid not in set(multiple_recipients):
-                if qid == same_qid or same_qid=='':
+                if qid == same_qid or same_qid == '':
                     if messages[qid]['status'].get('code') is not None:
-                        # check if there are already recipients in message
-                        #print("Looking for ",cheking_mailto," in message '",msg, "' related to qid ", qid)
-                        if cheking_mailto in msg:
-                            same_qid = qid
-                            counter += 1
+                        # check if there are already recipients in message and there are recipients parsed
+                        #print("Looking for ",checking_mailto," in message \"",msg, "\" related to qid ", qid)
+                        if checking_mailto != '':
+                            if checking_mailto in msg:
+                                same_qid = qid
+                                counter += 1
                 else:
                     #print("New message ID: ", qid)
-                    #print("There are ", counter," recipients in message ",same_qid)
+                    #print("There are", counter,"recipients in message id",same_qid)
                     if counter > 1:
                         multiple_recipients.append(same_qid)
                     counter = 0
@@ -239,6 +245,7 @@ async def main():
     r, conn, r_q = await get_rethink()
     r_q: rethinkdb.query
     """housekeeping from old logs"""
+
     housekeeping_days = settings.housekeeping_days
     if housekeeping_days != '':
         log.info('Start housekeeping')
@@ -301,7 +308,7 @@ async def main():
                 continue
             # check if there are many recipients
             if m.get('id') in set(multiple_recipients):
-                #print("There multiple recipients in ",m.get('id'))
+                print("There multiple recipients in ",m.get('id'))
                 m['mail_to'] += " and more (check log lines)"
                 m['status']['code'] = 'multiple'
                 m['status']['message'] = 'multiple, see log lines below'

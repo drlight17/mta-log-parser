@@ -14,6 +14,19 @@
 #app.dark .ui.inverted.segment, .ui.inverted.segments .segment, .ui.primary.inverted.segment {
     background: #2b2b2b;
 }
+#app.dark .developed_by {
+	filter: brightness(1);
+}
+.developed_by {
+	display: inline;
+    height: 55px;
+	opacity: .7;
+    filter: brightness(0);
+    /*position: absolute;
+    right: 0px;
+    top: 5px;
+    margin-right: 10px;*/
+}
 
 /*#app.dark #emails_list > div.top_title > div.logo > div.field.wrapper, #app.dark div.logo.login {
     filter: invert(1);
@@ -359,6 +372,8 @@ summary {
 /*all buttons except ui.buttons div*/
 button:not(.navi), #footer {
     width:100%;
+	display: flex;
+	justify-content: space-between;
 }
 /* fix of calendar z-index over modals*/
 .ui.popup {

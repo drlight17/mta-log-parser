@@ -185,7 +185,8 @@ async def api_emails():
         search_string = str(frm.pop('mail_to'))#.lower()
         recipient_match = ''
         if settings.mta == 'exim':
-            recipient_match = "-> |=> |== |>> "
+            recipient_match = "** |-> |=> |== |>> "
+            #recipient_match = "-> |=> |== |>> "
             #recipient_match = "->|=>|==|>> "
         if settings.mta == 'sendmail' or settings.mta == 'postfix':
             recipient_match = "^to="

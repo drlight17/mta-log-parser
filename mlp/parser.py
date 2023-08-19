@@ -33,6 +33,7 @@ postf_client = re.compile(r'.*client=([a-zA-Z0-9-._]+)\[(.*)\]')
 # exim regexp
 exim_to = re.compile(r'.*>.(.*).R=')
 exim_from = re.compile(r'.*<=.(.*).H=|.*F=<(.*)>')
+#exim_from = re.compile(r'.*<=.(.*).H=|.*F=<(.*)>|.*\*\*.(.*).R=')
 exim_subject = re.compile(r'.*Subject:\s(.*)')
 exim_size = re.compile(r'.*S=([0-9]{1,}).*')
 exim_message_id = re.compile(r'.*<=.*id=(.*)')
@@ -94,7 +95,7 @@ async def parse_line(mline) -> dict:
     _client = find_client.match(mline)
     _relay = find_relay.match(mline)
     _status = find_status.match(mline)
-
+    
     if _to is not None: lm['mail_to'] = _to.group(1)
     if _subject is not None: lm['subject'] = _subject.group(1)
     if _size is not None: lm['size'] = round(float(_size.group(1))/1024, 2)

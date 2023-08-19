@@ -72,15 +72,19 @@
         {% block content %}{% endblock %}
 
         <div v-if="!loading" class="ui segment" id="footer">
-            <span v-if="localeData.footer.two" v-html="localeData.footer.two"></span>
-            <span v-else v-html="fallbackLocaleData.footer.two"></span>
-            {{ VERSION }}
-            <span v-if="localeData.footer.three" v-html="localeData.footer.three"></span>
-            <span v-else v-html="fallbackLocaleData.footer.three"></span>
-            <br>
-            <span style="opacity:.5;" v-if="localeData.footer.one" v-html="localeData.footer.one"></span>
-            <span style="opacity:.5;" v-else v-html="fallbackLocaleData.footer.one"></span>
-            
+			<div>
+				<span v-if="localeData.footer.two" v-html="localeData.footer.two"></span>
+				<span v-else v-html="fallbackLocaleData.footer.two"></span>
+				{{ VERSION }}
+				<span v-if="localeData.footer.three" v-html="localeData.footer.three"></span>
+				<span v-else v-html="fallbackLocaleData.footer.three"></span>
+				<br>
+				<span style="opacity:.5;" v-if="localeData.footer.one" v-html="localeData.footer.one"></span>
+				<span style="opacity:.5;" v-else v-html="fallbackLocaleData.footer.one"></span>
+			</div>
+            <a target="_blank" href="https://github.com/drlight17">
+				<img class="developed_by" src="{{ url_for('static', filename='images/developed_by_drlight.png') }}" />
+			</a>
         </div>
     </div>
 

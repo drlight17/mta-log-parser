@@ -6,7 +6,13 @@ Unreleased VER.
 - remove python privex helpers code (?)
 - save settings into cookies + accept cookies modal (?)
 - export to xlsx file (table) (?)
+- fix dropdown update if use fomantic ui div based dropdown
 
+
+VER. 1.1.7.3
+- ~~BUG: postfix queue ID length may not be equal to 10 symbols~~
+- ~~BUG: exim wrong parsing mail_to for some bounces ~~
+- ~~add DLR developed logo in footer~~
 VER. 1.1.7.2
 - ~~BUG: log_lines filter outputs the same id emails (only exim?)~~
 - ~~BUG: dark mode filling text search with black font color instead of white~~
