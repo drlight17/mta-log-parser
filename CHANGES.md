@@ -12,14 +12,17 @@ VER. 1.1.7.4
 - ~~BUG: error while search mail_to in last version with exim~~ 
 - ~~open/hide button for tips and user settings~~
 - ~~refresh rotation animation only in the moment of refresh~~
+- 
 VER. 1.1.7.3
 - ~~BUG: postfix queue ID length may not be equal to 10 symbols~~
 - ~~BUG: exim wrong parsing mail_to for some bounces ~~
 - ~~add DLR developed logo in footer~~
+- 
 VER. 1.1.7.2
 - ~~BUG: log_lines filter outputs the same id emails (only exim?)~~
 - ~~BUG: dark mode filling text search with black font color instead of white~~
 - ~~add TLS encrypted connection icon to message status (maybe TLS info on icon hover?)~~
+- 
 VER. 1.1.7.1
 - ~~fix #filter-email coloring in all modes and with resetfilters button~~
 - ~~loading circle after full page reload in dark mode~~
