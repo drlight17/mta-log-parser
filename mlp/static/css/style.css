@@ -28,6 +28,12 @@
     margin-right: 10px;*/
 }
 
+.hide_settings_tips_container {
+    align-items: center!important;
+}
+/*.hidable.hide {
+    display:none!important;
+}*/
 /*#app.dark #emails_list > div.top_title > div.logo > div.field.wrapper, #app.dark div.logo.login {
     filter: invert(1);
 }*/
@@ -102,7 +108,7 @@ summary {
 
 /* autorefresh rotation icon */
 .rotate{
-  animation: rotate 1.5s linear infinite; 
+  animation: rotate 1s linear; 
 }
 @keyframes rotate{
   to{ transform: rotate(360deg); }
@@ -295,6 +301,17 @@ summary {
     
     
 }
+
+@media only screen and (max-width: 810px) {
+    .hide_settings_tips_container {
+        margin: auto!important;
+    }
+    .hide_settings_tips {
+        margin-bottom: 20px;
+    }
+}
+
+
 /*fix semanticui dropdown style*/
 .ui.selection.dropdown {
     padding:initial!important;

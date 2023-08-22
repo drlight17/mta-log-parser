@@ -30,6 +30,7 @@ const app = Vue.createApp({
             fallbackLocaleData: [],
             locales: lang_files,
             loading: true,
+            hidden: false,
             error: null,
             emails: [],
             search: "",
@@ -300,6 +301,19 @@ const app = Vue.createApp({
                     top: '0px'
                 })
             }
+        },
+        toggleSetTips() {
+            $('.hidable').transition({
+            	animation : "fade down",
+            	onHidden: function () {
+					window.localStorage.setItem("hidden_settings_tips", true);
+					window.app.hidden = true;
+				},
+				onVisible: function () {
+					window.localStorage.setItem("hidden_settings_tips", false);
+					window.app.hidden = false;
+				}
+            });  
         },
         /*apply_marquee(found_table,vue) {              
             // do not marquee in mobile mode
@@ -774,11 +788,13 @@ const app = Vue.createApp({
             var fallbackLocaleData = localStorage.getItem('fallbackLocaleData');
             var locale = localStorage.getItem('locale');
             var dark = localStorage.getItem('dark');
+            var hidden_settings_tips = localStorage.getItem('hidden_settings_tips');
             localStorage.clear();
             localStorage.setItem('localeData',localeData);
             localStorage.setItem('fallbackLocaleData',fallbackLocaleData);
             localStorage.setItem('locale',locale);
             localStorage.setItem('dark',dark);
+            localStorage.setItem('hidden_settings_tips',hidden_settings_tips);
             window.location = path_prefix+'/logout';
 
         },
@@ -965,10 +981,14 @@ const app = Vue.createApp({
             // autorefresh
             this.$nextTick(function () {
                 clearInterval(window.app.timer);
+                // hide rotation animation after 1s
+                setTimeout(() => $('#navi .sync.icon').removeClass('rotate'), 1000);
                 if (window.app.settings.refresh > 0) {
                     window.app.contdown_sec = window.app.settings.refresh * 60;
                     window.app.timer = setInterval(function(){
                         if (window.app.settings.refresh !== undefined) {
+                        	// show rotation animation
+                        	$('#navi .sync.icon').addClass('rotate');
                             window.app.loadEmails(false);
                         }
                     }, window.app.settings.refresh * 60000);
@@ -1113,8 +1133,6 @@ const app = Vue.createApp({
             }
         });
         
-        
-        
 
         this.setDark();
 
@@ -1149,6 +1167,17 @@ const app = Vue.createApp({
         }*/
 
         this.$nextTick(function () {
+	        // check hidden tips and settings
+
+	        if ((localStorage.getItem("hidden_settings_tips") === null) || (localStorage.getItem("hidden_settings_tips") === 'false'))  {
+	        	$('.hidable').show();
+	        	this.hidden = false;
+
+
+	        } else {
+	        	$('.hidable').hide();
+	        	this.hidden = true;
+	        }
             // apply mail domain from current domain URL if .env MAIL_DOMAIN is empty
             if (mail_domain == '') {
                 $('h1 > span').text(window.location.hostname);

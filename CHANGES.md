@@ -8,7 +8,10 @@ Unreleased VER.
 - export to xlsx file (table) (?)
 - fix dropdown update if use fomantic ui div based dropdown
 
-
+- VER. 1.1.7.4
+- ~~BUG: error while search mail_to in last version with exim~~ 
+- ~~open/hide button for tips and user settings~~
+- ~~refresh rotation animation only in the moment of refresh~~
 VER. 1.1.7.3
 - ~~BUG: postfix queue ID length may not be equal to 10 symbols~~
 - ~~BUG: exim wrong parsing mail_to for some bounces ~~

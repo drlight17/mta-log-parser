@@ -12,7 +12,7 @@
             </button>
 
             <button v-if="$parent.settings.refresh >= 1" @click="$parent.loadEmails(true)" class="ui button navi" :class="{inverted: $parent.settings.dark}">
-                <i class="sync icon rotate"/> <span v-if="$parent.localeData.pager.autorefresh" v-html="$parent.localeData.pager.autorefresh"></span><span v-else v-html="$parent.fallbackLocaleData.pager.autorefresh"></span>
+                <i class="sync icon"/> <span v-if="$parent.localeData.pager.autorefresh" v-html="$parent.localeData.pager.autorefresh"></span><span v-else v-html="$parent.fallbackLocaleData.pager.autorefresh"></span>
                     {{ $parent.contdown }}
             </button>
 

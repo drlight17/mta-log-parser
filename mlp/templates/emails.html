@@ -9,15 +9,19 @@
             <div class="field title">
                 <h1 v-if="localeData.app_title">[[ localeData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
                 <h1 v-else>[[ fallbackLocaleData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
-
             </div>
             
         </div>
-        <div v-if="!loading" class="logout">
-            <button @click="logout()" class="ui button red center"><i class="sign out alternate icon"></i><span v-if="localeData.user_settings.log_out" v-html="localeData.user_settings.log_out"></span><span v-else v-html="fallbackLocaleData.user_settings.log_out"></span></button>
+        <div class="ui two column grid hide_settings_tips_container">
+            <div v-if="!loading" class="logout">
+                <button @click="logout()" class="ui button red center"><i class="sign out alternate icon"></i><span v-if="localeData.user_settings.log_out" v-html="localeData.user_settings.log_out"></span><span v-else v-html="fallbackLocaleData.user_settings.log_out"></span></button>
+            </div>
+            <div v-if="!loading" class="hide_settings_tips">
+                <button :title="localeData.hide_set_tips_title" @click="toggleSetTips()" class="ui button gray center"><i class ="chevron icon" :class="{ up: !hidden, down: hidden }" class="chevron icon"></i></button>
+            </div>
         </div>
     </div>
-    <div class="ui stackable two column grid">
+    <div class="ui stackable two column grid hidable">
         <div id="user-settings" class="six wide column">
             <local-settings @settings-loaded="settings_loaded" @settings-saved="settings_saved"></local-settings>
         </div>

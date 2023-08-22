@@ -2,6 +2,7 @@
   "locale_lang": "English",
   "app_title": "MTA Log Parser",
   "loading": "Loading...",
+  "hide_set_tips_title": "Hide or show settings and tips",
   "notie": {
     "one": "Forbidden special character(s) in text search input: <b>«",
     "two": "User settings are saved successfully",
