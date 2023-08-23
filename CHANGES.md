@@ -8,7 +8,12 @@ Unreleased VER.
 - export to xlsx file (table) (?)
 - fix dropdown update if use fomantic ui div based dropdown
 
-VER. 1.1.7.4
+VER. 1.1.7.5 
+- ~~log_lines timestamp format must match current GUI timestamp format~~ 
+- ~~update available message in footer~~
+- ~~rethinkdb array_limit set in .env~~
+
+- VER. 1.1.7.4
 - ~~BUG: error while search mail_to in last version with exim~~ 
 - ~~open/hide button for tips and user settings~~
 - ~~refresh rotation animation only in the moment of refresh~~

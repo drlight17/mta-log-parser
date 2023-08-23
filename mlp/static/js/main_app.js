@@ -9,6 +9,10 @@ if (datetime_format == '') {
 }
 // get mail_domain from .env
 var mail_domain = document.currentScript.getAttribute('mail_domain');
+
+// get current mlp version from .env
+var parser_version = document.currentScript.getAttribute('parser_version');
+
 // get HOUSEKEEPING_DAYS from .env
 var housekeeping_days = document.currentScript.getAttribute('housekeeping_days');
 if (housekeeping_days == '') {
@@ -507,6 +511,10 @@ const app = Vue.createApp({
             }
         },
         loadEmails(refresh) {
+
+            // check for updates
+            this.updateCheck();
+
             var wait = 0;
 
             // call to resresh countdown
@@ -1111,6 +1119,50 @@ const app = Vue.createApp({
                     subtree: true
                 });
             });
+        },
+        getCookie(name) {
+          let matches = document.cookie.match(new RegExp(
+            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+          ));
+          return matches ? decodeURIComponent(matches[1]) : undefined;
+        },
+        async updateCheck() {
+            if (!(this.getCookie('mlp_latest_version'))) {
+                await $.getJSON("https://api.github.com/repos/drlight17/mta-log-parser/releases/latest")
+                .done(function(json_data_fallback) {
+                    response = JSON.parse(JSON.stringify(json_data_fallback));
+                    document.cookie = "mlp_latest_version="+response["tag_name"].substring(1)+"; max-age=3600";
+                    if (parser_version != response["tag_name"].substring(1)) {
+                        window.app.waitForElm('#footer > div > span:nth-child(2)').then((elm) => {
+                            if (window.app.localeData.footer.four == undefined) {
+                                text = window.app.fallbackLocaleData.footer.four
+                            } else {
+                                text = window.app.localeData.footer.four
+                            }
+                            $(elm).append(' | '+'<span class="blinking">'+text+'</span>');
+                        });
+                    }
+                })
+
+                .fail(function(json_data_fallback) {
+                    document.cookie = "mlp_latest_version="+parser_version+"; max-age=3600";
+                    console.log("Failed to get latest repo version!");
+                    console.log(JSON.parse(JSON.stringify(json_data_fallback)))
+                })
+            } else {
+                //console.log(parser_version);
+                //console.log(this.getCookie('mlp_latest_version'));
+                if (parser_version != this.getCookie('mlp_latest_version')) {
+                    window.app.waitForElm('#footer > div > span:nth-child(2)').then((elm) => {
+                        if (window.app.localeData.footer.four == undefined) {
+                            text = window.app.fallbackLocaleData.footer.four
+                        } else {
+                            text = window.app.localeData.footer.four
+                        }
+                        $(elm).append(' | '+'<span class="blinking">'+text+'</span>');
+                    });
+                }
+            }
         }
     },
     mounted() {

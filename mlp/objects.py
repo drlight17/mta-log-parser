@@ -1,11 +1,14 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+# TODO dayjs? as moment is deprecated
+import moment
 from typing import List
 
 from dateutil.parser import parse
 from privex.helpers import Dictable, is_false
 
 from mlp.settings import log_timezone
+from mlp import settings, api
 
 @dataclass
 class PostfixLog(Dictable):
@@ -29,10 +32,14 @@ class PostfixLog(Dictable):
 
     def clean_dict(self, convert_time=str) -> dict:
         data = dict(self)
-        if is_false(convert_time):
+        # TODO test lines timestamp convert before append
+        data['timestamp'] = moment.date(str(self.timestamp)).format(settings.datetime_format)
+        #print(data)
+
+        '''if is_false(convert_time):
             data['timestamp'] = self.timestamp
         else:
-            data['timestamp'] = convert_time(self.timestamp)
+            data['timestamp'] = convert_time(self.timestamp)'''
         return data
 
 
@@ -85,6 +92,7 @@ class PostfixMessage(Dictable):
             data['timestamp'] = convert_time(self.timestamp)
             data['first_attempt'] = convert_time(self.first_attempt)
             data['last_attempt'] = convert_time(self.last_attempt)
+        
         data['lines'] = [s.clean_dict(convert_time=convert_time) for s in self.lines]
-
+        
         return data

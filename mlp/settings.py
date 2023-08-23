@@ -38,6 +38,7 @@ production minified version.
 rethink_host = env('RETHINK_HOST', 'localhost')
 rethink_port = int(env('RETHINK_PORT', 28015))
 rethink_db = env('RETHINK_DB', 'maildata')
+rethink_arr_limit = int(env('RETHINK_ARR_LIMIT', 100000))
 
 rethink_tables = [
     ('sent_mail', ['mail_to', 'timestamp', 'first_attempt', 'last_attempt']),

@@ -23,15 +23,17 @@ import rethinkdb.query
 import logging
 
 from rethinkdb.net import DefaultConnection
+from mlp.main import VERSION
 from mlp import settings, api
 
-from mlp.main import VERSION
+
 from mlp.exceptions import APIException
 from mlp.core import get_rethink
 from quart import Quart, session, redirect, render_template, request, flash, jsonify
 from privex.helpers import random_str, empty, filter_form, DictDataClass, DictObject
 # for timestamp process
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+
 from dateutil import parser
 # TODO dayjs? as moment is deprecated
 import moment
@@ -179,7 +181,7 @@ async def api_emails():
     
 
     _sm = r.table('sent_mail')
-
+    
     # check mail_to in log lines
     if 'mail_to' in frm:
         search_string = str(frm.pop('mail_to'))#.lower()
@@ -190,7 +192,9 @@ async def api_emails():
             #recipient_match = "->|=>|==|>> "
         if settings.mta == 'sendmail' or settings.mta == 'postfix':
             recipient_match = "^to="
-        found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).filter(lambda m: m['message'].match(recipient_match)).run(conn)
+
+        # TODO testing add rethink_arr_limit to all queries
+        found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).filter(lambda m: m['message'].match(recipient_match)).run(conn, array_limit=settings.rethink_arr_limit)
         
         ids = []
         async for f in found_strings:
@@ -204,7 +208,7 @@ async def api_emails():
     # check log lines
     if 'log_lines' in frm:
         search_string = str(frm.pop('log_lines'))#.lower()
-        found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).run(conn)
+        found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).run(conn, array_limit=settings.rethink_arr_limit)
         ids = []
         async for f in found_strings:
             ids.append(f['queue_id'])
@@ -216,7 +220,7 @@ async def api_emails():
     _sm = await _process_filters(query=_sm, frm=frm)
 
     _sm, res = await _paginate_query(_sm, frm, rt_conn=conn, rt_query=r_q, order_by=order_by, order_dir=order_dir)
-    _sm = await _sm.run(conn)
+    _sm = await _sm.run(conn, array_limit=settings.rethink_arr_limit)
 
     #print(list(_sm))
 
@@ -242,7 +246,7 @@ async def _paginate_query(query: QueryOrTable, frm: Mapping, rt_conn: DefaultCon
     offset = 0 if offset < 0 else offset
     res = PageResult(error=False, count=0, remaining=0, page=1 if not page else page, total_pages=1)
     # Get the total number of rows which match the requested filters
-    count = await query.count().run(rt_conn)
+    count = await query.count().run(rt_conn, array_limit=settings.rethink_arr_limit)
     #print ("Total number of rows found: ",count)
 
     # rt_query: RqlTopLevelQuery
@@ -307,13 +311,13 @@ async def _process_notie():
 
 @app.errorhandler(404)
 async def handle_404(exc=None):
-    return await api.handle_error('NOT_FOUND', exc=exc)
+    return await api.handle_error('NOT_FOUND', VERSION=VERSION, exc=exc)
 
 
 @app.errorhandler(APIException)
 async def api_exception_handler(exc: APIException, *args, **kwargs):
     #print(exc.template)
-    return await api.handle_error(err_code=exc.error_code, err_msg=exc.message, code=exc.status, exc=exc, template=exc.template)
+    return await api.handle_error(err_code=exc.error_code, VERSION=VERSION, err_msg=exc.message, code=exc.status, exc=exc, template=exc.template)
 
 
 @app.errorhandler(Exception)
@@ -321,4 +325,4 @@ async def app_error_handler(exc=None, *args, **kwargs):
     log.warning("app_error_handler exception type / msg: %s / %s", type(exc), str(exc))
     log.warning("app_error_handler *args: %s", args)
     log.warning("app_error_handler **kwargs: %s", kwargs)
-    return await api.handle_error('UNKNOWN_ERROR', exc=exc)
+    return await api.handle_error('UNKNOWN_ERROR', VERSION=VERSION, exc=exc)

@@ -129,7 +129,8 @@
   "footer": {
     "one": "Postfix Log Parser original version 1.1.2 © 2019 by Privex Inc. under the GNU AGPL v3 | <a href=\"https://github.com/Privex/postfix-parser\" target=\"_BLANK\">Source on Github</a>",
     "two": "MTA Log Parser © 2023 by drlight ver.",
-    "three": "under the GNU AGPL v3 | <a href=\"https://github.com/drlight17/mta-log-parser\" target=\"_BLANK\">Source on Github</a>"
+    "three": "under the GNU AGPL v3 | <a href=\"https://github.com/drlight17/mta-log-parser\" target=\"_BLANK\">Source on Github</a>",
+    "four": "Update is available! Check <a href=\"https://github.com/drlight17/mta-log-parser/releases/latest/\" target=\"_BLANK\">here</a>."
   },
   "calendar": {
     "days": ["S", "M", "T", "W", "T", "F", "S"],

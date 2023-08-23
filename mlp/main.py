@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.1.7.4"
+VERSION ="1.1.7.5"
 
 # postfix regexp
 postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
@@ -88,7 +88,7 @@ async def save_obj(table, data, primary=None, onconflict: OnConflict = OnConflic
     _data = dict(data)
     if primary is not None:
         if 'id' not in _data: _data['id'] = _data[primary]
-        g = await r.table(table).get(data[primary]).run(conn)
+        g = await r.table(table).get(data[primary]).run(conn, array_limit=settings.rethink_arr_limit)
 
         if g is not None:
             if onconflict == OnConflict.QUIET:
@@ -96,9 +96,9 @@ async def save_obj(table, data, primary=None, onconflict: OnConflict = OnConflic
             if onconflict == OnConflict.EXCEPT:
                 raise ObjectExists(f"Table '{table}' entry with '{primary} = {data[primary]}' already exists!")
             if onconflict == OnConflict.UPDATE:
-                return await r.table(table).get(data[primary]).update(_data).run(conn)
+                return await r.table(table).get(data[primary]).update(_data).run(conn, array_limit=settings.rethink_arr_limit)
             raise AttributeError("'saveobj' onconflict must be either 'quiet', 'except', or 'update'")
-    return await r.table(table).insert(_data).run(conn)
+    return await r.table(table).insert(_data).run(conn, array_limit=settings.rethink_arr_limit)
 
 """ samoilov housekeeping function"""
 async def housekeeping(housekeeping_days):
@@ -112,7 +112,7 @@ async def housekeeping(housekeeping_days):
     r_q: rethinkdb.query
     _sm = r.table('sent_mail')
     _sm = _sm.filter(r_q.row["timestamp"] <= a).delete()
-    _sm = await _sm.run(conn)
+    _sm = await _sm.run(conn, array_limit=settings.rethink_arr_limit)
 
     #print (_sm)
     #print (_sm['deleted'])
@@ -238,7 +238,7 @@ def decodev2(a):
 #    r_q: rethinkdb.query
 #    _sm = r.table('sent_mail')
 #   #_sm = _sm.filter(r_q.row["queue_id"] == qid).pluck("mail_to")
-#    _sm = await _sm.filter((r_q.row["mail_to"].match(mailto))&(r_q.row["queue_id"].match(qid))).is_empty().run(conn)
+#    _sm = await _sm.filter((r_q.row["mail_to"].match(mailto))&(r_q.row["queue_id"].match(qid))).is_empty().run(conn, array_limit=settings.rethink_arr_limit)
 #    return _sm
 
 async def main():

@@ -27,6 +27,15 @@
     top: 5px;
     margin-right: 10px;*/
 }
+.blinking {
+    animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
 
 .hide_settings_tips_container {
     align-items: center!important;

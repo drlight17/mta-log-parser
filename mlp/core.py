@@ -51,7 +51,7 @@ async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:
         >>> from mlp.core import get_rethink
         >>>
         >>> r, conn, rDB = await get_rethink()
-        >>> r.table('blocks').insert(dict(block_num=1234)).run(conn)
+        >>> r.table('blocks').insert(dict(block_num=1234)).run(conn, array_limit=settings.rethink_arr_limit)
 
 
     :return DB rethink: (Tuple Param 1) - Main RethinkDB database query object :class:`rethinkdb.RethinkDB`
@@ -66,23 +66,23 @@ async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:
     r.set_loop_type('asyncio')
     conn = await r.connect(settings.rethink_host, settings.rethink_port)
 
-    dbs = await r.db_list().run(conn)
+    dbs = await r.db_list().run(conn, array_limit=settings.rethink_arr_limit)
     if settings.rethink_db not in dbs:
         log.debug('Database %s did not exist. Creating.', settings.rethink_db)
-        await r.db_create(settings.rethink_db).run(conn)
+        await r.db_create(settings.rethink_db).run(conn, array_limit=settings.rethink_arr_limit)
 
     # Create required tables inside of database
     db = r.db(settings.rethink_db)   # type: DB
-    rtables = await db.table_list().run(conn)
+    rtables = await db.table_list().run(conn, array_limit=settings.rethink_arr_limit)
     for t, indexes in settings.rethink_tables:
         if t not in rtables:
             log.debug('Table %s did not exist. Creating.', t)
-            await db.table_create(t).run(conn)
-        idxs = await db.table(t).index_list().run(conn)
+            await db.table_create(t).run(conn, array_limit=settings.rethink_arr_limit)
+        idxs = await db.table(t).index_list().run(conn, array_limit=settings.rethink_arr_limit)
         for index in indexes:
             if index not in idxs:
                 log.debug('Index %s on table %s did not exist. Creating.', index, t)
-                await db.table(t).index_create(index).run(conn)
+                await db.table(t).index_create(index).run(conn, array_limit=settings.rethink_arr_limit)
 
     __STORE['rethink'] = db, conn, r
     return __STORE['rethink']
