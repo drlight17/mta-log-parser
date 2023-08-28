@@ -13,7 +13,7 @@ VER. 1.1.7.5
 - ~~update available message in footer~~
 - ~~rethinkdb array_limit set in .env~~
 
-- VER. 1.1.7.4
+VER. 1.1.7.4
 - ~~BUG: error while search mail_to in last version with exim~~ 
 - ~~open/hide button for tips and user settings~~
 - ~~refresh rotation animation only in the moment of refresh~~
