@@ -79,7 +79,7 @@
                     colored: true,
                     resizable: false,
                     filters: false,
-                    locale: "en",
+                    locale: "",
                     status_color: {
                         /*NOFILTER: 'rgba(255, 255, 255, 1)',
                         deferred: 'rgba(247, 201, 116, 1)',

@@ -453,6 +453,68 @@ button:not(.navi), #footer {
     padding: 10px;
 }*/
 
+/* modal arrows*/
+.next_email, .prev_email {
+    display: flex;
+    position: absolute;
+    height: 100%;
+    color: white;
+    width: 100px;
+    justify-content: space-evenly;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    background-color: rgba(0,0,0, 0.2);
+    outline: none;
+}
+
+.next_email:hover, .prev_email:hover {
+    transition: all 0.15s ease-in-out;;
+    background-color: rgba(0,0,0, 0.3);
+}
+.next_email {
+    right: -100px;
+}
+.prev_email {
+    left: -100px;
+}
+
+@media only screen and (max-width: 1000px){
+    .next_email {
+        right: 0;
+        width: 40px;
+    }
+    .prev_email {
+        left: 0;
+        width: 40px;
+    }
+    .next_email i, .prev_email i { 
+        filter: invert(1);
+    }
+    #app.dark .next_email i, #app.dark .prev_email i {
+        filter: invert(0);
+    }
+}
+
+.next_email i, .prev_email i {
+    font-size: 2em!important;
+    opacity: .5!important;
+}
+
+.next_email:hover i, .next_email:focus i, .prev_email:hover i, .prev_email:focus i {
+    opacity: 1!important;
+}
+
+div.disabled.prev_email, div.disabled.next_email {
+    pointer-events: none;
+    opacity: 0.4;
+    background-color: rgba(0,0,0, 0);
+    /*display: none;*/
+}
+div.disabled.prev_email > i, div.disabled.next_email > i {
+    opacity: 0!important;
+}
+
 /* modal close button fix*/
 .ui.modal > i.close.icon {
     top: -2.5rem !important;

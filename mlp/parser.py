@@ -51,6 +51,19 @@ sendm_status = re.compile(r'.*stat=([a-zA-Z0-9-_.]+)(.*)?|.*(reject)=([0-9].*)')
 sendm_relay = re.compile(r'.*to=.*relay=(.*)\[(.*)\], dsn|.*to=.*relay=(.*), dsn')
 sendm_client = re.compile(r'.*from=.*relay=(.*)\[(.*)\]|.*from=.*relay=(.*)')
 
+# exchange regexp
+exch_to = re.compile(r'^[^#]([^,]*,){13}')
+exch_from = re.compile(r'^[^#]([^,]*,){20}')
+exch_subject = re.compile(r'^[^#]([^,]*,){19}')
+exch_size = re.compile(r'^[^#]([^,]*,){15}')
+exch_message_id = re.compile(r'^[^#]([^,]*,){11}')
+#exch_status = re.compile(r'^[^#]([^,]*,){10}')
+exch_status = re.compile(r'^[^#]([^,]*,){9}([^,]*,){13}')
+#exch_relay = re.compile(r'^[^#]([^,]*,){26}')
+exch_relay = re.compile(r'^[^#]([^,]*,){5}([^,]*,){21}')
+#exch_client = re.compile(r'^[^#]([^,]*,){25}')
+exch_client = re.compile(r'^[^#]([^,]*,){3}([^,]*,){22}')
+
 if settings.mta == 'postfix' or settings.mta == '':
     find_to = postf_to
     find_from = postf_from
@@ -80,6 +93,16 @@ elif settings.mta == 'sendmail':
     find_relay = sendm_relay
     find_status = sendm_status
     find_message_id = sendm_message_id
+
+elif settings.mta == 'exchange':
+    find_to = exch_to
+    find_from = exch_from
+    find_subject = exch_subject
+    find_size = exch_size
+    find_client = exch_client
+    find_relay = exch_relay
+    find_status = exch_status
+    find_message_id = exch_message_id
 else:
     log.exception('Incorrect value of MTA env variable: %s. Check example and set the correct one!', settings.mta)
     exit()
@@ -96,9 +119,22 @@ async def parse_line(mline) -> dict:
     _relay = find_relay.match(mline)
     _status = find_status.match(mline)
     
-    if _to is not None: lm['mail_to'] = _to.group(1)
-    if _subject is not None: lm['subject'] = _subject.group(1)
-    if _size is not None: lm['size'] = round(float(_size.group(1))/1024, 2)
+    if _to is not None:
+        if settings.mta == 'exchange':
+            lm['mail_to'] = _to.group(1)[:-1]
+        else:
+            lm['mail_to'] = _to.group(1)
+    if _subject is not None:
+        if settings.mta == 'exchange':
+            lm['subject'] = _subject.group(1)[:-1]
+        else:
+            lm['subject'] = _subject.group(1)
+    if _size is not None:
+        if settings.mta == 'exchange':
+            #print(_size.group(1)[:-1])
+            lm['size'] = round(float(_size.group(1)[:-1])/1024, 2)
+        else:
+            lm['size'] = round(float(_size.group(1))/1024, 2)
     """print(_client)
     if _client is not None: 
         lm['client'] = dict(host=_client.group(1), ip=_client.group(2))
@@ -145,6 +181,24 @@ async def parse_line(mline) -> dict:
             if _status.group(8) is not None:
                 lm['status']['message'] = _status.group(8)
 
+    elif settings.mta == 'exchange':
+        if _from is not None: lm['mail_from'] = _from.group(1)[:-1]
+        if _relay is not None: lm['relay'] = dict(host=_relay.group(1)[:-1], ip=_relay.group(2)[:-1])
+        if _client is not None: lm['client'] = dict(host=_client.group(1)[:-1], ip=_client.group(2)[:-1])
+        if _status is not None:
+            if _status.group(1) is not None:
+            	if _status.group(1)[:-1].lower() == 'deliver' or  _status.group(1)[:-1].lower()  == 'duplicatedeliver' or  _status.group(1)[:-1].lower()  == 'process' or  _status.group(1)[:-1].lower()  == 'receive' or  _status.group(1)[:-1].lower()  == 'redirect' or  _status.group(1)[:-1].lower()  == 'send' or  _status.group(1)[:-1].lower()  == 'submit':
+            		lm['status'] = lm['status'] = dict(code='sent', message="")
+            	elif _status.group(1)[:-1].lower() == 'fail' or  _status.group(1)[:-1].lower()  == 'hadiscard' or  _status.group(1)[:-1].lower()  == 'moderatorreject' or  _status.group(1)[:-1].lower()  == 'resubmitfail'  or  _status.group(1)[:-1].lower()  == 'submitfail'  or  _status.group(1)[:-1].lower()  == 'suppressed' or _status.group(1)[:-1].lower() == 'drop' or _status.group(1)[:-1].lower() == 'deliverfail':
+            		lm['status'] = lm['status'] = dict(code='reject', message="")
+            	elif _status.group(1)[:-1].lower() == 'dsn' or  _status.group(1)[:-1].lower()  == 'haredirect':
+            		lm['status'] = lm['status'] = dict(code='bounced', message="")
+            	elif _status.group(1)[:-1].lower() == 'defer' or _status.group(1)[:-1].lower() == 'resubmitdefer' or _status.group(1)[:-1].lower() == 'submitdefer':
+            		lm['status'] = lm['status'] = dict(code='deferred', message="")
+
+            if _status.group(2) is not None: 
+            	lm['status']['message'] = _status.group(2)[:-1]
+
     elif settings.mta == 'postfix':
         if _relay is not None: lm['relay'] = dict(host=_relay.group(1), ip=_relay.group(2), port=_relay.group(3))
         if _client is not None: lm['client'] = dict(host=_client.group(1), ip=_client.group(2))
@@ -190,6 +244,9 @@ async def parse_line(mline) -> dict:
 
     _message_id = find_message_id.match(mline)
     if _message_id is not None:
-        lm['message_id'] = _message_id.group(1)
+        if settings.mta == 'exchange':
+            lm['message_id'] = _message_id.group(1)[:-1]
+        else:
+            lm['message_id'] = _message_id.group(1)
     #log.info(lm)
     return lm

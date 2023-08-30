@@ -1,19 +1,30 @@
 Unreleased VER.
 - add multiple simultanious text filters
 - minify
+- multi-user access
+- ldap auth
+- add not (!) to text filters
 - replace momentjs wih day.js or luxone(?)
 - make mailcow PR to integrate into
 - remove python privex helpers code (?)
-- save settings into cookies + accept cookies modal (?)
-- export to xlsx file (table) (?)
+- save settings into cookies (for firefox private window mainly) + accept cookies modal (?)
 - fix dropdown update if use fomantic ui div based dropdown
+- export to xlsx file (table) (?)
+
+VER. 1.2
+- ~~multiple recipients localization ~~
+- ~~modal arrows to open next and previous message details~~
+- ~~bind arrow keys for modal left and right arrows~~
+- ~~initial MS Exchange server csv log file support~~
+- ~~BUG: cloning of #update_available while refreshed~~   
+- ~~BUG: no #update_available if nothing found (with refresh)~~
 
 VER. 1.1.7.5 
 - ~~log_lines timestamp format must match current GUI timestamp format~~ 
 - ~~update available message in footer~~
 - ~~rethinkdb array_limit set in .env~~
 
-VER. 1.1.7.4
+- VER. 1.1.7.4
 - ~~BUG: error while search mail_to in last version with exim~~ 
 - ~~open/hide button for tips and user settings~~
 - ~~refresh rotation animation only in the moment of refresh~~

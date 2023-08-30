@@ -25,6 +25,29 @@ var lang_files = JSON.parse(document.currentScript.getAttribute('lang_files'));
 //var notie_message_code = document.currentScript.getAttribute('notie_message_code');
 var notie_message = document.currentScript.getAttribute('notie_message');
 
+// bind arrow keys for modal left and right buttons
+document.onkeydown = function(e) {
+    switch(e.which) {
+        case 37: // left
+		if (window.app.index <= 0) {
+        	$('.prev_email').blur();
+        } else {
+        	$('.prev_email').focus();
+    	}
+        break;
+
+        case 39: // right
+        if (window.app.index >= window.app.msg_length-1) {
+        	$('.next_email').blur();
+        } else {
+        	$('.next_email').focus();
+    	}
+        break;
+        default: return; // exit this handler for other keys
+    }
+	e.preventDefault(); // prevent the default action (scroll / move caret)
+};
+
 const app = Vue.createApp({
     // to work with both quart and vue variables on the template pages
     delimiters: ['[[', ']]'],
@@ -50,6 +73,8 @@ const app = Vue.createApp({
             order_dir: "desc",
             count: 0,
             msg: [],
+            index: 0,
+            msg_length: 0,
             settings: [],
             loaded_settings: false,
             timer:'',
@@ -89,7 +114,10 @@ const app = Vue.createApp({
                 this.error !== null &&
                 this.error !== false
             ) 
-        }
+        }/*,
+        email() {
+            return this.modelValue
+        }*/
     },
     watch: {
         search(val) {
@@ -383,6 +411,39 @@ const app = Vue.createApp({
                 return string;
             }
         },
+        multiple_status_localize(object) {
+			multiple_check = object.text().indexOf('multiple, see log lines below');
+			if (this.localeData.emails_list.multiple_status == undefined) {
+                text = this.fallbackLocaleData.emails_list.multiple_status
+            } else {
+                text = this.localeData.emails_list.multiple_status
+            }
+            if (multiple_check >=0) {
+				str_to_localize = object.text().substr(multiple_check, object.text().length);
+            	//console.log (str_to_localize);
+            	localized_str = object.text().replace(str_to_localize, text);
+            	object.text(localized_str);
+            }
+        },
+        multiple_localize(object) {
+            //console.log("Rewrite multiple status and message");
+            //console.log(object);
+            multiple_check = object.text().indexOf(' and more');
+            //console.log(multiple_check);
+            if (this.localeData.emails_list.multiple == undefined) {
+                text = this.fallbackLocaleData.emails_list.multiple
+            } else {
+                text = this.localeData.emails_list.multiple
+            }
+            if (multiple_check >=0) {
+            	str_to_localize = object.text().substr(multiple_check, object.text().length);
+            	//console.log (str_to_localize);
+            	localized_str = object.text().replace(str_to_localize, text);
+            	object.text(localized_str);
+            }
+            return text;
+
+        },
         addFilterLink(element) {
             $td = element.find('td');
             if (this.localeData.filters.filter_link_tip == undefined) {
@@ -416,9 +477,14 @@ const app = Vue.createApp({
                     })
                 }   
                 if ($th.attr('id') == "mail_to") {
-                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
+
+                    // localize multiple mail_to
+                    object = $(obj).find('span');
+                    search_str = window.app.multiple_localize(object);
+
+                    object.attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         multiple = window.app.returnAllowedString($(obj).text());
-                        multiple_check = multiple.indexOf(' and more');
+                        multiple_check = $(obj).text().indexOf(search_str);
                         if (multiple_check >=0) {
                             multiple = multiple.substr(0, multiple_check);
                         }
@@ -511,11 +577,7 @@ const app = Vue.createApp({
             }
         },
         loadEmails(refresh) {
-
-            // check for updates
-            this.updateCheck();
-
-            var wait = 0;
+            //var wait = 0;
 
             // call to resresh countdown
             this.setRefresh();
@@ -541,6 +603,7 @@ const app = Vue.createApp({
             if (refresh) {
                 $('#main-wrapper').hide();
                 // 17.07.2023 TODO check if nothing is broken
+                // 27.08.2023 TODO breaks #update_available show
                 if (!(this.loading)) {
                     this.toggleLoading(true);
                 }
@@ -582,8 +645,10 @@ const app = Vue.createApp({
                 /*if (!(this.loading)) {
                     this.toggleLoading(true);  
                 }*/
-               this.toggleLoading(false);
-
+                this.toggleLoading(false);
+                // check for updates
+                this.updateCheck();
+                
                 // add advanced gui features
                 this.$nextTick(function () {
                     $found_table = $('.emails-list');
@@ -680,6 +745,7 @@ const app = Vue.createApp({
                         $found_table.find('td:nth-child(3):contains("multiple")').addClass('styled').prepend(this.settings.status_icon['multiple']);
                         $found_table.find('td:nth-child(3):contains("unknown")').addClass('styled').prepend(this.settings.status_icon['unknown']);
                     }
+
                     if (this.settings.colored) {
                         var filter_email = $('#filter-email');
 
@@ -774,6 +840,10 @@ const app = Vue.createApp({
             }).catch((res) => {
                 console.error('Error:', res);
                 this.toggleLoading(false);
+
+                // check for updates on login or api error screen
+                this.updateCheck();
+
                 this.waitForElm('#emails-list').then((elm) => {
                     this.$nextTick(function () {
                         // check if we are on login or api_error screen
@@ -806,8 +876,12 @@ const app = Vue.createApp({
             window.location = path_prefix+'/logout';
 
         },
-        show_modal(m) {
-            this.msg = m;
+        show_modal(m,index,key) {
+            this.msg = m[index];
+            this.index = index;
+            this.msg_length = m.length;
+            //console.log(key);
+
             $('#mail-modal').modal({
             onHidden: function () {
                 $('body').removeClass('scrolling');
@@ -820,9 +894,13 @@ const app = Vue.createApp({
             $('body').addClass('scrolling');
             // apply styling to modal
             this.$nextTick(function () {
-                
+
+            	// add event handlers and set
+                // set focus on  arrow
+            	//$('.next_email').focus();
+
                 $('#mail-modal > div.header > span > i').remove();
-                $('#mail-modal > div.header > span').prepend(this.settings.status_icon[m.status.code]);
+                $('#mail-modal > div.header > span').prepend(this.settings.status_icon[m[index].status.code]);
                 // TLS encryption logo and title
                 if ($('#mail-modal > div.content > ul').text().indexOf("TLS") >=0 ) {
                     if (this.localeData.emails_list.status_tls == undefined) {
@@ -839,6 +917,10 @@ const app = Vue.createApp({
                     }
                     $('#mail-modal > div.header > span').prepend(" ").prepend(this.settings.status_icon["no_tls"]).attr('title', text);
                 }
+                // localize status message and mail_to for multiple
+                window.app.multiple_localize($('#email-metadata td:contains("and more")'));
+                window.app.multiple_status_localize($('#email-metadata code'));
+
                 if (this.settings.colored) {
 
                     /*$('#email-metadata td:contains("'+m.status.code+'")').css('background-color',this.settings.status_color[m.status.code].slice(0, -2) + '.4)');
@@ -847,15 +929,15 @@ const app = Vue.createApp({
                     if (this.settings.dark) {
                         brightness = -40;
                     }
-                    $('#email-metadata td:contains("'+m.status.code+'")').css('background-color',this.shadeColor(this.settings.status_color[m.status.code],brightness));
-                    $('.ui.modal>.header').css('background-color',this.shadeColor(this.settings.status_color[m.status.code],brightness));
+                    $('#email-metadata td:contains("'+m[index].status.code+'")').css('background-color',this.shadeColor(this.settings.status_color[m[index].status.code],brightness));
+                    $('.ui.modal>.header').css('background-color',this.shadeColor(this.settings.status_color[m[index].status.code],brightness));
 
 
                 } else {
                     // change to inherit due to dark mode changes
                     //$('#email-metadata td:contains("'+m.status.code+'")').css('background-color',this.settings.status_color['NOFILTER']);
                     //$('.ui.modal>.header').css('background-color',this.settings.status_color['NOFILTER']);
-                    $('#email-metadata td:contains("'+m.status.code+'")').css('background-color','inherit');
+                    $('#email-metadata td:contains("'+m[index].status.code+'")').css('background-color','inherit');
                     $('.ui.modal>.header').css('background-color','inherit');
                 }
             });
@@ -1139,7 +1221,9 @@ const app = Vue.createApp({
                             } else {
                                 text = window.app.localeData.footer.four
                             }
-                            $(elm).append(' | '+'<span class="blinking">'+text+'</span>');
+                            if ($('#update_available').length == 0) {
+                                $(elm).append(' | '+'<span id="update_available" class="blinking">'+text+'</span>');
+                            }
                         });
                     }
                 })
@@ -1153,13 +1237,18 @@ const app = Vue.createApp({
                 //console.log(parser_version);
                 //console.log(this.getCookie('mlp_latest_version'));
                 if (parser_version != this.getCookie('mlp_latest_version')) {
+
                     window.app.waitForElm('#footer > div > span:nth-child(2)').then((elm) => {
+                        //alert(elm);
                         if (window.app.localeData.footer.four == undefined) {
                             text = window.app.fallbackLocaleData.footer.four
                         } else {
                             text = window.app.localeData.footer.four
                         }
-                        $(elm).append(' | '+'<span class="blinking">'+text+'</span>');
+                        if ($('#update_available').length == 0) {
+                            //console.log($(elm));
+                            $(elm).append(' | '+'<span id="update_available" class="blinking">'+text+'</span>');
+                        }
                     });
                 }
             }
@@ -1238,6 +1327,7 @@ const app = Vue.createApp({
             /*if (navigator.userAgent.search("Firefox") > -1) {
                 setTimeout(() => $('#marquee_sw input').prop('disabled', true), 1000);
             }*/
+            
             // if current browser locale is not supported
             if (window.localStorage["falled_back"]) {
                 text = "Current browser «"+ navigator.language.toUpperCase() + "» locale is not supported. Falling back to default «EN» locale!";

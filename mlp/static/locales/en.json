@@ -42,7 +42,9 @@
     "first_attempt": "First attempt",
     "last_attempt": "Last Attempt",
     "message_id": "Message ID",
-    "show_button": "More"
+    "show_button": "More",
+    "multiple": " and more (check log lines)",
+    "multiple_status": "multiple, see log lines below"
   },
   "user_settings": {
     "log_out": "Log Out",

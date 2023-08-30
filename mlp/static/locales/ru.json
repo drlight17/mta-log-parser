@@ -42,7 +42,9 @@
     "first_attempt": "Первая попытка",
     "last_attempt": "Последняя попытка",
     "message_id": "ID письма",
-    "show_button": "Ещё"
+    "show_button": "Ещё",
+    "multiple": " и прочие (см. в связанном логе)",
+    "multiple_status": "несколько получателей, см. связанный лог ниже"
   },
   "user_settings": {
     "log_out": "Выйти",

@@ -176,6 +176,7 @@
     <table id="emails-list" class="ui table celled emails-list" v-if="!loading">
         <thead>
             <tr>
+            	<!--<th>#</th>-->
                 <th v-if="localeData.emails_list.timestamp" id="timestamp"><i class="clock icon"></i> [[ localeData.emails_list.timestamp ]]</th>
                 <th v-else id="timestamp"><i class="clock icon"></i> [[ fallbackLocaleData.emails_list.timestamp ]]</th>
                 <th v-if="localeData.emails_list.timestamp" id="id"><i class="stream icon"></i> [[ localeData.emails_list.queue_id ]]</th>
@@ -198,7 +199,8 @@
             </tr>
         </thead>
         <tbody>
-            <tr @click="show_modal(m)" v-for="m in emails">
+            <tr @click="show_modal(emails,counter_index)" v-for="(m, counter_index) in emails">
+            	<!--<td><span>[[ counter_index ]]</span></td>-->
                 <td><span>[[ m.timestamp ]]</span></td>
                 <td><span>[[ m.id ]]</span></td>
                 <td><span>[[ m.status.code ]]</span></td>
@@ -217,6 +219,8 @@
 
     <div class="ui modal" id="mail-modal" :class="{ inverted: settings.dark }">
         <i class="close icon"></i>
+        <div tabindex="0" @keyup.right="show_modal(emails,index+1,'right')" @click="show_modal(emails,index+1)" :class="{disabled: index >= msg_length-1 }" class="next_email"><i class="arrow right icon"></i></div>
+        <div tabindex="0" @keyup.left="show_modal(emails,index-1,'left')" @click="show_modal(emails,index-1)" :class="{disabled: index <= 0 }" class="prev_email"><i class="arrow left icon"></i></div>
         <div class="header" style="background-color: inherit" v-if="msg.id">
             <span v-if="localeData.emails_list.email">[[ localeData.emails_list.email ]]</span><span v-else>[[ fallbackLocaleData.emails_list.email ]]</span> [[ msg.id ]]
         </div>

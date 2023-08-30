@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.1.7.5"
+VERSION ="1.2"
 
 # postfix regexp
 postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
@@ -58,6 +58,13 @@ sendm_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
 #sendm_match += r'([0-9A-Za-z]{14})\:[ \t]+?(.*)'
 sendm_match += r'\:\s([0-9A-Za-z]+)\:[ \t]+?(.*)'
 """Regex to match the (1) Queue ID and the (2) Log Message"""
+
+# echange regexp
+exch_match = r'^([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+|\d{4}-\d{2}-\d{2}.\d{2}\:\d{2}\:\d{2})'
+"""(0) Regex to match the Date/Time at the start of each log line"""
+exch_match += r'([^#]([^,]*,){12}.+)'
+"""Regex to match the (2) message ID and the (1) Log Message"""
+
 if settings.mta == '': settings.mta = 'postfix'
 
 if settings.mta == 'postfix':
@@ -66,6 +73,8 @@ elif settings.mta == 'exim':
     _match = exim_match
 elif settings.mta == 'sendmail':
     _match = sendm_match
+elif settings.mta == 'exchange':
+    _match = exch_match
 else:
     log.exception('Incorrect value of MTA env variable: %s. Check example and set the correct one!', settings.mta)
     exit()
@@ -145,15 +154,24 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
     # avoid utf-8 codec error
     with open(logfile, 'rb') as f:
         while True:
-
+        	#print("Hi!")
             line = f.readline().decode(errors='replace')
             if not line: break
-
             m = match.match(line)
-
             if not m: continue
 
-            dtime, qid, msg = m.groups()
+            '''if settings.mta == 'exchange':
+			    dtime, msg, qid  = m.groups()
+            else:
+                dtime, qid, msg = m.groups()'''
+            if settings.mta == 'exchange':
+            	dtime, msg, qid  = m.groups()
+            	qid = qid[:-1]
+            else:
+            	dtime, qid, msg  = m.groups()
+            #log.info(qid)
+            #dtime, msg, qid  = m.groups()
+
             """Thu Mar 09 2023 14:13:35 GMT+00:00    ----     '%a %b %d %Y %H:%M:%S %Z' """
             """Mar 13 10:57:04
             dtime = datetime.strptime(dtime, '%b %d %H:%M:%S').replace(year=datetime.today().year).strftime('%d.%m.%Y-%H:%M:%S')
