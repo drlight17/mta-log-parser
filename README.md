@@ -1,11 +1,13 @@
-<h1><img align="center" width="100" height="60" src="https://raw.githubusercontent.com/drlight17/mta-log-parser/mlp_v.1.1.0/mlp/static/images/logo.png"> MTA Log Parser with Web UI</h1>
+<h1><img style="background: white;" align="center" width="100" height="60" src="https://raw.githubusercontent.com/drlight17/mta-log-parser/mlp_v.1.1.0/mlp/static/images/logo.png"> MTA Log Parser with Web UI</h1>
 
 
 
-This is a small application designed to parse the log output of SMTP servers (postfix, exim, sendmail and MS Exchange are supported for now), and convert it into easily queryable data inside of [RethinkDB](https://rethinkdb.com/).
+This is a small application designed to parse the log output of SMTP servers (postfix, exim, sendmail and Microsoft Exchange are supported for now), and convert it into easily queryable data inside of [RethinkDB](https://rethinkdb.com/).
 
 It includes a Web UI built with [Quart](https://github.com/pgjones/quart) and [VueJS](https://vuejs.org/) - allowing
 for easily navigating and filtering the log data straight from your browser.
+
+This is a fork of abandoned [Privex postfix log parser](https://github.com/Privex/postfix-parser).
 
 **DISCLAIMER:** The Web UI only includes a very basic password prompt which reads the password from the `.env` file.
 This application is NOT intended to be public facing - we strongly recommend for production use-cases that it's
@@ -59,6 +61,12 @@ crontab -e
 
 # Rethinkdb web gui is available on the port 8080 (you may change expose port in .env).
 ```
+Dockerized upgrade version
+========
+
+Simply run upgrade.sh
+
+**Don't forget to clear all browser caches, cookies etc. after upgrade!**
 
 Install in your system (not recommended)
 ========
