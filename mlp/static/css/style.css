@@ -458,17 +458,18 @@ button:not(.navi), #footer {
     display: flex;
     position: absolute;
     height: 100%;
+    /* top: 0%; */
     color: white;
     width: 100px;
     justify-content: space-evenly;
-    align-items: center;
+    align-items: flex-start;
     cursor: pointer;
     transition: all 0.15s ease-in-out;
-    background-color: rgba(0,0,0, 0.2);
+    /* background-color: rgba(0,0,0, 0.2); */
     outline: none;
 }
 
-.next_email:hover, .prev_email:hover {
+.next_email:hover, .next_email:focus, .prev_email:hover, .prev_email:focus {
     transition: all 0.15s ease-in-out;;
     background-color: rgba(0,0,0, 0.3);
 }
@@ -499,6 +500,8 @@ button:not(.navi), #footer {
 .next_email i, .prev_email i {
     font-size: 2em!important;
     opacity: .5!important;
+    position: sticky;
+    top:50%;
 }
 
 .next_email:hover i, .next_email:focus i, .prev_email:hover i, .prev_email:focus i {
@@ -511,9 +514,14 @@ div.disabled.prev_email, div.disabled.next_email {
     background-color: rgba(0,0,0, 0);
     /*display: none;*/
 }
-div.disabled.prev_email > i, div.disabled.next_email > i {
+div.disabled.prev_email i, div.disabled.next_email i {
     opacity: 0!important;
 }
+
+/*.inner_arrow {
+	position: sticky;
+    bottom: 50%;
+}*/
 
 /* modal close button fix*/
 .ui.modal > i.close.icon {

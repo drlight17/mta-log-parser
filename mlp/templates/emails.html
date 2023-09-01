@@ -219,8 +219,12 @@
 
     <div class="ui modal" id="mail-modal" :class="{ inverted: settings.dark }">
         <i class="close icon"></i>
-        <div tabindex="0" @keyup.right="show_modal(emails,index+1,'right')" @click="show_modal(emails,index+1)" :class="{disabled: index >= msg_length-1 }" class="next_email"><i class="arrow right icon"></i></div>
-        <div tabindex="0" @keyup.left="show_modal(emails,index-1,'left')" @click="show_modal(emails,index-1)" :class="{disabled: index <= 0 }" class="prev_email"><i class="arrow left icon"></i></div>
+            <div tabindex="0" @keyup.right="show_modal(emails,index+1,'right')" @click="show_modal(emails,index+1)" :class="{disabled: index >= msg_length-1 }" class="next_email">
+                <i class="arrow right icon"></i>
+            </div>
+            <div tabindex="0" @keyup.left="show_modal(emails,index-1,'left')" @click="show_modal(emails,index-1)" :class="{disabled: index <= 0 }" class="prev_email">
+                <i class="arrow left icon"></i>
+            </div>
         <div class="header" style="background-color: inherit" v-if="msg.id">
             <span v-if="localeData.emails_list.email">[[ localeData.emails_list.email ]]</span><span v-else>[[ fallbackLocaleData.emails_list.email ]]</span> [[ msg.id ]]
         </div>
