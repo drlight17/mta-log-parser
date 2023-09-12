@@ -59,15 +59,20 @@ docker-compose down
 crontab -e
 */1  *   *   *   *   docker exec -t mta-log-parser flock /tmp/lck_mlp /app/run.sh cron
 
-# Rethinkdb web gui is available on the port 8080 (you may change expose port in .env).
 
-# Web GUI will be available on the port and path you specified in .env. During the first GUI open you will be promted to create the first user account.
+
+
+```
+GUI access
+========
+Rethinkdb web gui is available on the port 8080 (you may change expose port in .env).
+
+Web GUI will be available on the port and path you specified in .env. During the first GUI open you will be promted to create the first user account.
 
 Then to control user account use the corresponding account control button in the GUI after successful login.
 
 If the last user account will be deleted you will be logged out to the login screen.
 
-```
 Dockerized upgrade version
 ========
 
