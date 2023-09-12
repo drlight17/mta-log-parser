@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block login %}
+
+    <div id="login">
+        <h1 class="top_title" style="display: inherit; text-align: center;" v-if="localeData.app_title">[[ localeData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
+        <h1 class="top_title" style="display: inherit; text-align: center;" v-else>[[ fallbackLocaleData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
+
+        <div class="logo login"><img src="static/images/logo.png"></img></div>
+        <div id="login-form-wrapper" v-if="!loading" class="ui segment form center aligned login">
+            <form @submit.prevent="" action="./register" method="post">
+                <h3 v-if="localeData.register.message" v-html="localeData.register.message"></h3>
+                <h3 v-else v-html="fallbackLocaleData.register.message"></h3>
+                    <div class="field">
+                        <div class="ui input left icon">
+                            <input v-if="localeData.register.login_ph" autocomplete="on" class="ui input" name="login" :placeholder="localeData.register.login_ph">
+                            <input v-else autocomplete="on" class="ui input" name="login" :placeholder="fallbackLocaleData.register.login_ph">
+                            <i class="user icon"></i>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui input left icon">
+                            <input v-if="localeData.register.password_ph" autocomplete="on" type="password" id="password" class="ui input" name="password" :placeholder="localeData.register.password_ph">
+                            <input v-else autocomplete="on" type="password" class="ui input" name="password" :placeholder="fallbackLocaleData.register.password_ph">
+                            <i class="key icon"></i>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui input left icon">
+                            <input v-if="localeData.register.password_again_ph" autocomplete="on" type="password" id="password2" class="ui input" name="password2" :placeholder="localeData.register.password_again_ph">
+                            <input v-else autocomplete="on" type="password" class="ui input" name="password2" :placeholder="fallbackLocaleData.register.password_again_ph">
+                            <i class="key icon"></i>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <button class="ui button primary submit navi"><i class="file alternate icon"></i><span v-if="localeData.register.login_button" v-html="localeData.register.login_button"></span><span v-else v-html="fallbackLocaleData.register.login_button"></span></button>
+                    </div>
+                <div class="ui error message"></div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -13,12 +13,39 @@
     "seven": "You have been successfully logged out",
     "eight": "API call error. Wrong call or no connection with Rethinkdb!",
     "nine": "No messages found matching the search criteria",
-    "ten": "Search by all log lines is chosen. Only last 24 hours is available for this search!"
+    "ten": "Search by all log lines is chosen. Only last 24 hours is available for this search!",
+    "eleven": "Passwords are not the same!",
+    "twelve": "Account is succesfully created",
+    "thirteen": "No accounts found. Create now.",
+    "fourteen": "Account is succesfully edited.",
+    "fifteen": "Account is succesfully removed.",
+    "sixteen": "Error account processing. Check backend logs!"
   },
   "login": {
     "message": "Please login to proceed.",
+    "login_ph": "Type login",
     "password_ph": "Type password",
     "login_button": "Log in"
+  },
+  "register": {
+    "message": "To create a new account type login,<br>password, and password confirmation",
+    "message2": "To edit account press <br>\"Edit\", to delete this account press<br>\"Delete\"",
+    "login_ph": "Type login",
+    "password_ph": "Type password",
+    "password_again_ph": "Type password again",
+    "login_button": "Create account",
+    "edit_button": "Edit",
+    "delete_button": "Delete",
+    "one": "Please enter login",
+    "two": "Your login must be at least ",
+    "three": "Please enter password",
+    "four": "Your password must be at least ",
+    "five": "'Password confirmation must match password'",
+    "six": "Please enter password confirmation"
+  },
+  "auth_list": {
+    "id": "Login",
+    "password": "Password"
   },
   "emails_list": {
     "timestamp": "Timestamp",
@@ -47,7 +74,10 @@
     "multiple_status": "multiple, see log lines below"
   },
   "user_settings": {
-    "log_out": "Log Out",
+    "current_user": "Current user: ",
+    "log_out": "Logout ",
+    "back_to_emails": "Back",
+    "acc_ctrl": "Accounts",
     "user_settings_title": "User settings",
     "current_lang": "Current language:",
     "page_limit": "Maximum results per page:",
@@ -80,6 +110,7 @@
   },
   "tips": {
     "title": "Emails filtering tips and some other info",
+    "title2": "Accounts management tips",
     "one": "All your text search requests are wildcards, so search string will match start, middle or end of found strings. <details><summary>[...]</summary>For example <code><strong>qwerty</strong></code> will match <strong>qwerty@mail.com</strong>, <strong>user@qwerty.com</strong> and <strong>user@mail.qwerty</strong></details>",
     "two": "Use start and end date fields to apply date range filter",
     "three": "Use \"Refresh\" <i class=\"sync icon\"></i> button to reload email list with current applied filters",
@@ -92,7 +123,10 @@
     "nine": "<code>HOUSEKEEPING_DAYS</code> (maximum days of logs storing before cleanup) is currently set to",
     "ten": "<code>DATETIME_FORMAT</code> (date/time format) is currently set to",
     "eleven": "Click cell content to set text filter and search_by value to the values of cell content and it's column accordingly",
-    "twelve": "If \"Save filters\" is off then you can only change end date field, start date is dynamically filled based on <details><summary>[...]</summary>the \"Show logs for\" <i class=\"clock icon\"></i> slider value!</details>"
+    "twelve": "If \"Save filters\" is off then you can only change end date field, start date is dynamically filled based on <details><summary>[...]</summary>the \"Show logs for\" <i class=\"clock icon\"></i> slider value!</details>",
+    "thirteen": "There are all created accounts in the table below",
+    "fourteen": "To call edit or delele account dialogue click the desired account's row",
+    "fifteen": "To create new account press <i class=\"plus icon\"></i>"
   },
   "filters": {
     "filter_link_tip": "Click to filter by",

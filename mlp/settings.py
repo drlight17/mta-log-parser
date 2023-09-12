@@ -41,7 +41,7 @@ rethink_db = env('RETHINK_DB', 'maildata')
 rethink_arr_limit = int(env('RETHINK_ARR_LIMIT', 100000))
 
 rethink_tables = [
-    ('sent_mail', ['mail_to', 'timestamp', 'first_attempt', 'last_attempt']),
+    ('sent_mail', 'auth', ['mail_to', 'timestamp', 'first_attempt', 'last_attempt']),
 ]
 
 mail_domain = env('MAIL_DOMAIN', '')
@@ -51,7 +51,7 @@ mail_log_filename = env('MAIL_LOG_FILENAME', 'mail.log')
 
 mail_log = mail_log_path+'/'+mail_log_filename
 
-admin_pass = env('ADMIN_PASS', 'SetThis!InYourEnv')
+#admin_pass = env('ADMIN_PASS', 'SetThis!InYourEnv')
 secret_key = env('SECRET_KEY', 'SetThis!InYourEnv')
 
 # add prefix var from env

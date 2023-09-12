@@ -11,6 +11,16 @@ Unreleased VER.
 - fix dropdown update if use fomantic ui div based dropdown
 - export to xlsx file (table) (?)
 
+VER. 1.3 
+- ~~mobile swipes in message details~~
+- ~~small css modal arrows fix~~
+- ~~BUG: swipes stays after modal closed~~
+- ~~multi-user access: create/edit/delete accounts gui, first-time access registration gui~~
+- ~~BUG: no notie notification if created from auth menu~~
+- ~~use another page edit and delete form instead of modal - troubles with multiple forms and submits~~
+- ~~BUG: almost empty this.settings on auth page => no dark theme, modal prefs and so on~~
+- ~~force logout if current logged in user account were deleted~~
+
 VER. 1.2.1
 - ~~improve modal arrows height sticky~~
 

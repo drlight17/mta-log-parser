@@ -74,10 +74,13 @@ async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:
     # Create required tables inside of database
     db = r.db(settings.rethink_db)   # type: DB
     rtables = await db.table_list().run(conn, array_limit=settings.rethink_arr_limit)
-    for t, indexes in settings.rethink_tables:
+    for t, t2, indexes in settings.rethink_tables:
         if t not in rtables:
             log.debug('Table %s did not exist. Creating.', t)
             await db.table_create(t).run(conn, array_limit=settings.rethink_arr_limit)
+        if t2 not in rtables:
+            log.debug('Table %s did not exist. Creating.', t2)
+            await db.table_create(t2).run(conn, array_limit=settings.rethink_arr_limit)
         idxs = await db.table(t).index_list().run(conn, array_limit=settings.rethink_arr_limit)
         for index in indexes:
             if index not in idxs:

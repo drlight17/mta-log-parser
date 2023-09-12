@@ -10,15 +10,23 @@
             <form action="./login" method="post">
                 <h3 v-if="localeData.login.message" v-html="localeData.login.message"></h3>
                 <h3 v-else v-html="fallbackLocaleData.login.message"></h3>
-                <div class="two fields">
                     <div class="field">
-                        <input v-if="localeData.login.password_ph" autocomplete="on" type="password" class="ui input" name="password" :placeholder="localeData.login.password_ph">
-                        <input v-else autocomplete="on" type="password" class="ui input" name="password" :placeholder="fallbackLocaleData.login.password_ph">
+                        <div class="ui input left icon">
+                            <input v-if="localeData.login.login_ph" autocomplete="on" class="ui input" name="login" :placeholder="localeData.login.login_ph">
+                            <input v-else autocomplete="on" class="ui input" name="login" :placeholder="fallbackLocaleData.login.login_ph">
+                            <i class="user icon"></i>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui input left icon">
+                            <input v-if="localeData.login.password_ph" autocomplete="on" type="password" class="ui input" name="password" :placeholder="localeData.login.password_ph">
+                            <input v-else autocomplete="on" type="password" class="ui input" name="password" :placeholder="fallbackLocaleData.login.password_ph">
+                            <i class="key icon"></i>
+                        </div>
                     </div>
                     <div class="field">
                         <button class="ui button primary navi"><i class="sign in alternate icon"></i><span v-if="localeData.login.login_button" v-html="localeData.login.login_button"></span><span v-else v-html="fallbackLocaleData.login.login_button"></span></button>
                     </div>
-                </div>
             </form>
         </div>
     </div>

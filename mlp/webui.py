@@ -64,23 +64,94 @@ QueryOrTable = Union[Table, RqlQuery]
 
 @app.route(f'{PREFIX}/', methods=['GET'])
 async def index():
-    print(settings.mail_domain)
+    # print(settings.mail_domain)
     NOTIE_MESSAGE = await _process_notie()
 
     if 'admin' in session:
-        return redirect(f'{PREFIX}/emails/')
-    
-    return await render_template('login.html', settings=settings, NOTIE_MESSAGE=NOTIE_MESSAGE, VERSION=VERSION)
+        return redirect(f'{PREFIX}/emails')
+
+    auth_status = await check_user_pass(None, None, 0)
+    if auth_status:
+        return await render_template('login.html', settings=settings, NOTIE_MESSAGE=NOTIE_MESSAGE, VERSION=VERSION)
+    else:
+        session['NOTIE_MESSAGE'] = "no_users_found"
+        return await render_template('register.html', settings=settings, NOTIE_MESSAGE=NOTIE_MESSAGE, VERSION=VERSION)
+
+'''@app.route(f'{PREFIX}/register_new', methods=['GET'])
+async def register_new():
+    if 'admin' in session:
+        return await render_template('register.html', VUE_DEBUG=settings.vue_debug, settings=settings, VERSION=VERSION, LOGIN=session['login'])
+    session['NOTIE_MESSAGE'] = "unauth"
+    return redirect(f'{PREFIX}/')'''
 
 
+@app.route(f'{PREFIX}/register', methods=['POST'])
+async def register():
+
+    frm = await request.form
+    print(frm)
+    #if 'act_type' not in frm
+    #if frm.get('password') == frm.get('password2'):
+    if frm.get('act_type') == "delete":
+        status = await edit_user(frm.get('login'),frm.get('password'),1)
+    else:
+        status = await edit_user(frm.get('login'),frm.get('password'),0)
+
+    print(status)
+    #else:
+    #    session['NOTIE_MESSAGE'] = "passwords_not_same"
+    #    return redirect(f'{PREFIX}/')
+    if status['inserted'] != 0:
+        session['NOTIE_MESSAGE'] = "user_created"
+        '''if frm.get('act_type') is None:
+            return redirect(f'{PREFIX}/')'''
+    elif status['unchanged'] != 0 or status['replaced'] != 0:
+        session['NOTIE_MESSAGE'] = "user_edited"
+    elif status['deleted'] != 0:
+        session['NOTIE_MESSAGE'] = "user_deleted"
+        # check if no user left
+        auth_status = await check_user_pass(None, None, 0)
+        if not auth_status:
+            print("No users left. We must log out!")
+            session['NOTIE_MESSAGE'] = "no_users_found"
+            return redirect(f'{PREFIX}/logout')
+    else:
+        session['NOTIE_MESSAGE'] = "user_creation_error"
+
+    if frm.get('act_type') is None:
+            return redirect(f'{PREFIX}/')
+
+    return redirect(f'{PREFIX}/auth')
+
+'''@app.route(f'{PREFIX}/delete', methods=['POST'])
+async def del_user():
+
+    frm = await request.form
+    print("Delete!!!!!!!!!!")
+
+    status = await edit_user(frm.get('login'),frm.get('password'),1)
+
+    if status['deleted'] != 0:
+        session['NOTIE_MESSAGE'] = "user_deleted"
+        return redirect(f'{PREFIX}/auth')
+    else:
+        session['NOTIE_MESSAGE'] = "user_deletion_error"
+        return redirect(f'{PREFIX}/auth')'''
 
 @app.route(f'{PREFIX}/login', methods=['POST'])
 async def login():
+
+	
     frm = await request.form
-    if frm.get('password') == settings.admin_pass:
+    auth_status = await check_user_pass(frm.get('login'),frm.get('password'), 1)
+
+    #if frm.get('password') == settings.admin_pass and frm.get('login') == 'admin':
+    if auth_status:
+        session['login'] = frm.get('login')
         session['admin'] = random_str()
+        #print(session)
         
-        return redirect(f'{PREFIX}/emails/')
+        return redirect(f'{PREFIX}/emails')
 
     session['NOTIE_MESSAGE'] = "pass_error"
 
@@ -88,13 +159,38 @@ async def login():
 
 
 @app.route(f'{PREFIX}/emails', methods=['GET'])
-@app.route(f'{PREFIX}/emails/', methods=['GET'])
+#@app.route(f'{PREFIX}/emails/', methods=['GET'])
 async def emails_ui():
 
     if 'admin' not in session:
         session['NOTIE_MESSAGE'] = "unauth"
         return redirect(f'{PREFIX}/')
-    return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, settings=settings, VERSION=VERSION)
+    #print(session['login'])
+    # check if current user exists
+    auth_status = await check_user_pass(session['login'],None, 2)
+    if not auth_status:
+        #print("Current user wasnt found. Force log out!")
+        return redirect(f'{PREFIX}/logout')
+
+    return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, settings=settings, VERSION=VERSION, LOGIN=session['login'])
+
+@app.route(f'{PREFIX}/auth', methods=['GET'])
+#@app.route(f'{PREFIX}/auth/', methods=['GET'])
+async def auth_ui():
+
+    if 'admin' not in session:
+        session['NOTIE_MESSAGE'] = "unauth"
+        return redirect(f'{PREFIX}/')
+
+    NOTIE_MESSAGE = await _process_notie()
+
+    auth_status = await check_user_pass(session['login'],None, 2)
+    if not auth_status:
+        #print("Current user wasnt found. Force log out!")
+        return redirect(f'{PREFIX}/logout')
+
+    #print(session['NOTIE_MESSAGE'])
+    return await render_template('edit.html', VUE_DEBUG=settings.vue_debug, NOTIE_MESSAGE=NOTIE_MESSAGE, settings=settings, VERSION=VERSION, LOGIN=session['login'])
 
 
 @app.route(f'{PREFIX}/logout', methods=['GET'])
@@ -104,7 +200,9 @@ async def logout():
         return redirect(f'{PREFIX}/')
 
     del session['admin']
-    session['NOTIE_MESSAGE'] = "logged_out"
+    if 'NOTIE_MESSAGE' not in session:
+        session['NOTIE_MESSAGE'] = "logged_out"
+        
     return redirect(f'{PREFIX}/')
 
 
@@ -140,6 +238,34 @@ class PageResult(DictDataClass):
         return json.dumps(self.to_json_dict(), indent=indent, **kwargs)
 
 
+@app.route(f'{PREFIX}/api/auth', methods=['GET'])
+async def api_auth():
+    if 'admin' not in session:
+        session['NOTIE_MESSAGE'] = "unauth"
+        return redirect(f'{PREFIX}/')
+
+    auth_status = await check_user_pass(session['login'],None, 2)
+    if not auth_status:
+        #print("Current user wasnt found. Force log out!")
+        return redirect(f'{PREFIX}/logout')
+
+    r, conn, r_q = await get_rethink()
+    r_q: rethinkdb.query
+
+    _sm = r.table('auth')
+    _sm = await _sm.run(conn, array_limit=settings.rethink_arr_limit)
+
+    sm = []
+    if type(_sm) is list:
+        sm = list(_sm)
+    else:
+        async for s in _sm:
+            sm.append(dict(s))
+
+    #print(sm)
+
+    return jsonify(sm)
+
 @app.route(f'{PREFIX}/api/emails', methods=['GET'])
 async def api_emails():
     """
@@ -170,6 +296,11 @@ async def api_emails():
     if 'admin' not in session:
         session['NOTIE_MESSAGE'] = "unauth"
         return redirect(f'{PREFIX}/')
+
+    auth_status = await check_user_pass(session['login'],None, 2)
+    if not auth_status:
+        #print("Current user wasnt found. Force log out!")
+        return redirect(f'{PREFIX}/logout')
 
     r, conn, r_q = await get_rethink()
     r_q: rethinkdb.query
@@ -308,6 +439,72 @@ async def _process_notie():
         NOTIE_MESSAGE = session['NOTIE_MESSAGE']
         del session['NOTIE_MESSAGE']
     return NOTIE_MESSAGE
+
+# check user and password
+async def check_user_pass(u,p,mode):
+    #print("Checking user "+u+" with password "+p)
+
+    r, conn, r_q = await get_rethink()
+    r_q: rethinkdb.query
+
+    _sm = r.table('auth')
+    # authentication
+    if mode == 1 and u is not None and p is not None:
+        _sm = await _sm.filter({"id": u,"password": p}).run(conn, array_limit=settings.rethink_arr_limit)
+    # check for any user existence
+    elif mode == 0:
+        _sm = await _sm.run(conn, array_limit=settings.rethink_arr_limit)
+    # check for logged in user
+    elif mode == 2:
+        _sm = await _sm.filter({"id": u}).run(conn, array_limit=settings.rethink_arr_limit)
+
+    sm = []
+    if type(_sm) is list:
+        sm = list(_sm)
+    else:
+        async for s in _sm:
+            sm.append(dict(s))
+    #print(sm)
+
+    if sm:
+        #print("Found user and password.")
+        return 1
+
+    #print("User and/or password is not found.")
+    return 0
+
+# create/edit new user
+async def edit_user(u,p,mode):
+
+    r, conn, r_q = await get_rethink()
+    r_q: rethinkdb.query
+
+    _sm = r.table('auth')
+    if mode == 0:
+        print("Creating/editing user "+u+" with password "+p)
+        _sm = await _sm.insert({"id": u,"password": p}, conflict="replace").run(conn, array_limit=settings.rethink_arr_limit)
+    else:
+        print("Deleting user "+u+" with password "+p)
+        _sm = await _sm.filter({"id": u}).delete().run(conn, array_limit=settings.rethink_arr_limit)
+    
+
+    '''sm = []
+    if type(_sm) is list:
+        sm = list(_sm)
+    else:
+        async for s in _sm:
+            sm.append(dict(s))'''
+    #print(sm)
+
+    '''result['deleted'] = _sm['deleted']
+
+    if result['deleted'] != 0:
+        result['status'] = 'true'
+    else:
+        result['status'] = 'false'''
+
+    return _sm
+
 
 @app.errorhandler(404)
 async def handle_404(exc=None):

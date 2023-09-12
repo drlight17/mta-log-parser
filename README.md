@@ -45,7 +45,7 @@ cp example.env .env
 yes | cp -rf ./build/Dockerfile ./Dockerfile
 yes | cp -rf ./build/docker-compose.yaml ./docker-compose.yaml
 
-# Adjust the example .env as needed. Make sure you set SECRET_KEY to a long random string, and change ADMIN_PASS 
+# Adjust the example .env as needed. Make sure you set SECRET_KEY to a long random string
 # to the password you want to use to log into the web application. Other variables are described. 
 nano .env
 
@@ -60,6 +60,13 @@ crontab -e
 */1  *   *   *   *   docker exec -t mta-log-parser flock /tmp/lck_mlp /app/run.sh cron
 
 # Rethinkdb web gui is available on the port 8080 (you may change expose port in .env).
+
+# Web GUI will be available on the port and path you specified in .env. During the first GUI open you will be promted to create the first user account.
+
+Then to control user account use the corresponding account control button in the GUI after successful login.
+
+If the last user account will be deleted you will be logged out to the login screen.
+
 ```
 Dockerized upgrade version
 ========
@@ -96,7 +103,7 @@ cd mta-log-parser
 pipenv install
 
 cp example.env .env
-# Adjust the example .env as needed. Make sure you set SECRET_KEY to a long random string, and change ADMIN_PASS 
+# Adjust the example .env as needed. Make sure you set SECRET_KEY to a long random string
 # to the password you want to use to log into the web application.
 nano .env
 

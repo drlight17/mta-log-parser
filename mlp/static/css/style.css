@@ -39,7 +39,9 @@
 
 .hide_settings_tips_container {
     align-items: center!important;
+    justify-content: flex-end!important;
 }
+
 /*.hidable.hide {
     display:none!important;
 }*/
@@ -146,12 +148,20 @@ summary {
     margin-bottom: 1em;
     justify-content: flex-start;
 }
+
+@media only screen and (min-width: 811px) {
+    .logout {
+        margin-top: 1em;
+        /*margin-bottom: 1em;*/
+    }
+}
+
 #login > div.logo.login {
     width: 100%;
     justify-content: center;
 }
 #login {
-    margin-top: 20vh;
+    margin-top: 5vh;
 }
 .logo img {
     box-shadow: 3px 3px 3px 0 rgba(34,36,38,.15);
@@ -176,11 +186,17 @@ summary {
     display: flex;
     justify-content: space-between;
 }
+@media only screen and (min-width: 811px) and (max-width: 1069px) {
+    .top_title {
+        margin-bottom: 2em;
+    }
+}
+
 /* logout section*/
 .logout button {
     max-width: 100px;
-    margin-bottom: 1em;
 }
+
 #user-settings .checkbox {
     margin-right: 15px;
     margin-top: 1em;
@@ -234,6 +250,10 @@ summary {
     width: 25%;
 }
 
+
+#auth-list #index {
+    width: 7%;
+}
 
 .ui.form {
     max-width: initial!important;
@@ -314,12 +334,13 @@ summary {
 @media only screen and (max-width: 810px) {
     .hide_settings_tips_container {
         margin: auto!important;
+        flex-direction: column!important;
+        margin-top: 1em;
     }
     .hide_settings_tips {
         margin-bottom: 20px;
     }
 }
-
 
 /*fix semanticui dropdown style*/
 .ui.selection.dropdown {
@@ -469,15 +490,31 @@ button:not(.navi), #footer {
     outline: none;
 }
 
-.next_email:hover, .next_email:focus, .prev_email:hover, .prev_email:focus {
-    transition: all 0.15s ease-in-out;;
-    background-color: rgba(0,0,0, 0.3);
+.next_email:hover, .next_email:focus {
+    transition: all 0.15s ease-in-out;
+    background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.4) 100%);
 }
+.prev_email:hover, .prev_email:focus {
+    transition: all 0.15s ease-in-out;
+    background: linear-gradient(90deg, rgba(0,0,0,.4) 40%, rgba(0,0,0,0) 100%);
+}
+
 .next_email {
     right: -100px;
 }
 .prev_email {
     left: -100px;
+}
+
+@media only screen and (min-width: 1000px){
+    .next_email:hover, .next_email:focus {
+        transition: all 0.15s ease-in-out;
+        background: linear-gradient(90deg, rgba(0,0,0,.4) 40%, rgba(0,0,0,0) 100%);
+    }
+    .prev_email:hover, .prev_email:focus {
+        transition: all 0.15s ease-in-out;
+        background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.4) 100%);
+    }
 }
 
 @media only screen and (max-width: 1000px){
@@ -516,6 +553,10 @@ div.disabled.prev_email, div.disabled.next_email {
 }
 div.disabled.prev_email i, div.disabled.next_email i {
     opacity: 0!important;
+}
+
+input.disabled {
+    pointer-events: none;
 }
 
 /*.inner_arrow {

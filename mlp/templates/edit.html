@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block content %}
+<div id="acc_list">
+    <div class="top_title">
+        <div class="logo">
+            <div class="field wrapper">
+                <a href="#"><img width="60" src="{{ url_for('static', filename='images/logo.png') }}"></img></a>
+            </div>
+            <div class="field title">
+                <h1 v-if="localeData.app_title">[[ localeData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
+                <h1 v-else>[[ fallbackLocaleData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
+            </div>
+            
+        </div>
+        <div class="ui two column grid hide_settings_tips_container">
+            <div v-if="!loading" class="logout" >
+                <button onclick="location.href='./emails'" class="ui button blue center"><i class="undo icon"></i><span v-if="localeData.user_settings.back_to_emails" v-html="localeData.user_settings.back_to_emails"></span><span v-else v-html="fallbackLocaleData.user_settings.back_to_emails"></span></button>
+            </div>
+            <div v-if="!loading" class="logout">
+                <button @click="logout()" class="ui button red center"><i class="sign out alternate icon"></i><span v-if="localeData.user_settings.log_out" v-html="localeData.user_settings.log_out"></span><span v-else v-html="fallbackLocaleData.user_settings.log_out"></span></button>
+            </div>
+            <div v-if="!loading" class="hide_settings_tips">
+                <button :title="localeData.hide_set_tips_title" @click="toggleSetTips()" class="ui button gray center">
+                <div id="current_user"><span v-if="localeData.user_settings.current_user" v-html="localeData.user_settings.current_user"></span><b><u><span v-html="login"></span></u></b></div><i class ="chevron icon" :class="{ up: !hidden, down: hidden }" class="chevron icon"></i></button>
+            </div>
+        </div>
+    </div>
+    <div class="ui stackable two column grid hidable" style="align-items: stretch;">
+        <div v-show="path_page!=1" id="user-settings" class="six wide column">
+            <local-settings @settings-loaded="settings_loaded" @settings-saved="settings_saved"></local-settings>
+        </div>
+        <div id="tips" v-if="!loading" class="sixteen wide column">
+            <div class="ui segment">
+                <h3><i class="bookmark icon"></i><span v-if="localeData.tips.title2" v-html="localeData.tips.title2"></span><span v-else v-html="fallbackLocaleData.tips.title2"></span></h3>
+                <ul>
+                    <li v-if="localeData.tips.thirteen" v-html="localeData.tips.thirteen">
+                    <li v-else v-html="fallbackLocaleData.tips.thirteen">
+                    </li>
+                    <li v-if="localeData.tips.fourteen" v-html="localeData.tips.fourteen">
+                    <li v-else v-html="fallbackLocaleData.tips.fourteen">
+                    </li>
+                    <li v-if="localeData.tips.fifteen" v-html="localeData.tips.fifteen">
+                    <li v-else v-html="fallbackLocaleData.tips.fifteen">
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!--<Pager v-model="page" :page-count="page_count"></Pager>-->
+    <table id="auth-list" class="ui table celled emails-list" v-if="!loading">
+        <thead>
+            <tr>
+                <th v-if="localeData.auth_list.index" id="index"><i class="hashtag icon"></i></th>
+                <th v-else id="index"><i class="hashtag icon"></i> [[ fallbackLocaleData.auth_list.index ]]</th>
+
+                <th v-if="localeData.auth_list.id" id="id"><i class="user icon"></i> [[ localeData.auth_list.id ]]</th>
+                <th v-else id="id"><i class="user icon"></i> [[ fallbackLocaleData.auth_list.id ]]</th>
+
+                <th v-if="localeData.auth_list.password" id="password"><i class="key icon"></i> [[ localeData.auth_list.password ]]</th>
+                <th v-else id="password"><i class="key icon"></i> [[ fallbackLocaleData.auth_list.password ]]</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr @click="show_acc_modal(accounts,counter_index,true)" v-for="(a, counter_index) in accounts">
+                <td><span>[[ counter_index ]]</span></td>
+                <td><span>[[ a.id ]]</span></td>
+                <td><span>********</span></td>
+                <!--<td><button @click="show_modal(m)" class="ui button primary"><i class="envelope open icon"></i><span v-if="localeData.emails_list.show_button">[[ localeData.emails_list.show_button ]]</span><span v-else>[[ fallbackLocaleData.emails_list.show_button ]]</span></button></td>-->
+            </tr>
+            <tr>
+                <td @click="show_acc_modal(null,null,false)" colspan="3"><span style="display: block;text-align: center;"><i class="plus icon"></i></span></td>
+                <!--<td onclick="window.location='./register_new'" colspan="3"><span style="display: block;text-align: center;">+</span></td>-->
+            </tr>
+        </tbody>
+    </table>
+    <div class="ui modal" id="acc-modal" :class="{ inverted: settings.dark }" >
+        <i class="close icon"></i>
+        <div id="login-form-wrapper" v-if="!loading" :class="{ inverted: settings.dark }" class="ui segment form center aligned login" style="margin-top:0;">
+            <form ref="edit" @submit.prevent="" action="./register" method="post">
+                <h3 v-if="edit_type && localeData.register.message2" v-html="localeData.register.message2"></h3>
+                <h3 v-else-if="!edit_type && localeData.register.message" v-html="localeData.register.message"></h3>
+                <h3 v-else-if="edit_type && fallbackLocaleData.register.message2" v-html="fallbackLocaleData.register.message2"></h3>
+                <h3 v-else-if="!edit_type && fallbackLocaleData.register.message" v-html="fallbackLocaleData.register.message"></h3>
+                    <div class="field">
+                        <div class="ui input left icon">
+                            <input ref="login" v-if="localeData.register.login_ph" autocomplete="on" :class="{ disabled: edit_type }" class="ui input left icon" name="login" :placeholder="localeData.register.login_ph" :value="acc.id">
+                            <input ref="login" v-else autocomplete="on" class="ui input disabled" name="login" :placeholder="fallbackLocaleData.register.login_ph" :value="acc.id">
+                            <i class="user icon"></i>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui input left icon">
+                            <input ref="password" v-if="localeData.register.password_ph" autocomplete="on" type="password" id="password" class="ui input" name="password" :placeholder="localeData.register.password_ph" :value="acc.password">
+                            <input ref="password" v-else autocomplete="on" type="password" class="ui input" name="password" :placeholder="fallbackLocaleData.register.password_ph" :value="acc.password">
+                            <i class="key icon"></i>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui input left icon">
+                            <input ref="password2" v-if="localeData.register.password_again_ph" autocomplete="on" type="password" id="password2" class="ui input" name="password2" :placeholder="localeData.register.password_again_ph" :value="acc.password">
+                            <input ref="password2" v-else autocomplete="on" type="password" class="ui input" name="password2" :placeholder="fallbackLocaleData.register.password_again_ph" :value="acc.password">
+                            <i class="key icon"></i>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <input ref="act_type" id="act_type" name="act_type" class="ui input" type="hidden">
+                    </div>
+                    <div class="field">
+                        <button v-if="edit_type" @click="submitForm('edit')" class="ui button primary submit navi"><i class="edit icon"></i><span v-if="localeData.register.edit_button" v-html="localeData.register.edit_button"></span><span v-else v-html="fallbackLocaleData.register.edit_button"></span></button>
+                    </div>
+                    <div class="field">
+                        <button v-if="edit_type" @click="submitForm('delete')" class="ui button primary red navi"><i class="eraser icon"></i><span v-if="localeData.register.delete_button" v-html="localeData.register.delete_button"></span><span v-else v-html="fallbackLocaleData.register.delete_button"></span></button>
+                    </div>
+                    <div class="field">
+                        <button v-if="!edit_type" @click="submitForm('new')" class="ui button primary submit navi"><i class="file icon"></i><span v-if="localeData.register.login_button" v-html="localeData.register.login_button"></span><span v-else v-html="fallbackLocaleData.register.login_button"></span></button>
+                    </div>
+                <div class="ui error message"></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

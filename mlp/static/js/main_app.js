@@ -2,6 +2,9 @@
 const path_prefix = document.currentScript.getAttribute('path_prefix');
 //const path_prefix = ""
 const base_url = path_prefix + '/api/emails';
+//const path_prefix = ""
+const base_url2 = path_prefix + '/api/auth';
+
 // get datetime_format from .env
 var datetime_format = document.currentScript.getAttribute('datetime_format');
 if (datetime_format == '') {
@@ -12,6 +15,9 @@ var mail_domain = document.currentScript.getAttribute('mail_domain');
 
 // get current mlp version from .env
 var parser_version = document.currentScript.getAttribute('parser_version');
+
+// get current mlp version from .env
+const login = document.currentScript.getAttribute('login');
 
 // get HOUSEKEEPING_DAYS from .env
 var housekeeping_days = document.currentScript.getAttribute('housekeeping_days');
@@ -24,29 +30,6 @@ var lang_files = JSON.parse(document.currentScript.getAttribute('lang_files'));
 
 //var notie_message_code = document.currentScript.getAttribute('notie_message_code');
 var notie_message = document.currentScript.getAttribute('notie_message');
-
-// bind arrow keys for modal left and right buttons
-document.onkeydown = function(e) {
-    switch(e.which) {
-        case 37: // left
-		if (window.app.index <= 0) {
-        	$('.prev_email').blur();
-        } else {
-        	$('.prev_email').focus();
-    	}
-        break;
-
-        case 39: // right
-        if (window.app.index >= window.app.msg_length-1) {
-        	$('.next_email').blur();
-        } else {
-        	$('.next_email').focus();
-    	}
-        break;
-        default: return; // exit this handler for other keys
-    }
-	e.preventDefault(); // prevent the default action (scroll / move caret)
-};
 
 const app = Vue.createApp({
     // to work with both quart and vue variables on the template pages
@@ -76,6 +59,11 @@ const app = Vue.createApp({
             index: 0,
             msg_length: 0,
             settings: [],
+            login: login,
+            accounts: [],
+            acc: [],
+            edit_type: '',
+            path_page: 0,
             loaded_settings: false,
             timer:'',
             contdown_sec: 0,
@@ -217,6 +205,50 @@ const app = Vue.createApp({
         debounce_emails: _.debounce(function(refresh) {
            this.loadEmails(refresh);
         }, 400),
+		submitForm(action) {
+			//console.log(action);
+			$(this.$refs.act_type).attr('value', action);
+			if (action == 'delete') {
+				window.app.validation(true);
+			}
+
+		},
+
+		// bind arrow keys for modal left and right buttons
+		arrowKeyBind(modal) {
+			document.onkeydown = function(e) {
+			    switch(e.which) {
+			        case 37: // left
+					if (window.app.index <= 0) {
+			        	$('.prev_email').blur();
+			        } else {
+			        	$('.prev_email').focus();
+			    	}
+			        break;
+
+			        case 39: // right
+			        if (window.app.index >= window.app.msg_length-1) {
+			        	$('.next_email').blur();
+			        } else {
+			        	$('.next_email').focus();
+			    	}
+			        break;
+			        default: return; // exit this handler for other keys
+			    }
+				e.preventDefault(); // prevent the default action (scroll / move caret)
+			};
+		},
+		// bind swipe moves for modal left and right actions
+		swipeBind(modal) {
+			modal.addEventListener('touchstart', e => {
+			  touchstartX = e.changedTouches[0].screenX
+			})
+
+			modal.addEventListener('touchend', e => {
+			  touchendX = e.changedTouches[0].screenX
+			  window.app.checkDirection();
+			})
+		},
         async loadLocaleMessages () {
             const app = this;
 
@@ -263,6 +295,25 @@ const app = Vue.createApp({
 
             }
         },
+        // detect swipe direction
+        checkDirection() {
+		  if (touchendX < touchstartX) {
+		  	//console.log('swiped left!');
+			if (window.app.index >= window.app.msg_length-1) {
+	        	$('.next_email').blur();
+	        } else {
+	        	$('.next_email').focus().click();
+	    	}
+		  } 
+		  if (touchendX > touchstartX) {
+		  	//console.log('swiped right!');
+			if (window.app.index <= 0) {
+	        	$('.prev_email').blur();
+	        } else {
+	        	$('.prev_email').focus().click();;
+	    	}
+		  }
+		},
         // for coloring
         shadeColor(color, percent) {
 
@@ -340,10 +391,12 @@ const app = Vue.createApp({
             	onHidden: function () {
 					window.localStorage.setItem("hidden_settings_tips", true);
 					window.app.hidden = true;
+                    //$('#current_user').show();
 				},
 				onVisible: function () {
 					window.localStorage.setItem("hidden_settings_tips", false);
 					window.app.hidden = false;
+                    //$('#current_user').hide();
 				}
             });  
         },
@@ -576,6 +629,116 @@ const app = Vue.createApp({
                 $('.JCLRgrips').hide();
             }
         },
+        loadAccounts() {
+            //var url = base_url2, queries = 0;
+            var url = base_url2;
+            var no_results = false;
+
+            return fetch(url).then(function (response) {
+                return response.json();
+            }).then((res) => {
+                this.accounts = res;
+                //console.log(this.accounts)
+                
+
+            })
+
+        },
+        validation(skip) {
+        	    // looking for password inputs
+
+                if ($("#password").length > 0) {
+                    if (this.localeData.register.one == undefined) {
+                        one = this.fallbackLocaleData.register.one
+                    } else {
+                        one = this.localeData.register.one
+                    }
+                    if (this.localeData.register.two == undefined) {
+                        two = this.fallbackLocaleData.register.two
+                    } else {
+                        two = this.localeData.register.two
+                    }
+                    if (this.localeData.register.three == undefined) {
+                        three = this.fallbackLocaleData.register.three
+                    } else {
+                        three = this.localeData.register.three
+                    }
+                    if (this.localeData.register.four == undefined) {
+                        four = this.fallbackLocaleData.register.four
+                    } else {
+                        four = this.localeData.register.four
+                    }
+                    if (this.localeData.register.five == undefined) {
+                        five = this.fallbackLocaleData.register.five
+                    } else {
+                        five = this.localeData.register.five
+                    }
+                    if (this.localeData.register.six == undefined) {
+                        six = this.fallbackLocaleData.register.six
+                    } else {
+                        six = this.localeData.register.six
+                    }
+                            $('.ui.form').form({
+                                on: 'submit',
+                                errorFocus: 'false',
+                                fields: {
+                                    login: {
+                                        identifier: 'login',
+                                        rules: [
+                                            {
+                                                type: 'empty',
+                                                prompt : one
+                                            },
+                                            {
+                                                type: 'minLength[3]',
+                                                prompt : two+'{ruleValue}'
+                                            }
+                                        ]
+                                    },
+                                    password: {
+                                        identifier: 'password',
+                                        rules: [
+                                            {
+                                                type: 'empty',
+                                                prompt : three
+                                            },
+                                            {
+                                                type: 'minLength[6]',
+                                                prompt : four+'{ruleValue}'
+                                            }
+                                        ]
+                                    },
+                                    password2: {
+                                        identifier: 'password2',
+                                        rules: [
+                                            {
+                                                type: 'empty',
+                                                prompt : six
+                                            },
+                                            {
+                                                type: 'match[password]',
+                                                prompt : five
+                                            }
+                                        ]
+                                    }
+                                },
+                                onSuccess: function (event) {
+                                	event.preventDefault();
+                                	$('form')[0].submit();
+                                	return false;
+                                },
+                                onFailure: function (event,fields) {
+					                if (skip) {
+										$('.ui.form').form('set values', {
+											password: 'blank_pass',
+											password2: 'blank_pass'
+										}).form('submit');
+										return false;
+									}
+                                }
+                            })
+                }
+        },
         loadEmails(refresh) {
             //var wait = 0;
 
@@ -627,238 +790,260 @@ const app = Vue.createApp({
             // add sort string
             url += `&order=${this.order}&order_dir=${this.order_dir}`;
 
+            if (this.path_page == 2) {
+                element = $('#emails-list')[0];
+            }
+
             return fetch(url).then(function (response) {
                 return response.json();
             }).then((res) => {
-                this.emails = res['result'];
-                // get format from .env var
-                for (let i = 0; i < this.emails.length; i++) {
-                    this.emails[i].timestamp = this.format_date(this.emails[i].timestamp,datetime_format,false);
-                    this.emails[i].first_attempt = this.format_date(this.emails[i].first_attempt,datetime_format,false);
-                    this.emails[i].last_attempt = this.format_date(this.emails[i].last_attempt,datetime_format,false);
-                }
-                 
-                this.page_count = res['total_pages'];
-                this.count = res['count'];
+            	if (this.path_page == 2) {
+	                this.emails = res['result'];
+	                // get format from .env var
+	                for (let i = 0; i < this.emails.length; i++) {
+	                    this.emails[i].timestamp = this.format_date(this.emails[i].timestamp,datetime_format,false);
+	                    this.emails[i].first_attempt = this.format_date(this.emails[i].first_attempt,datetime_format,false);
+	                    this.emails[i].last_attempt = this.format_date(this.emails[i].last_attempt,datetime_format,false);
+	                }
+	                 
+	                this.page_count = res['total_pages'];
+	                this.count = res['count'];
 
-                // to avoid setTimeout
-                /*if (!(this.loading)) {
-                    this.toggleLoading(true);  
-                }*/
-                this.toggleLoading(false);
-                // check for updates
-                this.updateCheck();
-                
-                // add advanced gui features
-                this.$nextTick(function () {
-                    $found_table = $('.emails-list');
-                    thead = $found_table.find('thead');
+	                // to avoid setTimeout
+	                /*if (!(this.loading)) {
+	                    this.toggleLoading(true);  
+	                }*/
+	                this.toggleLoading(false);
+	                // check for updates
+	                this.updateCheck();
+	                
+	                // add advanced gui features
+	                this.$nextTick(function () {
+	                    $found_table = $('.emails-list');
+	                    thead = $found_table.find('thead');
 
-                    // if no results don't show table and show notification
-                    this.check_nothing_found(this.count,$found_table,false);
+	                    // if no results don't show table and show notification
+	                    this.check_nothing_found(this.count,$found_table,false);
 
-                    if (refresh) {
-                        // scroll to the table top
-                        if ($found_table.find('td:first').length > 0) {
-                            const element = $found_table.find('td:first')[0];
-                            //console.log(thead.height());
-                            var yOffset = 0;
-                            if (this.settings.resizable) {
-                                yOffset = -25; 
-                            } else {
-                                yOffset = -thead.height();
-                            }
-                            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                            // scrolling offset by hide-sticky-header-button height
-                            window.scrollTo({top: y, behavior: 'smooth'});
-                        }
-                    }
-                    // style selected column for sort
-                    $found_table.find('#'+this.order).removeClass().addClass(this.order_dir);
-                    // if no results don't process empty table
-                    if (this.count != 0) {
-                        // add on row click title
-                        if (this.localeData.tips.five == undefined) {
-                            text = this.fallbackLocaleData.tips.five
-                        } else {
-                            text = this.localeData.tips.five
-                        }
-                        $found_table.find('tbody tr').attr('title', text);
+	                    if (refresh) {
+	                        // scroll to the table top
+	                        if ($found_table.find('td:first').length > 0) {
+	                            const element = $found_table.find('td:first')[0];
+	                            //console.log(thead.height());
+	                            var yOffset = 0;
+	                            if (this.settings.resizable) {
+	                                yOffset = -25; 
+	                            } else {
+	                                yOffset = -thead.height();
+	                            }
+	                            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+	                            // scrolling offset by hide-sticky-header-button height
+	                            window.scrollTo({top: y, behavior: 'smooth'});
+	                        }
+	                    }
+	                    // style selected column for sort
+	                    $found_table.find('#'+this.order).removeClass().addClass(this.order_dir);
+	                    // if no results don't process empty table
+	                    if (this.count != 0) {
+	                        // add on row click title
+	                        if (this.localeData.tips.five == undefined) {
+	                            text = this.fallbackLocaleData.tips.five
+	                        } else {
+	                            text = this.localeData.tips.five
+	                        }
+	                        $found_table.find('tbody tr').attr('title', text);
 
-                        // bind sort to table headers
-                        $('.emails-list th:not(#refresh-button)').one('click',function(){
-                            window.app.callSort(this);
-                        });
-                        
-                        // add sticky table header
-                        if (this.settings.sticky) {
-                            thead.first().css({'top': 0, 'position':'sticky', 'z-index': 1, 'background':'inherit' })/*.addClass('sticky-visible')*/;
-                            // add show/hide sticky header button 
-                            if (window.matchMedia('(max-width: 768px)').matches)
-                            {
-                                window.app.checkButtonArrow(thead);
+	                        // bind sort to table headers
+	                        $('.emails-list th:not(#refresh-button)').one('click',function(){
+	                            window.app.callSort(this);
+	                        });
+	                        
+	                        // add sticky table header
+	                        if (this.settings.sticky) {
+	                            thead.first().css({'top': 0, 'position':'sticky', 'z-index': 1, 'background':'inherit' })/*.addClass('sticky-visible')*/;
+	                            // add show/hide sticky header button 
+	                            if (window.matchMedia('(max-width: 768px)').matches)
+	                            {
+	                                window.app.checkButtonArrow(thead);
 
-                                // check visibility state
-                                if (window.localStorage['sticky_header_visible'] !== "true") {
-                                    window.app.ToggleStickyHeader(thead);
-                                }
-                            }
-                        }
+	                                // check visibility state
+	                                if (window.localStorage['sticky_header_visible'] !== "true") {
+	                                    window.app.ToggleStickyHeader(thead);
+	                                }
+	                            }
+	                        }
 
-                        if (this.settings.resizable) {
-                            // add class resizable
-                            $found_table.addClass('resizable');
-                            // dirty fix of callResizableTableColumns with 500 ms timeout
-                            //setTimeout(() => this.callResizableTableColumns($found_table), 500);
-                            this.callResizableTableColumns($found_table);
+	                        if (this.settings.resizable) {
+	                            // add class resizable
+	                            $found_table.addClass('resizable');
+	                            // dirty fix of callResizableTableColumns with 500 ms timeout
+	                            //setTimeout(() => this.callResizableTableColumns($found_table), 500);
+	                            this.callResizableTableColumns($found_table);
 
-                            if (this.localeData.user_settings.resizable_title_tip == undefined) {
-                                text = this.fallbackLocaleData.user_settings.resizable_title_tip
-                            } else {
-                                text = this.localeData.user_settings.resizable_title_tip
-                            }
-                            thead.find('th').attr('title',text)
-                            // reset colResizable() widths states
-                            thead.find('th:not(#refresh-button)').one( "contextmenu", function() {
-                                //console.log("colResizable() widths are reset!");
-                                window.localStorage.removeItem($found_table.attr('id'));
-                                window.app.loadEmails(true);
-                                return false;
-                            });
-                        } else {
-                            // cleanup if colResizable() was called earlier
-                            $('.JCLRgrips').hide();
-                            $found_table.removeClass('resizable');
-                        }
-                    }
+	                            if (this.localeData.user_settings.resizable_title_tip == undefined) {
+	                                text = this.fallbackLocaleData.user_settings.resizable_title_tip
+	                            } else {
+	                                text = this.localeData.user_settings.resizable_title_tip
+	                            }
+	                            thead.find('th').attr('title',text)
+	                            // reset colResizable() widths states
+	                            thead.find('th:not(#refresh-button)').one( "contextmenu", function() {
+	                                //console.log("colResizable() widths are reset!");
+	                                window.localStorage.removeItem($found_table.attr('id'));
+	                                window.app.loadEmails(true);
+	                                return false;
+	                            });
+	                        } else {
+	                            // cleanup if colResizable() was called earlier
+	                            $('.JCLRgrips').hide();
+	                            $found_table.removeClass('resizable');
+	                        }
+	                    }
 
-                    // to apply marquee
-                    /*if (this.settings.marquee) {
-                        this.apply_marquee($found_table, this);
-                    }*/
-                    // styling of statuses and status filter dropdown
-                    if (!$found_table.find('td:nth-child(3)').hasClass('styled')) {
-                        $found_table.find('td:nth-child(3):contains("deferred")').addClass('styled').prepend(this.settings.status_icon['deferred']);
-                        $found_table.find('td:nth-child(3):contains("sent")').addClass('styled').prepend(this.settings.status_icon['sent']);
-                        $found_table.find('td:nth-child(3):contains("reject")').addClass('styled').prepend(this.settings.status_icon['reject']);
-                        $found_table.find('td:nth-child(3):contains("bounced")').addClass('styled').prepend(this.settings.status_icon['bounced']);
-                        $found_table.find('td:nth-child(3):contains("multiple")').addClass('styled').prepend(this.settings.status_icon['multiple']);
-                        $found_table.find('td:nth-child(3):contains("unknown")').addClass('styled').prepend(this.settings.status_icon['unknown']);
-                    }
+	                    // to apply marquee
+	                    /*if (this.settings.marquee) {
+	                        this.apply_marquee($found_table, this);
+	                    }*/
+	                    // styling of statuses and status filter dropdown
+	                    if (!$found_table.find('td:nth-child(3)').hasClass('styled')) {
+	                        $found_table.find('td:nth-child(3):contains("deferred")').addClass('styled').prepend(this.settings.status_icon['deferred']);
+	                        $found_table.find('td:nth-child(3):contains("sent")').addClass('styled').prepend(this.settings.status_icon['sent']);
+	                        $found_table.find('td:nth-child(3):contains("reject")').addClass('styled').prepend(this.settings.status_icon['reject']);
+	                        $found_table.find('td:nth-child(3):contains("bounced")').addClass('styled').prepend(this.settings.status_icon['bounced']);
+	                        $found_table.find('td:nth-child(3):contains("multiple")').addClass('styled').prepend(this.settings.status_icon['multiple']);
+	                        $found_table.find('td:nth-child(3):contains("unknown")').addClass('styled').prepend(this.settings.status_icon['unknown']);
+	                    }
 
-                    if (this.settings.colored) {
-                        var filter_email = $('#filter-email');
+	                    if (this.settings.colored) {
+	                        var filter_email = $('#filter-email');
 
-                        for (let x in this.settings.status_color) {
-                            var color = this.settings.status_color[x];
-                            var text_color = "black";
+	                        for (let x in this.settings.status_color) {
+	                            var color = this.settings.status_color[x];
+	                            var text_color = "black";
 
-                            // coloring based on dark mode
-                            if (this.settings.dark) {
-                                if (x != 'NOFILTER') {
-                                    color = this.shadeColor(color,-40);
-                                    //text_color = "white";
-                                } else {
-                                    color = this.settings.status_color.NOFILTER_dark;
-                                    //text_color = filter_email[0].style.Color;
-                                }
-                                text_color = "white";
-                            }
+	                            // coloring based on dark mode
+	                            if (this.settings.dark) {
+	                                if (x != 'NOFILTER') {
+	                                    color = this.shadeColor(color,-40);
+	                                    //text_color = "white";
+	                                } else {
+	                                    color = this.settings.status_color.NOFILTER_dark;
+	                                    //text_color = filter_email[0].style.Color;
+	                                }
+	                                text_color = "white";
+	                            }
 
-                            $found_table.find('td:nth-child(3):contains("'+x+'")').closest('tr').css('background-color',color);
+	                            $found_table.find('td:nth-child(3):contains("'+x+'")').closest('tr').css('background-color',color);
 
-                            $('#filter-email option[value="'+x+'"]').css({'background-color':color, 'color': text_color});
-                        } 
+	                            $('#filter-email option[value="'+x+'"]').css({'background-color':color, 'color': text_color});
+	                        } 
 
-                        // coloring current selected option
+	                        // coloring current selected option
 
-                        //if (filter_email[0].options[filter_email[0].selectedIndex].value !='NOFILTER') {
-                            filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
-                            filter_email.one('change', function () {
-                                filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
-                            });
-                        //} 
-                    }
-                    // styling sorted column
-                    var sort_column = thead.find('th.asc, th.desc');
-                    sort_column.css('background-color', window.app.settings.status_color['sorted']);
-                    $('.emails-list tr:nth-child(n) td:nth-child('+(sort_column.index()+1)+')').each(function(i, obj) {
-                        $(obj).css('background-color',window.app.settings.status_color['sorted']);
-                    });
+	                        //if (filter_email[0].options[filter_email[0].selectedIndex].value !='NOFILTER') {
+	                            filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
+	                            filter_email.one('change', function () {
+	                                filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
+	                            });
+	                        //} 
+	                    }
+	                    // styling sorted column
+	                    var sort_column = thead.find('th.asc, th.desc');
+	                    sort_column.css('background-color', window.app.settings.status_color['sorted']);
+	                    $('.emails-list tr:nth-child(n) td:nth-child('+(sort_column.index()+1)+')').each(function(i, obj) {
+	                        $(obj).css('background-color',window.app.settings.status_color['sorted']);
+	                    });
 
-                    // add filter links to table cells
-                    this.addFilterLink($found_table);
+	                    // add filter links to table cells
+	                    this.addFilterLink($found_table);
 
-                    // set min date based on housekeeping_days
-                    var min_date=new Date();
-                    if (housekeeping_days != 0) {
-                        min_date.setDate(min_date.getDate()-housekeeping_days);
-                    } else {
-                        min_date = undefined;
-                    }
+	                    // set min date based on housekeeping_days
+	                    var min_date=new Date();
+	                    if (housekeeping_days != 0) {
+	                        min_date.setDate(min_date.getDate()-housekeeping_days);
+	                    } else {
+	                        min_date = undefined;
+	                    }
 
-                    // samoilov add calendar date picker fields
-                    $('#rangestart').calendar({
-                      onChange: function(date, text, mode) {
-                          //console.log('change: ' + date + "  text: " + text + "  mode: " + mode)
-                          // fomat date to iso8601
-                          window.app.date_filter__gt = text;
-                      },
-                      text: this.localeData.calendar,
-                      endCalendar: $('#rangeend'),
-                      monthFirst: false,
-                      minDate: min_date,
-                      maxDate: new Date(Date.now()),
-                      formatter: {
-                        cellTime: 'H:mm',
-                        datetime: datetime_format
-                      }
-                    });
-                    $('#rangeend').calendar({
-                      onChange: function(date, text, mode) {
-                          //console.log('change: ' + date + "  text: " + text + "  mode: " + mode)
-                          // fomat date to iso8601
-                          window.app.date_filter__lt = text;
-                          //$(".ui.popup.left").removeClass("visible").addClass("invisible");
-                          //$('#rangestart').calendar('clear');
-                      },
-                      text: this.localeData.calendar,
-                      startCalendar: $('#rangestart'),
-                      monthFirst: false,
-                      minDate: min_date,
-                      maxDate: new Date(Date.now()),
-                      formatter: {
-                        cellTime: 'H:mm',
-                        datetime: datetime_format
-                      }
-                    });
+	                    // samoilov add calendar date picker fields
+	                    $('#rangestart').calendar({
+	                      onChange: function(date, text, mode) {
+	                          //console.log('change: ' + date + "  text: " + text + "  mode: " + mode)
+	                          // fomat date to iso8601
+	                          window.app.date_filter__gt = text;
+	                      },
+	                      text: this.localeData.calendar,
+	                      endCalendar: $('#rangeend'),
+	                      monthFirst: false,
+	                      minDate: min_date,
+	                      maxDate: new Date(Date.now()),
+	                      formatter: {
+	                        cellTime: 'H:mm',
+	                        datetime: datetime_format
+	                      }
+	                    });
+	                    $('#rangeend').calendar({
+	                      onChange: function(date, text, mode) {
+	                          //console.log('change: ' + date + "  text: " + text + "  mode: " + mode)
+	                          // fomat date to iso8601
+	                          window.app.date_filter__lt = text;
+	                          //$(".ui.popup.left").removeClass("visible").addClass("invisible");
+	                          //$('#rangestart').calendar('clear');
+	                      },
+	                      text: this.localeData.calendar,
+	                      startCalendar: $('#rangestart'),
+	                      monthFirst: false,
+	                      minDate: min_date,
+	                      maxDate: new Date(Date.now()),
+	                      formatter: {
+	                        cellTime: 'H:mm',
+	                        datetime: datetime_format
+	                      }
+	                    });
 
-                    // set dark mode
-                    this.setDark($found_table);
-                });
+	                    // set dark mode
+	                    this.setDark($found_table);
+	                });
+				} else {
+					this.toggleLoading(false);
+		            if (this.path_page == 1) {
+		            	this.waitForElm('#auth-list').then((elm) => {
+							this.setDark($(elm));
+							this.loadAccounts();	
+		            	})
+		            }
+					
+					
+				}
+				this.updateCheck();
 
             }).catch((res) => {
                 console.error('Error:', res);
                 this.toggleLoading(false);
 
+                //this.notieMessages ();
+
                 // check for updates on login or api error screen
                 this.updateCheck();
-
-                this.waitForElm('#emails-list').then((elm) => {
-                    this.$nextTick(function () {
-                        // check if we are on login or api_error screen
-                        if (!(($("div.logo.login").length > 0) || ($(".api_error_container").length > 0))) {
-                            this.check_nothing_found(0,$(elm),true);
-                        }
-                    });
-                    // set dark mode
-                    this.setDark($(elm));
-                    // to avoid setTimeout
-                    this.toggleLoading(true);
-                    this.toggleLoading(false);
-                });
-
+				if (this.path_page != 0) {
+	                this.waitForElm(element).then((elm) => {
+	                    this.$nextTick(function () {
+	                        // check if we are on login or api_error screen
+	                        if (!(($("div.logo.login").length > 0) || ($(".api_error_container").length > 0))) {
+	                            this.check_nothing_found(0,$(elm),true);
+	                        }
+	                    });
+	                    // set dark mode
+	                    this.setDark($(elm));
+	                    // to avoid setTimeout
+	                    this.toggleLoading(true);
+	                    this.toggleLoading(false);
+	                });
+	            }
             });
+        },
+        auth() {
+            window.location = path_prefix+'/auth';
         },
         logout() {
             // keep locale and mode settings
@@ -876,15 +1061,45 @@ const app = Vue.createApp({
             window.location = path_prefix+'/logout';
 
         },
+        show_acc_modal(a,index,type) {
+        	this.edit_type = type;
+
+        	//console.log("Edit type: "+this.edit_type)
+
+            modal = $('#acc-modal');
+
+            if (this.edit_type) {
+                this.acc = a[index];
+            	this.index = index;	
+            } else {
+            	this.acc = '';
+            	this.index = '';	
+            }
+
+
+            //this.msg_length = m.length;
+            modal.modal({
+                onHidden: function () {
+                    $('body').removeClass('scrolling');
+                },
+                    closable: true,
+                    inverted: false,
+                    blurring: this.settings.blurring
+                }).modal('show');
+            window.app.validation(false);
+        },
         show_modal(m,index,key) {
             this.msg = m[index];
             this.index = index;
             this.msg_length = m.length;
-            //console.log(key);
 
             $('#mail-modal').modal({
             onHidden: function () {
                 $('body').removeClass('scrolling');
+            },
+            onVisible: function () {
+            	window.app.arrowKeyBind($(this)[0]);
+                window.app.swipeBind($(this)[0]);
             },
                 closable: true,
                 inverted: false,
@@ -1202,6 +1417,102 @@ const app = Vue.createApp({
                 });
             });
         },
+        notieMessages () {
+            
+            //console.log(notie_message);
+
+            // if current browser locale is not supported
+            if (window.localStorage["falled_back"]) {
+                text = "Current browser «"+ navigator.language.toUpperCase() + "» locale is not supported. Falling back to default «EN» locale!";
+                window.localStorage.removeItem("falled_back");
+                notie.alert({type: 'info', text: text});
+            }
+
+             // login notie messages
+            if (notie_message == 'api_error') {
+                if (this.localeData.notie.eight == undefined) {
+                    text = this.fallbackLocaleData.notie.eight
+                } else {
+                    text = this.localeData.notie.eight
+                }
+                notie.alert({type: 'error', text: text})
+            }
+            if (notie_message == 'unauth') {
+                if (this.localeData.notie.six == undefined) {
+                    text = this.fallbackLocaleData.notie.six
+                } else {
+                    text = this.localeData.notie.six
+                }
+                notie.alert({type: 'error', text: text})
+            }
+            if (notie_message == 'logged_out') {
+                if (this.localeData.notie.seven == undefined) {
+                    text = this.fallbackLocaleData.notie.seven
+                } else {
+                    text = this.localeData.notie.seven
+                }
+                notie.alert({type: 'success', text: text});
+            }
+            if (notie_message == 'pass_error') {
+                if (this.localeData.notie.five == undefined) {
+                    text = this.fallbackLocaleData.notie.five
+                } else {
+                    text = this.localeData.notie.five
+                }
+                notie.alert({type: 'error', text: text});
+            }
+            if (notie_message == 'user_created') {
+                if (this.localeData.notie.twelve == undefined) {
+                    text = this.fallbackLocaleData.notie.twelve
+                } else {
+                    text = this.localeData.notie.twelve
+                }
+                notie.alert({type: 'success', text: text});
+            }
+
+            if (notie_message == 'user_edited') {
+                if (this.localeData.notie.fourteen == undefined) {
+                    text = this.fallbackLocaleData.notie.fourteen
+                } else {
+                    text = this.localeData.notie.fourteen
+                }
+                notie.alert({type: 'success', text: text});
+            }
+
+             if (notie_message == 'user_deleted') {
+                if (this.localeData.notie.fifteen == undefined) {
+                    text = this.fallbackLocaleData.notie.fifteen
+                } else {
+                    text = this.localeData.notie.fifteen
+                }
+                notie.alert({type: 'success', text: text});
+            }
+
+            if (notie_message == 'user_creation_error') {
+                if (this.localeData.notie.sixteen == undefined) {
+                    text = this.fallbackLocaleData.notie.sixteen
+                } else {
+                    text = this.localeData.notie.sixteen
+                }
+                notie.alert({type: 'error', text: text});
+            }
+            /*if (notie_message == 'passwords_not_same') {
+                if (this.localeData.notie.eleven == undefined) {
+                    text = this.fallbackLocaleData.notie.eleven
+                } else {
+                    text = this.localeData.notie.eleven
+                }
+                notie.alert({type: 'error', text: text});
+            }*/
+            if (notie_message == 'no_users_found') {
+                if (this.localeData.notie.thirteen == undefined) {
+                    text = this.fallbackLocaleData.notie.thirteen
+                } else {
+                    text = this.localeData.notie.thirteen
+                }
+                notie.alert({type: 'warning', text: text});
+            }
+        },
         getCookie(name) {
           let matches = document.cookie.match(new RegExp(
             "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
@@ -1277,6 +1588,24 @@ const app = Vue.createApp({
 
         this.setDark();
 
+        // get current page path
+        if (window.location.pathname.split('/').reverse()[0] == '') {
+        	this.path_page = 0;
+        }
+        if (window.location.pathname.split('/').reverse()[0] == 'auth') {
+            this.path_page = 1;
+        }
+        if (window.location.pathname.split('/').reverse()[0] == 'emails') {
+        	this.path_page = 2;
+        }
+
+        // check if we are on auth page
+        /*this.waitForElm('#auth-list').then((elm) => {
+            this.loadAccounts();
+            // set dark mode
+            this.setDark($(elm));
+        });*/
+
         // set refresh interval
         this.setRefresh();
 
@@ -1308,16 +1637,19 @@ const app = Vue.createApp({
         }*/
 
         this.$nextTick(function () {
+
+            /*if ($("#auth-list").length > 0) {
+            }*/
 	        // check hidden tips and settings
 
 	        if ((localStorage.getItem("hidden_settings_tips") === null) || (localStorage.getItem("hidden_settings_tips") === 'false'))  {
 	        	$('.hidable').show();
 	        	this.hidden = false;
-
-
+                //$('#current_user').hide();
 	        } else {
 	        	$('.hidable').hide();
 	        	this.hidden = true;
+                //$('#current_user').show();
 	        }
             // apply mail domain from current domain URL if .env MAIL_DOMAIN is empty
             if (mail_domain == '') {
@@ -1328,50 +1660,15 @@ const app = Vue.createApp({
                 setTimeout(() => $('#marquee_sw input').prop('disabled', true), 1000);
             }*/
             
-            // if current browser locale is not supported
-            if (window.localStorage["falled_back"]) {
-                text = "Current browser «"+ navigator.language.toUpperCase() + "» locale is not supported. Falling back to default «EN» locale!";
-                window.localStorage.removeItem("falled_back");
-                notie.alert({type: 'info', text: text});
-            }
-            // login notie messages
-            if (notie_message == 'api_error') {
-                if (this.localeData.notie.eight == undefined) {
-                    text = this.fallbackLocaleData.notie.eight
-                } else {
-                    text = this.localeData.notie.eight
-                }
-                notie.alert({type: 'error', text: text})
-            }
-            if (notie_message == 'unauth') {
-                if (this.localeData.notie.six == undefined) {
-                    text = this.fallbackLocaleData.notie.six
-                } else {
-                    text = this.localeData.notie.six
-                }
-                notie.alert({type: 'error', text: text})
-            }
-            if (notie_message == 'logged_out') {
-                if (this.localeData.notie.seven == undefined) {
-                    text = this.fallbackLocaleData.notie.seven
-                } else {
-                    text = this.localeData.notie.seven
-                }
-                notie.alert({type: 'success', text: text});
-            }
-            if (notie_message == 'pass_error') {
-                if (this.localeData.notie.five == undefined) {
-                    text = this.fallbackLocaleData.notie.five
-                } else {
-                    text = this.localeData.notie.five
-                }
-                notie.alert({type: 'error', text: text});
-            }
+            
+			this.notieMessages ();
+
             // focus on password input timeout
             //setTimeout(() => $("input.ui").focus(), 1000);
-            
+
             this.waitForElm('input.ui').then((elm) => {
                 elm.focus();
+                window.app.validation(false);
             });
 
 
