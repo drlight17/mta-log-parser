@@ -14,7 +14,7 @@
         </div>
         <div class="ui two column grid hide_settings_tips_container">
             <div v-if="!loading" class="logout" >
-                <button onclick="location.href='./emails'" class="ui button blue center"><i class="undo icon"></i><span v-if="localeData.user_settings.back_to_emails" v-html="localeData.user_settings.back_to_emails"></span><span v-else v-html="fallbackLocaleData.user_settings.back_to_emails"></span></button>
+                <button @click="emails_back()"  class="ui button blue center"><i class="undo icon"></i><span v-if="localeData.user_settings.back_to_emails" v-html="localeData.user_settings.back_to_emails"></span><span v-else v-html="fallbackLocaleData.user_settings.back_to_emails"></span></button>
             </div>
             <div v-if="!loading" class="logout">
                 <button @click="logout()" class="ui button red center"><i class="sign out alternate icon"></i><span v-if="localeData.user_settings.log_out" v-html="localeData.user_settings.log_out"></span><span v-else v-html="fallbackLocaleData.user_settings.log_out"></span></button>
@@ -52,7 +52,7 @@
         <thead>
             <tr>
                 <th v-if="localeData.auth_list.index" id="index"><i class="hashtag icon"></i></th>
-                <th v-else id="index"><i class="hashtag icon"></i> [[ fallbackLocaleData.auth_list.index ]]</th>
+                <th v-else id="index"><i class="hashtag icon"></i></th>
 
                 <th v-if="localeData.auth_list.id" id="id"><i class="user icon"></i> [[ localeData.auth_list.id ]]</th>
                 <th v-else id="id"><i class="user icon"></i> [[ fallbackLocaleData.auth_list.id ]]</th>
@@ -63,7 +63,7 @@
         </thead>
         <tbody>
             <tr @click="show_acc_modal(accounts,counter_index,true)" v-for="(a, counter_index) in accounts">
-                <td><span>[[ counter_index ]]</span></td>
+                <td><span>[[ counter_index+1 ]]</span></td>
                 <td><span>[[ a.id ]]</span></td>
                 <td><span>********</span></td>
                 <!--<td><button @click="show_modal(m)" class="ui button primary"><i class="envelope open icon"></i><span v-if="localeData.emails_list.show_button">[[ localeData.emails_list.show_button ]]</span><span v-else>[[ fallbackLocaleData.emails_list.show_button ]]</span></button></td>-->

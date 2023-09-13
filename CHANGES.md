@@ -1,15 +1,18 @@
 Unreleased VER.
 - add multiple simultanious text filters
-- minify
-- multi-user access
 - ldap auth
-- add not (!) to text filters
+- summaries and graphs for period and overall
+- minify
 - replace momentjs wih day.js or luxone(?)
 - make mailcow PR to integrate into
 - remove python privex helpers code (?)
 - save settings into cookies (for firefox private window mainly) + accept cookies modal (?)
 - fix dropdown update if use fomantic ui div based dropdown
 - export to xlsx file (table) (?)
+- add not (!) to text filters
+
+VER. 1.3.1 
+- ~~add new universal datetime extractor (datefinder) for parser~~
 
 VER. 1.3 
 - ~~mobile swipes in message details~~
@@ -25,7 +28,7 @@ VER. 1.2.1
 - ~~improve modal arrows height sticky~~
 
 VER. 1.2
-- ~~multiple recipients localization~~
+- ~~multiple recipients localization ~~
 - ~~modal arrows to open next and previous message details~~
 - ~~bind arrow keys for modal left and right arrows~~
 - ~~initial MS Exchange server csv log file support~~

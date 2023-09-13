@@ -32,7 +32,7 @@ class PostfixLog(Dictable):
 
     def clean_dict(self, convert_time=str) -> dict:
         data = dict(self)
-        # TODO test lines timestamp convert before append
+        # log lines timestamp convert before append
         data['timestamp'] = moment.date(str(self.timestamp)).format(settings.datetime_format)
         #print(data)
 

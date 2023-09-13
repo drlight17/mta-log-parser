@@ -159,7 +159,7 @@ async def login():
 
 
 @app.route(f'{PREFIX}/emails', methods=['GET'])
-#@app.route(f'{PREFIX}/emails/', methods=['GET'])
+@app.route(f'{PREFIX}/emails/', methods=['GET'])
 async def emails_ui():
 
     if 'admin' not in session:
@@ -175,7 +175,7 @@ async def emails_ui():
     return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, settings=settings, VERSION=VERSION, LOGIN=session['login'])
 
 @app.route(f'{PREFIX}/auth', methods=['GET'])
-#@app.route(f'{PREFIX}/auth/', methods=['GET'])
+@app.route(f'{PREFIX}/auth/', methods=['GET'])
 async def auth_ui():
 
     if 'admin' not in session:

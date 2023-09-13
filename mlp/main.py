@@ -31,38 +31,43 @@ import quopri
 from datetime import datetime, timedelta, timezone
 from quart import jsonify
 
+import moment
+import datefinder
+
 log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.3"
+VERSION ="1.3.1"
 
-# postfix regexp
-postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
-"""(0) Regex to match the Date/Time at the start of each log line"""
 # postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
-postf_match += r'\:[ \t]([A-F0-9]{1,15})\:[ \t]+?(.*)'
+#postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
+#postf_match += r'.*\:[ \t]([A-Z0-9]{1,15})\:[ \t]+?(.*)'
+postf_match = r'.*\:[ \t]([A-Z0-9]{1,15})\:[ \t]+?(.*)'
 """Regex to match the (1) Queue ID and the (2) Log Message"""
 
 # exim regexp (for syslog and separate mainlog)
-exim_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+|\d{4}-\d{2}-\d{2}.\d{2}\:\d{2}\:\d{2}).*'
+#exim_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+|\d{4}-\d{2}-\d{2}.\d{2}\:\d{2}\:\d{2}).*'
 """(0) Regex to match the Date/Time at the start of each log line"""
 #exim_match += r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+|\d{4}-\d{2}-\d{2}.\d{2}\:\d{2}\:\d{2}.([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
 #exim_match += r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
-exim_match += r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
+#exim_match += r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
+exim_match = r'.*([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
 """Regex to match the (1) Message ID and the (2) Log Message"""
 
 # sendmail regexp
-sendm_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
+#sendm_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
 """(0) Regex to match the Date/Time at the start of each log line"""
 #sendm_match += r'([0-9A-Za-z]{14})\:[ \t]+?(.*)'
-sendm_match += r'\:\s([0-9A-Za-z]+)\:[ \t]+?(.*)'
+#sendm_match += r'\:\s([0-9A-Za-z]+)\:[ \t]+?(.*)'
+sendm_match = r'.*\:\s([0-9A-Za-z]+)\:[ \t]+?(.*)'
 """Regex to match the (1) Queue ID and the (2) Log Message"""
 
 # echange regexp
-exch_match = r'^([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+|\d{4}-\d{2}-\d{2}.\d{2}\:\d{2}\:\d{2})'
+#exch_match = r'^([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+|\d{4}-\d{2}-\d{2}.\d{2}\:\d{2}\:\d{2})'
 """(0) Regex to match the Date/Time at the start of each log line"""
-exch_match += r'([^#]([^,]*,){12}.+)'
+#exch_match += r'([^#]([^,]*,){12}.+)'
+exch_match = r'([^#]([^,]*,){12}.+)'
 """Regex to match the (2) message ID and the (1) Log Message"""
 
 if settings.mta == '': settings.mta = 'postfix'
@@ -154,21 +159,33 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
     # avoid utf-8 codec error
     with open(logfile, 'rb') as f:
         while True:
-        	#print("Hi!")
             line = f.readline().decode(errors='replace')
             if not line: break
-            m = match.match(line)
-            if not m: continue
 
-            '''if settings.mta == 'exchange':
-			    dtime, msg, qid  = m.groups()
-            else:
-                dtime, qid, msg = m.groups()'''
+            m = match.match(line)
+            #print(line)
+            
+            if not m: continue
+            #print(m.group(0))
+
+            # TODO test new universal datetime extractor instead of regexps (cut first 20 symbols from the string)
+            dtimes = datefinder.find_dates(m.group(0)[:20])
+
+            for dtime in dtimes:
+                dtime = dtime
+                # to stop after first match
+                break
+            
+            dtime = moment.date(dtime,settings.datetime_format).date
+            dtime = dtime.replace(tzinfo=timezone.utc)
+
             if settings.mta == 'exchange':
-            	dtime, msg, qid  = m.groups()
-            	qid = qid[:-1]
+                msg, qid  = m.groups()
+                qid = qid[:-1]
+            	#dtime, msg, qid  = m.groups()
             else:
-            	dtime, qid, msg  = m.groups()
+            	#dtime, qid, msg  = m.groups()
+                qid, msg  = m.groups()
             #log.info(qid)
             #dtime, msg, qid  = m.groups()
 

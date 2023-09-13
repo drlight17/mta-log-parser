@@ -1045,6 +1045,9 @@ const app = Vue.createApp({
         auth() {
             window.location = path_prefix+'/auth';
         },
+        emails_back() {
+            window.location = path_prefix+'/emails';
+        },
         logout() {
             // keep locale and mode settings
             var localeData = localStorage.getItem('localeData');
@@ -1589,16 +1592,22 @@ const app = Vue.createApp({
         this.setDark();
 
         // get current page path
-        if (window.location.pathname.split('/').reverse()[0] == '') {
-        	this.path_page = 0;
-        }
-        if (window.location.pathname.split('/').reverse()[0] == 'auth') {
-            this.path_page = 1;
-        }
-        if (window.location.pathname.split('/').reverse()[0] == 'emails') {
-        	this.path_page = 2;
+        if (window.location.pathname.slice(-1)=='/') {
+            path = window.location.pathname.slice(0, -1)
+        } else {
+            path = window.location.pathname
         }
 
+        if (path.split('/').reverse()[0] == '') {
+        	this.path_page = 0;
+        }
+        if (path.split('/').reverse()[0] == 'auth') {
+            this.path_page = 1;
+        }
+        if (path.split('/').reverse()[0] == 'emails') {
+        	this.path_page = 2;
+        }
+        console.log(this.path_page);
         // check if we are on auth page
         /*this.waitForElm('#auth-list').then((elm) => {
             this.loadAccounts();

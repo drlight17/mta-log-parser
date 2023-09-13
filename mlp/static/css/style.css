@@ -185,6 +185,7 @@ summary {
 .top_title {
     display: flex;
     justify-content: space-between;
+    margin-bottom: 2em;
 }
 @media only screen and (min-width: 811px) and (max-width: 1069px) {
     .top_title {
