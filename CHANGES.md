@@ -25,7 +25,7 @@ VER. 1.2.1
 - ~~improve modal arrows height sticky~~
 
 VER. 1.2
-- ~~multiple recipients localization ~~
+- ~~multiple recipients localization~~
 - ~~modal arrows to open next and previous message details~~
 - ~~bind arrow keys for modal left and right arrows~~
 - ~~initial MS Exchange server csv log file support~~
