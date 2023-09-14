@@ -61,7 +61,7 @@
                             </div>
                         </div>        
                     </div>
-                    <button id="savesettings" class="ui button" @click="saveSettings()" disabled><i class="save icon"></i><span v-if="!$parent.loading" v-html="$parent.localeData.user_settings.save_settings"></span></button>
+                    <button id="savesettings" class="ui button primary" @click="saveSettings()" disabled><i class="save icon"></i><span v-if="!$parent.loading" v-html="$parent.localeData.user_settings.save_settings"></span></button>
                 </div>
             </div>
         </div>`,
