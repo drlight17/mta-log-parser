@@ -3,12 +3,18 @@
   "app_title": "MTA Log Parser",
   "loading": "Loading...",
   "hide_set_tips_title": "Hide or show settings and tips",
+  "hide_charts_title": "Hide or show statistics and visuals",
+  "overall_pie": "Overall delivery stats (every hour refresh)",
+  "filtered_pie": "Filtered delivery stats (check filters and <code>MAX_LIMIT</code>)",
+  "filtered_top_senders": "Filtered top 10 senders",
+  "filtered_top_recipients": "Filtered top 10 recipients",
+  "no_data": "No data",
   "notie": {
     "one": "Forbidden special character(s) in text search input: <b>«",
     "two": "User settings are saved successfully",
     "three": "Saved filters are loaded successfully",
     "four": "All filters are reset successfully",
-    "five": "Invalid password",
+    "five": "Wrong login and/or password!",
     "six": "You must log in to access this",
     "seven": "You have been successfully logged out",
     "eight": "API call error. Wrong call or no connection with Rethinkdb!",
@@ -19,10 +25,15 @@
     "thirteen": "No accounts found. Create now.",
     "fourteen": "Account is succesfully edited.",
     "fifteen": "Account is succesfully removed.",
-    "sixteen": "Error account processing. Check backend logs!"
+    "sixteen": "Error account processing. Check backend logs!",
+    "seventeen": "Error bindind LDAP. Check your LDAP_BIND_DN and/or LDAP_BIND_DN_PWD!",
+    "eighteen": "No LDAP accounts found! Check your LDAP_SEARCHFILTER, LDAP_SEARCHBASE, LDAP_USERNAME_ATTR or LDAP_USERNAME_DOMAIN_PART!",
+    "nineteen": "This path is not available under LDAP user!",
+    "twenty": "MLP version has just upgraded! All caches were cleared and you have been logged out! Page will be reload in 5 seconds. If nothing happened refresh page manually."
   },
   "login": {
     "message": "Please login to proceed.",
+    "message_ldap": "Please use LDAP login and password to proceed.",
     "login_ph": "Type login",
     "password_ph": "Type password",
     "login_button": "Log in"
@@ -74,10 +85,18 @@
     "multiple_status": "multiple, see log lines below"
   },
   "user_settings": {
-    "current_user": "Current user: ",
+    "current_user": "User: ",
+    "current_user_title": "Your current logged in user name",
     "log_out": "Logout ",
+    "log_out_title": "Logout from current user",
+    "export_to_xls": "Export",
+    "export_to_xls_title": "Export current page contents to Excel file",
     "back_to_emails": "Back",
+    "back_to_emails_title": "Get back to the emails table",
     "acc_ctrl": "Accounts",
+    "acc_ctrl_title": "Go to account control menu",
+    "acc_ctrl_disabled": "LDAP",
+    "acc_ctrl_disabled_title": "LDAP is operating accounts",
     "user_settings_title": "User settings",
     "current_lang": "Current language:",
     "page_limit": "Maximum results per page:",
@@ -114,7 +133,7 @@
     "one": "All your text search requests are wildcards, so search string will match start, middle or end of found strings. <details><summary>[...]</summary>For example <code><strong>qwerty</strong></code> will match <strong>qwerty@mail.com</strong>, <strong>user@qwerty.com</strong> and <strong>user@mail.qwerty</strong></details>",
     "two": "Use start and end date fields to apply date range filter",
     "three": "Use \"Refresh\" <i class=\"sync icon\"></i> button to reload email list with current applied filters",
-    "four": "Use \"Reset\" <i class=\"eraser icon\"></i> button to clear all applied filters and reload email list",
+    "four": "Use <i class=\"eraser icon\"></i> button to clear all applied filters and reload email list",
     "five": "Click the row to show more corresponding email information with related logs",
     "six": "Current <code>MTA</code> is set to",
     "six_default": "Current <code>MTA</code> is set to default <strong style=\"text-transform:uppercase\">POSTFIX</strong>",
@@ -126,12 +145,15 @@
     "twelve": "If \"Save filters\" is off then you can only change end date field, start date is dynamically filled based on <details><summary>[...]</summary>the \"Show logs for\" <i class=\"clock icon\"></i> slider value!</details>",
     "thirteen": "There are all created accounts in the table below",
     "fourteen": "To call edit or delele account dialogue click the desired account's row",
-    "fifteen": "To create new account press <i class=\"plus icon\"></i>"
+    "fifteen": "To create new account press <i class=\"plus icon\"></i>",
+    "sixteen": "Use <i class=\"search icon\"></i> button to apply text filter and reload email list"
   },
   "filters": {
-    "filter_link_tip": "Click to filter by",
+    "filter_link_tip": "Click to apply text filter",
     "search": "Text and status filter",
+    "filters_ctrl_title": "Filters apply",
     "search_placeholder": "Search emails",
+    "search_button": "Apply",
     "search_by": "by",
     "search_by_id": "Queue ID",
     "search_by_mail_from": "Sender",
@@ -148,6 +170,7 @@
     "date_filter_title": "Date range filter",
     "date_filter__gt_placeholder": "Start date",
     "date_filter__lt_placeholder": "End date",
+    "reset_button_tip": "Click to reset all filters",
     "reset_button": "Reset"
   },
   "pager": {
@@ -166,7 +189,8 @@
     "one": "Postfix Log Parser original version 1.1.2 © 2019 by Privex Inc. under the GNU AGPL v3 | <a href=\"https://github.com/Privex/postfix-parser\" target=\"_BLANK\">Source on Github</a>",
     "two": "MTA Log Parser © 2023 by drlight ver.",
     "three": "under the GNU AGPL v3 | <a href=\"https://github.com/drlight17/mta-log-parser\" target=\"_BLANK\">Source on Github</a>",
-    "four": "Update is available! Check <a href=\"https://github.com/drlight17/mta-log-parser/releases/latest/\" target=\"_BLANK\">here</a>."
+    "four": "The latest version",
+    "five": " is available!"
   },
   "calendar": {
     "days": ["S", "M", "T", "W", "T", "F", "S"],

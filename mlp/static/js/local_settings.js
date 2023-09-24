@@ -1,8 +1,6 @@
     app.component('local-settings', {
         template: `
         <div id="user-settings-wrapper" class="ui segment">
-            <span v-if="!$parent.loading" v-html="$parent.localeData.user_settings.current_user"></span>
-            <b><u><span v-html="$parent.login"></span></u></b>
             <h3><i class="user icon"/><span v-if="!$parent.loading" v-html="$parent.localeData.user_settings.user_settings_title"></span></h3>
 
             <div class="ui form grid">

@@ -38,6 +38,9 @@ from dateutil import parser
 # TODO dayjs? as moment is deprecated
 import moment
 
+# add ldap support 
+import ldap
+
 log = logging.getLogger(__name__)
 
 app = Quart(__name__)
@@ -70,12 +73,19 @@ async def index():
     if 'admin' in session:
         return redirect(f'{PREFIX}/emails')
 
-    auth_status = await check_user_pass(None, None, 0)
-    if auth_status:
-        return await render_template('login.html', settings=settings, NOTIE_MESSAGE=NOTIE_MESSAGE, VERSION=VERSION)
+    # check if LDAP is configured
+    if not settings.ldap_connect:
+    	# check if there users registered
+    	auth_status = await check_user_pass(None, None, 0)
+
+    	if auth_status == 1:
+        	return await render_template('login.html', settings=settings, NOTIE_MESSAGE=NOTIE_MESSAGE, VERSION=VERSION)
+    	elif auth_status == 0:
+        	session['NOTIE_MESSAGE'] = "no_users_found"
+        	return await render_template('register.html', settings=settings, NOTIE_MESSAGE=NOTIE_MESSAGE, VERSION=VERSION)
     else:
-        session['NOTIE_MESSAGE'] = "no_users_found"
-        return await render_template('register.html', settings=settings, NOTIE_MESSAGE=NOTIE_MESSAGE, VERSION=VERSION)
+    	return await render_template('login.html', settings=settings, NOTIE_MESSAGE=NOTIE_MESSAGE, VERSION=VERSION)
+    
 
 '''@app.route(f'{PREFIX}/register_new', methods=['GET'])
 async def register_new():
@@ -89,7 +99,7 @@ async def register_new():
 async def register():
 
     frm = await request.form
-    print(frm)
+    #print(frm)
     #if 'act_type' not in frm
     #if frm.get('password') == frm.get('password2'):
     if frm.get('act_type') == "delete":
@@ -97,7 +107,7 @@ async def register():
     else:
         status = await edit_user(frm.get('login'),frm.get('password'),0)
 
-    print(status)
+    #print(status)
     #else:
     #    session['NOTIE_MESSAGE'] = "passwords_not_same"
     #    return redirect(f'{PREFIX}/')
@@ -111,7 +121,7 @@ async def register():
         session['NOTIE_MESSAGE'] = "user_deleted"
         # check if no user left
         auth_status = await check_user_pass(None, None, 0)
-        if not auth_status:
+        if auth_status == 0:
             print("No users left. We must log out!")
             session['NOTIE_MESSAGE'] = "no_users_found"
             return redirect(f'{PREFIX}/logout')
@@ -123,37 +133,32 @@ async def register():
 
     return redirect(f'{PREFIX}/auth')
 
-'''@app.route(f'{PREFIX}/delete', methods=['POST'])
-async def del_user():
-
-    frm = await request.form
-    print("Delete!!!!!!!!!!")
-
-    status = await edit_user(frm.get('login'),frm.get('password'),1)
-
-    if status['deleted'] != 0:
-        session['NOTIE_MESSAGE'] = "user_deleted"
-        return redirect(f'{PREFIX}/auth')
-    else:
-        session['NOTIE_MESSAGE'] = "user_deletion_error"
-        return redirect(f'{PREFIX}/auth')'''
-
 @app.route(f'{PREFIX}/login', methods=['POST'])
 async def login():
 
 	
     frm = await request.form
-    auth_status = await check_user_pass(frm.get('login'),frm.get('password'), 1)
+    # check if LDAP is configured
+    if not settings.ldap_connect:
+    	auth_status = await check_user_pass(frm.get('login'),frm.get('password'), 1)
+    else:
+    	auth_status = await ldap_auth(frm.get('login'),frm.get('password'),1)
+    
 
     #if frm.get('password') == settings.admin_pass and frm.get('login') == 'admin':
-    if auth_status:
+    if auth_status == 1:
         session['login'] = frm.get('login')
+        #session['password'] = frm.get('password')
         session['admin'] = random_str()
         #print(session)
         
         return redirect(f'{PREFIX}/emails')
-
-    session['NOTIE_MESSAGE'] = "pass_error"
+    elif auth_status == 0:
+    	session['NOTIE_MESSAGE'] = "pass_error"
+    elif auth_status == 2:
+    	session['NOTIE_MESSAGE'] = "bind_pass_error"
+    elif auth_status == 3:
+    	session['NOTIE_MESSAGE'] = "no_ldap_users_found"
 
     return redirect(f'{PREFIX}/')
 
@@ -165,14 +170,21 @@ async def emails_ui():
     if 'admin' not in session:
         session['NOTIE_MESSAGE'] = "unauth"
         return redirect(f'{PREFIX}/')
+
+    NOTIE_MESSAGE = await _process_notie()
+
     #print(session['login'])
     # check if current user exists
-    auth_status = await check_user_pass(session['login'],None, 2)
-    if not auth_status:
+    # check if LDAP is configured
+    if not settings.ldap_connect:
+    	auth_status = await check_user_pass(session['login'], None, 2)
+    else:
+    	auth_status = await ldap_auth(session['login'], None, 2)
+    if auth_status == 0 or auth_status == 3 or auth_status == 2:
         #print("Current user wasnt found. Force log out!")
         return redirect(f'{PREFIX}/logout')
 
-    return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, settings=settings, VERSION=VERSION, LOGIN=session['login'])
+    return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, NOTIE_MESSAGE=NOTIE_MESSAGE, settings=settings, VERSION=VERSION, LOGIN=session['login'])
 
 @app.route(f'{PREFIX}/auth', methods=['GET'])
 @app.route(f'{PREFIX}/auth/', methods=['GET'])
@@ -184,8 +196,13 @@ async def auth_ui():
 
     NOTIE_MESSAGE = await _process_notie()
 
-    auth_status = await check_user_pass(session['login'],None, 2)
-    if not auth_status:
+    if not settings.ldap_connect:
+    	auth_status = await check_user_pass(session['login'],None, 2)
+    else:
+    	session['NOTIE_MESSAGE'] = "unauth_ldap"
+    	return redirect(f'{PREFIX}/emails')
+    	#auth_status = await ldap_auth(session['login'], None, 2)
+    if auth_status == 0 or auth_status == 3 or auth_status == 2:
         #print("Current user wasnt found. Force log out!")
         return redirect(f'{PREFIX}/logout')
 
@@ -244,8 +261,14 @@ async def api_auth():
         session['NOTIE_MESSAGE'] = "unauth"
         return redirect(f'{PREFIX}/')
 
-    auth_status = await check_user_pass(session['login'],None, 2)
-    if not auth_status:
+    if not settings.ldap_connect:
+    	auth_status = await check_user_pass(session['login'],None, 2)
+    else:
+    	session['NOTIE_MESSAGE'] = "unauth"
+    	return redirect(f'{PREFIX}/')
+    	#auth_status = await ldap_auth(session['login'], None, 2)
+    if auth_status == 0 or auth_status == 3 or auth_status == 2:
+
         #print("Current user wasnt found. Force log out!")
         return redirect(f'{PREFIX}/logout')
 
@@ -265,6 +288,87 @@ async def api_auth():
     #print(sm)
 
     return jsonify(sm)
+
+# All GET params are used for api/stats?status=reject
+@app.route(f'{PREFIX}/api/stats', methods=['GET'])
+async def api_stats():
+    if 'admin' not in session:
+        session['NOTIE_MESSAGE'] = "unauth"
+        return redirect(f'{PREFIX}/')
+
+    if not settings.ldap_connect:
+        auth_status = await check_user_pass(session['login'],None, 2)
+    else:
+        session['NOTIE_MESSAGE'] = "unauth"
+        return redirect(f'{PREFIX}/')
+        #auth_status = await ldap_auth(session['login'], None, 2)
+    if auth_status == 0 or auth_status == 3 or auth_status == 2:
+
+        #print("Current user wasnt found. Force log out!")
+        return redirect(f'{PREFIX}/logout')
+
+    r, conn, r_q = await get_rethink()
+    r_q: rethinkdb.query
+    _sm = r.table('sent_mail')
+
+    frm = dict(request.args)
+
+    if 'statuses' in frm:
+        
+        response = str(frm.pop("statuses"))
+        #del frm['statuses']
+
+        #print(str(frm.pop('status')))
+        _sm = await _sm.filter(lambda m: m["status"]["code"] == response).count().run(conn, array_limit=settings.rethink_arr_limit)
+        print(_sm)
+        return {response: _sm}
+    if 'top_senders' in frm:
+        del frm['top_senders']
+
+        _senders_array = await _process_filters(query=_sm, frm=frm)
+        _senders_array = _senders_array.pluck("mail_from").distinct()
+        _senders_array = await _senders_array.run(conn, array_limit=settings.rethink_arr_limit)
+
+        #senders_array = {}
+        senders_array = []
+        sender = {}
+
+        for s in _senders_array:
+            _senders_count = await _process_filters(query=_sm, frm=frm)
+            _senders_count = await _senders_count.filter(lambda m: m["mail_from"] == s['mail_from']).count().run(conn, array_limit=settings.rethink_arr_limit)
+            sender['mail_from'] = s['mail_from']
+            sender['count'] = _senders_count
+            senders_array.append(dict(sender))
+            #senders_array[s['mail_from']] = _senders_count
+
+        # sort array reverse and limit by 10    
+        senders_array = sorted(senders_array, key=lambda d: d['count'], reverse=True)[:10]
+        #senders_array = sorted(senders_array.items(), key=lambda x:x[1], reverse=True)
+        #senders_array = dict(sorted(senders_array.items(), key=lambda x:x[1], reverse=True)[:10])
+        return jsonify(senders_array)
+
+    if 'top_recipients' in frm:
+        del frm['top_recipients']
+
+        _recipients_array = await _process_filters(query=_sm, frm=frm)
+        _recipients_array = _recipients_array.pluck("mail_to").distinct()
+        _recipients_array = await _recipients_array.run(conn, array_limit=settings.rethink_arr_limit)
+
+        recipients_array = []
+        recipient = {}
+
+        for s in _recipients_array:
+            _recipients_count = await _process_filters(query=_sm, frm=frm)
+            _recipients_count = await _recipients_count.filter(lambda m: m["mail_to"] == s['mail_to']).count().run(conn, array_limit=settings.rethink_arr_limit)
+            recipient['mail_to'] = s['mail_to']
+            recipient['count'] = _recipients_count
+            recipients_array.append(dict(recipient))
+
+        # sort array reverse and limit by 10    
+        recipients_array = sorted(recipients_array, key=lambda d: d['count'], reverse=True)[:10]
+        return jsonify(recipients_array)
+
+
 
 @app.route(f'{PREFIX}/api/emails', methods=['GET'])
 async def api_emails():
@@ -297,8 +401,11 @@ async def api_emails():
         session['NOTIE_MESSAGE'] = "unauth"
         return redirect(f'{PREFIX}/')
 
-    auth_status = await check_user_pass(session['login'],None, 2)
-    if not auth_status:
+    if not settings.ldap_connect:
+    	auth_status = await check_user_pass(session['login'],None, 2)
+    else:
+    	auth_status = await ldap_auth(session['login'], None, 2)
+    if auth_status == 0 or auth_status == 3 or auth_status == 2:
         #print("Current user wasnt found. Force log out!")
         return redirect(f'{PREFIX}/logout')
 
@@ -439,6 +546,66 @@ async def _process_notie():
         NOTIE_MESSAGE = session['NOTIE_MESSAGE']
         del session['NOTIE_MESSAGE']
     return NOTIE_MESSAGE
+
+# check ldap user and password
+async def ldap_auth(u,p,mode):
+	l = ldap.initialize(settings.ldap_connect)
+	l.protocol_version = ldap.VERSION3
+
+	try:
+
+	    l.simple_bind_s(settings.ldap_bind_dn, settings.ldap_bind_dn_pwd)
+	    base = settings.ldap_searchbase
+	    attributes = [settings.ldap_username_attr]
+	    criteria = settings.ldap_searchfilter %(settings.ldap_username_attr,u)
+	    result = l.search_s(base, ldap.SCOPE_SUBTREE, criteria, attributes)
+	    l.unbind_s()
+	    _result = []
+	    if type(result) is list:
+	        _result = list(result)
+	    else:
+	        async for s in result:
+	            _result.append(dict(s))
+
+
+	except ldap.INVALID_CREDENTIALS:
+	  print("Your LDAP BIND_DN creds are incorrect!")
+	  return 2
+	  #sys.exit(0)
+	except ldap.LDAPError as e:
+		if type(e.message) == dict and e.message.has_key('desc'):
+			print(e.message['desc'])
+		else:
+			print(e)
+
+		#sys.exit(0)
+
+	if _result:
+		if mode == 1 and u is not None and p is not None:
+			l = ldap.initialize(settings.ldap_connect)
+			l.protocol_version = ldap.VERSION3
+			try:
+				l.simple_bind_s(u+'@'+settings.ldap_username_domain_part, p)
+				return 1
+			except ldap.INVALID_CREDENTIALS:
+			    	print("Your password is incorrect.")
+			    	return 0
+			except ldap.LDAPError as e:
+			    if type(e.message) == dict and e.message.has_key('desc'):
+			    	print(e.message['desc'])
+			    else:
+			    	print(e)
+		elif mode == 2:
+			return 1
+
+	else:
+		print("User not found in LDAP! Check filters and other LDAP quering settings!")
+		return 3
+	
+		
+
+
+	
 
 # check user and password
 async def check_user_pass(u,p,mode):

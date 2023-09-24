@@ -1,15 +1,27 @@
 Unreleased VER.
 - add multiple simultanious text filters
-- ldap auth
-- summaries and graphs for period and overall
 - minify
 - replace momentjs wih day.js or luxone(?)
 - make mailcow PR to integrate into
 - remove python privex helpers code (?)
 - save settings into cookies (for firefox private window mainly) + accept cookies modal (?)
 - fix dropdown update if use fomantic ui div based dropdown
-- export to xlsx file (table) (?)
 - add not (!) to text filters
+
+VER. 1.4
+- ~~summaries and graphs for period and overall:~~
+- ~~rethinkdb query for overall_pie (statuses %)~~
+- ~~rethinkdb query for filtered_pie (statuses %)~~
+- ~~rethinkdb query for filtered_throughoutput (top senders, top recipients)~~
+- ~~fix of refresh positioning of view (because of hidable GUI blocks)~~
+- ~~fix of wrong titles for multiple recipients filter links~~
+- ~~no data for bar charts~~
+- ~~force local storage, session and cookies clear after upgrade~~
+- ~~search button for text filter instead of watcher~~
+- ~~export to xlsx file (table) (?)~~
+- ~~ldap auth~~
+- ~~add selfsigned ca cert append in Dockerfile for TLS connections i.e. LDAPS~~
+- ~~BUG: dont run emails query on the auth page~~
 
 VER. 1.3.1 
 - ~~add new universal datetime extractor (datefinder) for parser~~

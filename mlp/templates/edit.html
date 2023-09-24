@@ -12,7 +12,7 @@
             </div>
             
         </div>
-        <div class="ui two column grid hide_settings_tips_container">
+        <!--<div class="ui two column grid hide_settings_tips_container">
             <div v-if="!loading" class="logout" >
                 <button @click="emails_back()"  class="ui button blue center"><i class="undo icon"></i><span v-if="localeData.user_settings.back_to_emails" v-html="localeData.user_settings.back_to_emails"></span><span v-else v-html="fallbackLocaleData.user_settings.back_to_emails"></span></button>
             </div>
@@ -23,9 +23,28 @@
                 <button :title="localeData.hide_set_tips_title" @click="toggleSetTips()" class="ui button gray center">
                 <div id="current_user"><span v-if="localeData.user_settings.current_user" v-html="localeData.user_settings.current_user"></span><b><u><span v-html="login"></span></u></b></div><i class ="chevron icon" :class="{ up: !hidden, down: hidden }" class="chevron icon"></i></button>
             </div>
-        </div>
+        </div>-->
     </div>
-    <div class="ui stackable two column grid hidable" style="align-items: stretch;">
+
+    <div v-if="!loading" :class="{ inverted: settings.dark, icon: vertical_menu, vertical: vertical_menu }" class="ui menu">
+      <a :title="localeData.user_settings.current_user_title" class="item"><i class="user icon"></i>&nbsp;<span v-if="localeData.user_settings.current_user" v-html="localeData.user_settings.current_user"></span>
+            <span v-else v-html="fallbackLocaleData.user_settings.current_user"></span>&nbsp;
+            <b><u><span v-html="login"></span></u></b></a>
+      {% if not settings.ldap_connect %}
+      <a :title="localeData.user_settings.back_to_emails_title" @click="emails_back()" class="item"><i class="undo icon"></i>&nbsp;<span v-if="localeData.user_settings.back_to_emails" v-html="localeData.user_settings.back_to_emails"></span><span v-else v-html="fallbackLocaleData.user_settings.back_to_emails"></span></a>
+      {% else %}
+      <a class="item disabled"><i class="address card icon"></i>&nbsp;<span v-if="localeData.user_settings.acc_ctrl_disabled" v-html="localeData.user_settings.acc_ctrl_disabled"></span><span v-else v-html="fallbackLocaleData.user_settings.acc_ctrl_disabled"></span></a>
+      {% endif %}
+      <div class="right menu">
+        <a :title="localeData.user_settings.log_out_title" @click="logout()" class="item"><i class="sign out alternate icon"></i>&nbsp;<span v-if="localeData.user_settings.log_out" v-html="localeData.user_settings.log_out"></span><span v-else v-html="fallbackLocaleData.user_settings.log_out"></span></a>
+        <a :title="localeData.hide_set_tips_title" @click="toggleHide('.settips')" class="item togglesettips">
+            <i class="bookmark icon"></i>&nbsp;
+            <i class ="chevron icon" :class="{ up: !hidden_settips, down: hidden_settips }" class="chevron icon"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="ui stackable two column grid settips" style="align-items: stretch;">
         <div v-show="path_page!=1" id="user-settings" class="six wide column">
             <local-settings @settings-loaded="settings_loaded" @settings-saved="settings_saved"></local-settings>
         </div>

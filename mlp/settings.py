@@ -44,6 +44,15 @@ rethink_tables = [
     ('sent_mail', 'auth', ['mail_to', 'timestamp', 'first_attempt', 'last_attempt']),
 ]
 
+# add ldap vars from env
+ldap_connect = env('LDAP_CONNECT','')
+ldap_bind_dn = env('LDAP_BIND_DN', '')
+ldap_bind_dn_pwd = env('LDAP_BIND_DN_PWD', '')
+ldap_searchbase = env('LDAP_SEARCHBASE' ,'')
+ldap_searchfilter = env('LDAP_SEARCHFILTER', '(%s=%s)')
+ldap_username_attr = env('LDAP_USERNAME_ATTR', '')
+ldap_username_domain_part = env('LDAP_USERNAME_DOMAIN_PART', '')
+
 mail_domain = env('MAIL_DOMAIN', '')
 
 mail_log_path = env('MAIL_LOG_PATH', '/var/log')

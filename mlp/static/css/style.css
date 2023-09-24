@@ -11,8 +11,8 @@
     color: white;
 }
 
-#app.dark .ui.inverted.segment, .ui.inverted.segments .segment, .ui.primary.inverted.segment {
-    background: #2b2b2b;
+#app.dark .ui.inverted.segment, .ui.inverted.menu, .ui.inverted.segments .segment, .ui.primary.inverted.segment {
+    background: #2b2b2b!important;
 }
 #app.dark .developed_by {
 	filter: brightness(1);
@@ -125,6 +125,38 @@ summary {
   to{ transform: rotate(360deg); }
 }
 
+/*menu styling*/
+.ui.vertical.menu .menu .item {
+    padding: 1em!important;
+    font-size: inherit!important;
+    color: inherit!important;
+}
+
+.ui.vertical.inverted.menu .menu .item, .ui.vertical.inverted.menu .menu .item a:not(.ui) {
+    color: white!important;
+}
+
+.ui.vertical.menu a{
+    text-align: left!important;
+}
+
+.ui.vertical.menu i{
+    float:left!important;
+}
+
+/*.togglesettips {
+    min-height: 40px;
+    background: rgb(0 0 0 / 2%)!important;
+}
+
+
+#app.dark .togglesettips {
+    background: rgb(255 255 255 / 7%)!important;
+}*/
+
+.ui.vertical.menu {
+    width:100%!important;
+}
 
 /*logo*/
 #main-wrapper {
@@ -141,12 +173,13 @@ summary {
     width: 100%;
     overflow: auto;
 }
-.logo, .logout {
+
+.logo {
     display: inline-flex;
     flex-direction: row;
     align-items: center;
-    margin-bottom: 1em;
-    justify-content: flex-start;
+    justify-content: center;
+    width: 100%;
 }
 
 @media only screen and (min-width: 811px) {
@@ -262,6 +295,10 @@ summary {
 
 .ui.button>.icon {
     margin:0!important;
+}
+
+#login-form-wrapper > form > div > div {
+    max-width: 50%;
 }
 
 /* sort stylings*/
@@ -586,3 +623,31 @@ i.close.icon::before {
     padding-left:0!important;
     padding-right:0!important;
 }
+
+/* charts ui loader*/
+#charts-wrapper .ui.loader {
+    margin-top: 10vh;
+    position: relative;
+    z-index: 1;
+}
+
+/*canvas.no-data {
+  background: radial-gradient(circle at center, rgba(0,0,0,0) 0, rgba(0,0,0,0) 55%, rgba(0,0,0,0.2) 56%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.2) 64%, rgba(0,0,0,0) 65%,rgba(0,0,0,0) 100%);
+}*/
+
+/* chartist styling*/
+/*.ct-series-a .ct-bar, .ct-series-a .ct-line, .ct-series-a .ct-point, .ct-series-a .ct-slice-donut {
+    stroke: #0CC162;
+}
+.ct-series-b .ct-bar, .ct-series-b .ct-line, .ct-series-b .ct-point, .ct-series-b .ct-slice-donut {
+    stroke: #BBBBBB;
+}
+.ct-chart {
+    margin: auto;
+    width: 300px;
+    height: 300px;
+}*/
+
+/*.ct-label {
+    font-size: 13px!important;
+}*/

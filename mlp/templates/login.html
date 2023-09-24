@@ -8,8 +8,13 @@
         <div class="logo login"><img src="static/images/logo.png"></img></div>
         <div id="login-form-wrapper" v-if="!loading" class="ui segment form center aligned login">
             <form action="./login" method="post">
+                {% if not settings.ldap_connect %}
                 <h3 v-if="localeData.login.message" v-html="localeData.login.message"></h3>
                 <h3 v-else v-html="fallbackLocaleData.login.message"></h3>
+                {% else %}
+                <h3 v-if="localeData.login.message_ldap" v-html="localeData.login.message_ldap"></h3>
+                <h3 v-else v-html="fallbackLocaleData.login.message_ldap"></h3>
+                {% endif %}
                     <div class="field">
                         <div class="ui input left icon">
                             <input v-if="localeData.login.login_ph" autocomplete="on" class="ui input" name="login" :placeholder="localeData.login.login_ph">

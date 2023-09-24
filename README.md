@@ -7,9 +7,12 @@ This is a small application designed to parse the log output of SMTP servers (po
 It includes a Web UI built with [Quart](https://github.com/pgjones/quart) and [VueJS](https://vuejs.org/) - allowing
 for easily navigating and filtering the log data straight from your browser.
 
+There are also some summaries and stats charts in GUI.
+
 This is a fork of abandoned [Privex postfix log parser](https://github.com/Privex/postfix-parser).
 
-**DISCLAIMER:** The Web UI only includes a very basic password prompt which reads the password from the `.env` file.
+**DISCLAIMER:** The Web UI includes internal DB password authentication and external LDAP mechanisms. Only one is operational in the same time. Read "LDAP authentication" section below.
+
 This application is NOT intended to be public facing - we strongly recommend for production use-cases that it's
 kept restricted within a corporate VPN / LAN.
 
@@ -73,12 +76,20 @@ Then to control user account use the corresponding account control button in the
 
 If the last user account will be deleted you will be logged out to the login screen.
 
+LDAP authentication
+========
+Web GUI will use LDAP instead of internal authentication mechanism if LDAP connection is configured in .env file. Check [example.env](https://github.com/drlight17/mta-log-parser/blob/master/example.env) for the reference.
+
+Table export
+=========
+Currently displayed table could be exported to xls file for further usage by using the appropriate button.
+
 Dockerized upgrade version
 ========
 
 Simply run upgrade.sh
 
-**Don't forget to clear all browser caches, cookies etc. after upgrade!**
+**Application will detect the finished upgrade procedure and will be forced to clear all cached data, cookies and will logout current user session!**
 
 Install in your system (not recommended)
 ========

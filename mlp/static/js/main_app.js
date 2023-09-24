@@ -1,10 +1,8 @@
 // append path_prefix to the base_url if any is set
 const path_prefix = document.currentScript.getAttribute('path_prefix');
-//const path_prefix = ""
 const base_url = path_prefix + '/api/emails';
-//const path_prefix = ""
 const base_url2 = path_prefix + '/api/auth';
-
+const base_url3 = path_prefix + '/api/stats';
 // get datetime_format from .env
 var datetime_format = document.currentScript.getAttribute('datetime_format');
 if (datetime_format == '') {
@@ -40,7 +38,8 @@ const app = Vue.createApp({
             fallbackLocaleData: [],
             locales: lang_files,
             loading: true,
-            hidden: false,
+            hidden_settips: false,
+            hidden_stats: false,
             error: null,
             emails: [],
             search: "",
@@ -68,7 +67,8 @@ const app = Vue.createApp({
             timer:'',
             contdown_sec: 0,
             contdown: '',
-            contdown_timer: 0
+            contdown_timer: 0,
+            vertical_menu: false
         }
     },
     computed: {
@@ -138,10 +138,8 @@ const app = Vue.createApp({
                     this.search_error = false;
                     this.reset_page();
                     
-                //} else {
-                //    this.setDuration_Log_lines();
-                //}
-                this.debounce_emails(true);
+                // no need after 1.4 run as search by button
+                //this.debounce_emails(true);
             }
         },
         search_by(val) {
@@ -158,7 +156,8 @@ const app = Vue.createApp({
                 //} else {
                 //    this.setDuration_Log_lines();
                 //}
-                this.debounce_emails(true);
+                // no need after 1.4 run as search by button
+                //this.debounce_emails(true);
             }
         },
         status_filter(val) {
@@ -214,7 +213,32 @@ const app = Vue.createApp({
 
 		},
 
-		// bind arrow keys for modal left and right buttons
+        // excel parser
+        /*exportDataFromJSON(data, newFileName, fileExportType) {
+            data.forEach(function(element, index){
+                delete element.client;
+                delete element.lines;
+                delete element.relay;
+            })
+
+            if (!data) return;
+            try {
+              const fileName = newFileName || "exported-data";
+              const exportType = exportFromJSON.types[fileExportType || "xls"];
+              return exportFromJSON({ data, fileName, exportType });
+            } catch (e) {
+              throw new Error("Parsing failed!");
+            }
+        },*/
+        // table to excel export
+        ExportToExcel(type, fn, dl) {
+           var elt = document.getElementById('emails-list');
+           var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
+           return dl ?
+             XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }):
+             XLSX.writeFile(wb, fn || ('exported-data.' + (type || 'xlsx')));
+        },
+    		// bind arrow keys for modal left and right buttons
 		arrowKeyBind(modal) {
 			document.onkeydown = function(e) {
 			    switch(e.which) {
@@ -293,6 +317,13 @@ const app = Vue.createApp({
                         location.reload()
                     })
 
+            }
+        },
+        menu_vertical_switch() {
+            if (window.matchMedia('(max-width: 767px)').matches) {
+                this.vertical_menu = true;
+            } else {
+                this.vertical_menu = false;
             }
         },
         // detect swipe direction
@@ -385,17 +416,31 @@ const app = Vue.createApp({
                 })
             }
         },
-        toggleSetTips() {
-            $('.hidable').transition({
+        toggleHide(object) {
+            $(object).transition({
             	animation : "fade down",
             	onHidden: function () {
-					window.localStorage.setItem("hidden_settings_tips", true);
-					window.app.hidden = true;
+                    if (object == '.settips') {
+    					window.localStorage.setItem("hidden_settings_tips", true);
+                        window.app.hidden_settips = true;
+                    }
+                    if (object == '#charts-wrapper') {
+                        window.localStorage.setItem("hidden_stats", true);
+                        window.app.hidden_stats = true;
+                    }
+                    
                     //$('#current_user').show();
 				},
 				onVisible: function () {
-					window.localStorage.setItem("hidden_settings_tips", false);
-					window.app.hidden = false;
+                    if (object == '.settips') {
+    					window.localStorage.setItem("hidden_settings_tips", false);
+                        window.app.hidden_settips = false;
+                    }
+                     if (object == '#charts-wrapper') {
+                        window.localStorage.setItem("hidden_stats", false);
+                        window.app.hidden_stats = false;
+                     }
+    					
                     //$('#current_user').hide();
 				}
             });  
@@ -484,17 +529,17 @@ const app = Vue.createApp({
             multiple_check = object.text().indexOf(' and more');
             //console.log(multiple_check);
             if (this.localeData.emails_list.multiple == undefined) {
-                text = this.fallbackLocaleData.emails_list.multiple
+                text1 = this.fallbackLocaleData.emails_list.multiple
             } else {
-                text = this.localeData.emails_list.multiple
+                text1 = this.localeData.emails_list.multiple
             }
             if (multiple_check >=0) {
             	str_to_localize = object.text().substr(multiple_check, object.text().length);
             	//console.log (str_to_localize);
-            	localized_str = object.text().replace(str_to_localize, text);
+            	localized_str = object.text().replace(str_to_localize, text1);
             	object.text(localized_str);
             }
-            return text;
+            return text1;
 
         },
         addFilterLink(element) {
@@ -514,12 +559,14 @@ const app = Vue.createApp({
                         window.app.search = window.app.returnAllowedString($(obj).text());
                         window.app.search_by = 'id';
                         e.stopPropagation();
+                        window.app.debounce_emails(true);
                     })
                 }
                 if ($th.attr('id') == "status") {
                     $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         window.app.status_filter = window.app.returnAllowedString($(obj).text());
                         e.stopPropagation();
+                        window.app.debounce_emails(true);
                     })
                 }
                 if ($th.attr('id') == "mail_from") {
@@ -527,23 +574,26 @@ const app = Vue.createApp({
                         window.app.search = window.app.returnAllowedString($(obj).text());
                         window.app.search_by = 'mail_from';
                         e.stopPropagation();
+                        window.app.debounce_emails(true);
                     })
                 }   
                 if ($th.attr('id') == "mail_to") {
 
                     // localize multiple mail_to
                     object = $(obj).find('span');
+                    //console.log(object)
                     search_str = window.app.multiple_localize(object);
 
                     object.attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         multiple = window.app.returnAllowedString($(obj).text());
                         multiple_check = $(obj).text().indexOf(search_str);
-                        if (multiple_check >=0) {
+                        if (multiple_check >= 0) {
                             multiple = multiple.substr(0, multiple_check);
                         }
                         window.app.search = multiple;
                         window.app.search_by = 'mail_to';
                         e.stopPropagation();
+                        window.app.debounce_emails(true);
                     })
                 }
                 if ($th.attr('id') == "subject") {
@@ -551,6 +601,7 @@ const app = Vue.createApp({
                         window.app.search = window.app.returnAllowedString($(obj).text());
                         window.app.search_by = 'subject';
                         e.stopPropagation();
+                        window.app.debounce_emails(true);
                     })
                 }
                 if ($th.attr('id') == "timestamp") {
@@ -558,18 +609,21 @@ const app = Vue.createApp({
                         window.app.date_filter__gt = window.app.returnAllowedString($(obj).text());
                         window.app.date_filter__lt = window.app.returnAllowedString($(obj).text());
                         e.stopPropagation();
+                        window.app.debounce_emails(true);
                     })
                 }
                 if ($th.attr('id') == "first_attempt") {
                     $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         window.app.date_filter__gt = window.app.returnAllowedString($(obj).text());
                         e.stopPropagation();
+                        window.app.debounce_emails(true);
                     })
                 }
                 if ($th.attr('id') == "last_attempt") {
                     $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
                         window.app.date_filter__lt = window.app.returnAllowedString($(obj).text());
                         e.stopPropagation();
+                        window.app.debounce_emails(true);
                     })
                 }
 
@@ -617,7 +671,7 @@ const app = Vue.createApp({
                     }
                     notie.alert({type: 'info', text: text });
                 } else {
-                    if (this.localeData.notie.nine == undefined) {
+                    if (this.localeData.notie.eight == undefined) {
                         text = this.fallbackLocaleData.notie.eight
                     } else {
                         text = this.localeData.notie.eight
@@ -639,8 +693,6 @@ const app = Vue.createApp({
             }).then((res) => {
                 this.accounts = res;
                 //console.log(this.accounts)
-                
-
             })
 
         },
@@ -792,261 +844,278 @@ const app = Vue.createApp({
 
             if (this.path_page == 2) {
                 element = $('#emails-list')[0];
+
+                return fetch(url).then(function (response) {
+                    return response.json();
+                }).then((res) => {
+                	
+    	                this.emails = res['result'];
+    	                // get format from .env var
+    	                for (let i = 0; i < this.emails.length; i++) {
+    	                    this.emails[i].timestamp = this.format_date(this.emails[i].timestamp,datetime_format,false);
+    	                    this.emails[i].first_attempt = this.format_date(this.emails[i].first_attempt,datetime_format,false);
+    	                    this.emails[i].last_attempt = this.format_date(this.emails[i].last_attempt,datetime_format,false);
+    	                }
+    	                 
+    	                this.page_count = res['total_pages'];
+    	                this.count = res['count'];
+
+    	                // to avoid setTimeout
+    	                /*if (!(this.loading)) {
+    	                    this.toggleLoading(true);  
+    	                }*/
+    	                this.toggleLoading(false);
+    	                // check for updates
+    	                this.updateCheck();
+
+    	                // add advanced gui features
+    	                this.$nextTick(function () {
+    	                    $found_table = $('.emails-list');
+    	                    thead = $found_table.find('thead');
+
+    	                    // if no results don't show table and show notification
+    	                    this.check_nothing_found(this.count,$found_table,false);
+
+    	                    if (refresh) {
+    	                        // scroll to the table top
+    	                        if ($found_table.find('td:first').length > 0) {
+    	                            const element = $found_table.find('td:first')[0];
+    	                            //console.log(thead.height());
+    	                            var yOffset = 0;
+                                    //console.log(window.screen.width)
+    	                            if (this.settings.resizable) {
+                                        if (window.screen.width >= 768) {
+                                            // desktop
+                                            yOffset = -90; 
+                                        } else {
+                                            //mobile
+                                            yOffset = -130; 
+                                        }
+    	                            } else {
+                                        if (window.screen.width >= 768) {
+                                            // desktop
+        	                                yOffset = -thead.height();
+                                        } else {
+                                            //mobile
+                                            yOffset = -thead.height()+130;
+                                        }
+                                        
+    	                            }
+    	                            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+    	                            // scrolling offset by hide-sticky-header-button height
+    	                            window.scrollTo({top: y, behavior: 'smooth'});
+    	                        }
+    	                    }
+    	                    // style selected column for sort
+    	                    $found_table.find('#'+this.order).removeClass().addClass(this.order_dir);
+    	                    // if no results don't process empty table
+    	                    if (this.count != 0) {
+    	                        // add on row click title
+    	                        if (this.localeData.tips.five == undefined) {
+    	                            text = this.fallbackLocaleData.tips.five
+    	                        } else {
+    	                            text = this.localeData.tips.five
+    	                        }
+    	                        $found_table.find('tbody tr').attr('title', text);
+
+    	                        // bind sort to table headers
+    	                        $('.emails-list th:not(#refresh-button)').one('click',function(){
+    	                            window.app.callSort(this);
+    	                        });
+    	                        
+    	                        // add sticky table header
+    	                        if (this.settings.sticky) {
+    	                            thead.first().css({'top': 0, 'position':'sticky', 'z-index': 1, 'background':'inherit' })/*.addClass('sticky-visible')*/;
+    	                            // add show/hide sticky header button 
+    	                            if (window.matchMedia('(max-width: 767px)').matches)
+    	                            {
+    	                                window.app.checkButtonArrow(thead);
+
+    	                                // check visibility state
+    	                                if (window.localStorage['sticky_header_visible'] !== "true") {
+    	                                    window.app.ToggleStickyHeader(thead);
+    	                                }
+    	                            }
+    	                        }
+
+    	                        if (this.settings.resizable) {
+    	                            // add class resizable
+    	                            $found_table.addClass('resizable');
+    	                            // dirty fix of callResizableTableColumns with 500 ms timeout
+    	                            //setTimeout(() => this.callResizableTableColumns($found_table), 500);
+    	                            this.callResizableTableColumns($found_table);
+
+    	                            if (this.localeData.user_settings.resizable_title_tip == undefined) {
+    	                                text = this.fallbackLocaleData.user_settings.resizable_title_tip
+    	                            } else {
+    	                                text = this.localeData.user_settings.resizable_title_tip
+    	                            }
+    	                            thead.find('th').attr('title',text)
+    	                            // reset colResizable() widths states
+    	                            thead.find('th:not(#refresh-button)').one( "contextmenu", function() {
+    	                                //console.log("colResizable() widths are reset!");
+    	                                window.localStorage.removeItem($found_table.attr('id'));
+    	                                window.app.loadEmails(true);
+    	                                return false;
+    	                            });
+    	                        } else {
+    	                            // cleanup if colResizable() was called earlier
+    	                            $('.JCLRgrips').hide();
+    	                            $found_table.removeClass('resizable');
+    	                        }
+    	                    }
+
+    	                    // to apply marquee
+    	                    /*if (this.settings.marquee) {
+    	                        this.apply_marquee($found_table, this);
+    	                    }*/
+    	                    // styling of statuses and status filter dropdown
+    	                    if (!$found_table.find('td:nth-child(3)').hasClass('styled')) {
+    	                        $found_table.find('td:nth-child(3):contains("deferred")').addClass('styled').prepend(this.settings.status_icon['deferred']);
+    	                        $found_table.find('td:nth-child(3):contains("sent")').addClass('styled').prepend(this.settings.status_icon['sent']);
+    	                        $found_table.find('td:nth-child(3):contains("reject")').addClass('styled').prepend(this.settings.status_icon['reject']);
+    	                        $found_table.find('td:nth-child(3):contains("bounced")').addClass('styled').prepend(this.settings.status_icon['bounced']);
+    	                        $found_table.find('td:nth-child(3):contains("multiple")').addClass('styled').prepend(this.settings.status_icon['multiple']);
+    	                        $found_table.find('td:nth-child(3):contains("unknown")').addClass('styled').prepend(this.settings.status_icon['unknown']);
+    	                    }
+
+    	                    if (this.settings.colored) {
+    	                        var filter_email = $('#filter-email');
+
+    	                        for (let x in this.settings.status_color) {
+    	                            var color = this.settings.status_color[x];
+    	                            var text_color = "black";
+
+    	                            // coloring based on dark mode
+    	                            if (this.settings.dark) {
+    	                                if (x != 'NOFILTER') {
+    	                                    color = this.shadeColor(color,-40);
+    	                                    //text_color = "white";
+    	                                } else {
+    	                                    color = this.settings.status_color.NOFILTER_dark;
+    	                                    //text_color = filter_email[0].style.Color;
+    	                                }
+    	                                text_color = "white";
+    	                            }
+
+    	                            $found_table.find('td:nth-child(3):contains("'+x+'")').closest('tr').css('background-color',color);
+
+    	                            $('#filter-email option[value="'+x+'"]').css({'background-color':color, 'color': text_color});
+    	                        } 
+
+    	                        // coloring current selected option
+
+    	                        //if (filter_email[0].options[filter_email[0].selectedIndex].value !='NOFILTER') {
+    	                            filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
+    	                            filter_email.one('change', function () {
+    	                                filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
+    	                            });
+    	                        //} 
+    	                    }
+    	                    // styling sorted column
+    	                    var sort_column = thead.find('th.asc, th.desc');
+    	                    sort_column.css('background-color', window.app.settings.status_color['sorted']);
+    	                    $('.emails-list tr:nth-child(n) td:nth-child('+(sort_column.index()+1)+')').each(function(i, obj) {
+    	                        $(obj).css('background-color',window.app.settings.status_color['sorted']);
+    	                    });
+
+    	                    // add filter links to table cells
+    	                    this.addFilterLink($found_table);
+
+    	                    // set min date based on housekeeping_days
+    	                    var min_date=new Date();
+    	                    if (housekeeping_days != 0) {
+    	                        min_date.setDate(min_date.getDate()-housekeeping_days);
+    	                    } else {
+    	                        min_date = undefined;
+    	                    }
+
+    	                    // samoilov add calendar date picker fields
+    	                    $('#rangestart').calendar({
+    	                      onChange: function(date, text, mode) {
+    	                          //console.log('change: ' + date + "  text: " + text + "  mode: " + mode)
+    	                          // fomat date to iso8601
+    	                          window.app.date_filter__gt = text;
+    	                      },
+    	                      text: this.localeData.calendar,
+    	                      endCalendar: $('#rangeend'),
+    	                      monthFirst: false,
+    	                      minDate: min_date,
+    	                      maxDate: new Date(Date.now()),
+    	                      formatter: {
+    	                        cellTime: 'H:mm',
+    	                        datetime: datetime_format
+    	                      }
+    	                    });
+    	                    $('#rangeend').calendar({
+    	                      onChange: function(date, text, mode) {
+    	                          //console.log('change: ' + date + "  text: " + text + "  mode: " + mode)
+    	                          // fomat date to iso8601
+    	                          window.app.date_filter__lt = text;
+    	                          //$(".ui.popup.left").removeClass("visible").addClass("invisible");
+    	                          //$('#rangestart').calendar('clear');
+    	                      },
+    	                      text: this.localeData.calendar,
+    	                      startCalendar: $('#rangestart'),
+    	                      monthFirst: false,
+    	                      minDate: min_date,
+    	                      maxDate: new Date(Date.now()),
+    	                      formatter: {
+    	                        cellTime: 'H:mm',
+    	                        datetime: datetime_format
+    	                      }
+    	                    });
+    	                    // set dark mode
+    	                    this.setDark($found_table);
+    	                });
+    				this.updateCheck();
+                }).catch((res) => {
+                    console.error('Error:', res);
+                    window.app.additional_styling(element);
+                });
             }
 
-            return fetch(url).then(function (response) {
-                return response.json();
-            }).then((res) => {
-            	if (this.path_page == 2) {
-	                this.emails = res['result'];
-	                // get format from .env var
-	                for (let i = 0; i < this.emails.length; i++) {
-	                    this.emails[i].timestamp = this.format_date(this.emails[i].timestamp,datetime_format,false);
-	                    this.emails[i].first_attempt = this.format_date(this.emails[i].first_attempt,datetime_format,false);
-	                    this.emails[i].last_attempt = this.format_date(this.emails[i].last_attempt,datetime_format,false);
-	                }
-	                 
-	                this.page_count = res['total_pages'];
-	                this.count = res['count'];
-
-	                // to avoid setTimeout
-	                /*if (!(this.loading)) {
-	                    this.toggleLoading(true);  
-	                }*/
-	                this.toggleLoading(false);
-	                // check for updates
-	                this.updateCheck();
-	                
-	                // add advanced gui features
-	                this.$nextTick(function () {
-	                    $found_table = $('.emails-list');
-	                    thead = $found_table.find('thead');
-
-	                    // if no results don't show table and show notification
-	                    this.check_nothing_found(this.count,$found_table,false);
-
-	                    if (refresh) {
-	                        // scroll to the table top
-	                        if ($found_table.find('td:first').length > 0) {
-	                            const element = $found_table.find('td:first')[0];
-	                            //console.log(thead.height());
-	                            var yOffset = 0;
-	                            if (this.settings.resizable) {
-	                                yOffset = -25; 
-	                            } else {
-	                                yOffset = -thead.height();
-	                            }
-	                            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-	                            // scrolling offset by hide-sticky-header-button height
-	                            window.scrollTo({top: y, behavior: 'smooth'});
-	                        }
-	                    }
-	                    // style selected column for sort
-	                    $found_table.find('#'+this.order).removeClass().addClass(this.order_dir);
-	                    // if no results don't process empty table
-	                    if (this.count != 0) {
-	                        // add on row click title
-	                        if (this.localeData.tips.five == undefined) {
-	                            text = this.fallbackLocaleData.tips.five
-	                        } else {
-	                            text = this.localeData.tips.five
-	                        }
-	                        $found_table.find('tbody tr').attr('title', text);
-
-	                        // bind sort to table headers
-	                        $('.emails-list th:not(#refresh-button)').one('click',function(){
-	                            window.app.callSort(this);
-	                        });
-	                        
-	                        // add sticky table header
-	                        if (this.settings.sticky) {
-	                            thead.first().css({'top': 0, 'position':'sticky', 'z-index': 1, 'background':'inherit' })/*.addClass('sticky-visible')*/;
-	                            // add show/hide sticky header button 
-	                            if (window.matchMedia('(max-width: 768px)').matches)
-	                            {
-	                                window.app.checkButtonArrow(thead);
-
-	                                // check visibility state
-	                                if (window.localStorage['sticky_header_visible'] !== "true") {
-	                                    window.app.ToggleStickyHeader(thead);
-	                                }
-	                            }
-	                        }
-
-	                        if (this.settings.resizable) {
-	                            // add class resizable
-	                            $found_table.addClass('resizable');
-	                            // dirty fix of callResizableTableColumns with 500 ms timeout
-	                            //setTimeout(() => this.callResizableTableColumns($found_table), 500);
-	                            this.callResizableTableColumns($found_table);
-
-	                            if (this.localeData.user_settings.resizable_title_tip == undefined) {
-	                                text = this.fallbackLocaleData.user_settings.resizable_title_tip
-	                            } else {
-	                                text = this.localeData.user_settings.resizable_title_tip
-	                            }
-	                            thead.find('th').attr('title',text)
-	                            // reset colResizable() widths states
-	                            thead.find('th:not(#refresh-button)').one( "contextmenu", function() {
-	                                //console.log("colResizable() widths are reset!");
-	                                window.localStorage.removeItem($found_table.attr('id'));
-	                                window.app.loadEmails(true);
-	                                return false;
-	                            });
-	                        } else {
-	                            // cleanup if colResizable() was called earlier
-	                            $('.JCLRgrips').hide();
-	                            $found_table.removeClass('resizable');
-	                        }
-	                    }
-
-	                    // to apply marquee
-	                    /*if (this.settings.marquee) {
-	                        this.apply_marquee($found_table, this);
-	                    }*/
-	                    // styling of statuses and status filter dropdown
-	                    if (!$found_table.find('td:nth-child(3)').hasClass('styled')) {
-	                        $found_table.find('td:nth-child(3):contains("deferred")').addClass('styled').prepend(this.settings.status_icon['deferred']);
-	                        $found_table.find('td:nth-child(3):contains("sent")').addClass('styled').prepend(this.settings.status_icon['sent']);
-	                        $found_table.find('td:nth-child(3):contains("reject")').addClass('styled').prepend(this.settings.status_icon['reject']);
-	                        $found_table.find('td:nth-child(3):contains("bounced")').addClass('styled').prepend(this.settings.status_icon['bounced']);
-	                        $found_table.find('td:nth-child(3):contains("multiple")').addClass('styled').prepend(this.settings.status_icon['multiple']);
-	                        $found_table.find('td:nth-child(3):contains("unknown")').addClass('styled').prepend(this.settings.status_icon['unknown']);
-	                    }
-
-	                    if (this.settings.colored) {
-	                        var filter_email = $('#filter-email');
-
-	                        for (let x in this.settings.status_color) {
-	                            var color = this.settings.status_color[x];
-	                            var text_color = "black";
-
-	                            // coloring based on dark mode
-	                            if (this.settings.dark) {
-	                                if (x != 'NOFILTER') {
-	                                    color = this.shadeColor(color,-40);
-	                                    //text_color = "white";
-	                                } else {
-	                                    color = this.settings.status_color.NOFILTER_dark;
-	                                    //text_color = filter_email[0].style.Color;
-	                                }
-	                                text_color = "white";
-	                            }
-
-	                            $found_table.find('td:nth-child(3):contains("'+x+'")').closest('tr').css('background-color',color);
-
-	                            $('#filter-email option[value="'+x+'"]').css({'background-color':color, 'color': text_color});
-	                        } 
-
-	                        // coloring current selected option
-
-	                        //if (filter_email[0].options[filter_email[0].selectedIndex].value !='NOFILTER') {
-	                            filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
-	                            filter_email.one('change', function () {
-	                                filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
-	                            });
-	                        //} 
-	                    }
-	                    // styling sorted column
-	                    var sort_column = thead.find('th.asc, th.desc');
-	                    sort_column.css('background-color', window.app.settings.status_color['sorted']);
-	                    $('.emails-list tr:nth-child(n) td:nth-child('+(sort_column.index()+1)+')').each(function(i, obj) {
-	                        $(obj).css('background-color',window.app.settings.status_color['sorted']);
-	                    });
-
-	                    // add filter links to table cells
-	                    this.addFilterLink($found_table);
-
-	                    // set min date based on housekeeping_days
-	                    var min_date=new Date();
-	                    if (housekeeping_days != 0) {
-	                        min_date.setDate(min_date.getDate()-housekeeping_days);
-	                    } else {
-	                        min_date = undefined;
-	                    }
-
-	                    // samoilov add calendar date picker fields
-	                    $('#rangestart').calendar({
-	                      onChange: function(date, text, mode) {
-	                          //console.log('change: ' + date + "  text: " + text + "  mode: " + mode)
-	                          // fomat date to iso8601
-	                          window.app.date_filter__gt = text;
-	                      },
-	                      text: this.localeData.calendar,
-	                      endCalendar: $('#rangeend'),
-	                      monthFirst: false,
-	                      minDate: min_date,
-	                      maxDate: new Date(Date.now()),
-	                      formatter: {
-	                        cellTime: 'H:mm',
-	                        datetime: datetime_format
-	                      }
-	                    });
-	                    $('#rangeend').calendar({
-	                      onChange: function(date, text, mode) {
-	                          //console.log('change: ' + date + "  text: " + text + "  mode: " + mode)
-	                          // fomat date to iso8601
-	                          window.app.date_filter__lt = text;
-	                          //$(".ui.popup.left").removeClass("visible").addClass("invisible");
-	                          //$('#rangestart').calendar('clear');
-	                      },
-	                      text: this.localeData.calendar,
-	                      startCalendar: $('#rangestart'),
-	                      monthFirst: false,
-	                      minDate: min_date,
-	                      maxDate: new Date(Date.now()),
-	                      formatter: {
-	                        cellTime: 'H:mm',
-	                        datetime: datetime_format
-	                      }
-	                    });
-
-	                    // set dark mode
-	                    this.setDark($found_table);
-	                });
-				} else {
-					this.toggleLoading(false);
-		            if (this.path_page == 1) {
-		            	this.waitForElm('#auth-list').then((elm) => {
-							this.setDark($(elm));
-							this.loadAccounts();	
-		            	})
-		            }
-					
-					
-				}
-				this.updateCheck();
-
-            }).catch((res) => {
-                console.error('Error:', res);
+            if (this.path_page == 1) {
                 this.toggleLoading(false);
+                
+                this.waitForElm('#auth-list').then((elm) => {
+                    //console.log(elm)
+                    window.app.additional_styling(elm);
+                    this.loadAccounts();
+                })
+                
+            }
 
-                //this.notieMessages ();
-
-                // check for updates on login or api error screen
-                this.updateCheck();
-				if (this.path_page != 0) {
-	                this.waitForElm(element).then((elm) => {
-	                    this.$nextTick(function () {
-	                        // check if we are on login or api_error screen
-	                        if (!(($("div.logo.login").length > 0) || ($(".api_error_container").length > 0))) {
-	                            this.check_nothing_found(0,$(elm),true);
-	                        }
-	                    });
-	                    // set dark mode
-	                    this.setDark($(elm));
-	                    // to avoid setTimeout
-	                    this.toggleLoading(true);
-	                    this.toggleLoading(false);
-	                });
-	            }
-            });
+            if (this.path_page == 0) {
+                this.toggleLoading(false);
+                window.app.additional_styling();
+            }
         },
         auth() {
             window.location = path_prefix+'/auth';
         },
         emails_back() {
             window.location = path_prefix+'/emails';
+        },
+        additional_styling(element){
+            
+            //console.log(element);
+            //this.notieMessages ();
+
+            this.$nextTick(function () {
+                // check if we are on login or api_error screen
+                /*if (!(($("div.logo.login").length > 0) || ($(".api_error_container").length > 0))) {
+                    this.check_nothing_found(0,$(element),true);
+                }*/
+                // set dark mode
+                this.setDark($(element));
+                $(element).show();
+                // to avoid setTimeout
+                //this.toggleLoading(true);
+                //this.toggleLoading(false);
+                this.updateCheck();
+            });
+            
         },
         logout() {
             // keep locale and mode settings
@@ -1055,12 +1124,15 @@ const app = Vue.createApp({
             var locale = localStorage.getItem('locale');
             var dark = localStorage.getItem('dark');
             var hidden_settings_tips = localStorage.getItem('hidden_settings_tips');
+            var hidden_stats = localStorage.getItem('hidden_stats');
             localStorage.clear();
             localStorage.setItem('localeData',localeData);
             localStorage.setItem('fallbackLocaleData',fallbackLocaleData);
             localStorage.setItem('locale',locale);
             localStorage.setItem('dark',dark);
             localStorage.setItem('hidden_settings_tips',hidden_settings_tips);
+            localStorage.setItem('hidden_stats',hidden_stats);
+            
             window.location = path_prefix+'/logout';
 
         },
@@ -1248,8 +1320,8 @@ const app = Vue.createApp({
                 text = this.localeData.notie.four
             }
             notie.alert({type: 'warning', text: text});
-            //this.debounce_emails(true);
             this.reset_page();
+            this.debounce_emails(true);
         },
         saveCurPage() {
             window.localStorage['cur_page']=this.page;
@@ -1317,6 +1389,8 @@ const app = Vue.createApp({
                         $('#user-settings-wrapper > div').addClass('inverted');
                         $('#tips > div').addClass('inverted');
                         $('#filters-wrapper').addClass('inverted');
+                        //$('.ui.menu').addClass('inverted');
+                        $('#charts-wrapper').addClass('inverted');
                         //$('.dimmer').addClass('inverted');
                         if (table) {
                             table.addClass('inverted');
@@ -1340,6 +1414,8 @@ const app = Vue.createApp({
                         $('#user-settings-wrapper > div').removeClass('inverted');
                         $('#tips > div').removeClass('inverted');
                         $('#filters-wrapper').removeClass('inverted');
+                        //$('.ui.menu').removeClass('inverted');
+                        $('#charts-wrapper').removeClass('inverted');
                         if (table) {
                             table.removeClass('inverted');
                         }
@@ -1515,12 +1591,84 @@ const app = Vue.createApp({
                 }
                 notie.alert({type: 'warning', text: text});
             }
+            if (notie_message == 'bind_pass_error') {
+                if (this.localeData.notie.seventeen == undefined) {
+                    text = this.fallbackLocaleData.notie.seventeen
+                } else {
+                    text = this.localeData.notie.seventeen
+                }
+                notie.alert({type: 'error', text: text, stay: 'true'});
+            }
+
+            if (notie_message == 'no_ldap_users_found') {
+                if (this.localeData.notie.eighteen == undefined) {
+                    text = this.fallbackLocaleData.notie.eighteen
+                } else {
+                    text = this.localeData.notie.eighteen
+                }
+                notie.alert({type: 'error', text: text, stay: 'true'});
+            }
+            if (notie_message == 'unauth_ldap') {
+                if (this.localeData.notie.nineteen == undefined) {
+                    text = this.fallbackLocaleData.notie.nineteen
+                } else {
+                    text = this.localeData.notie.nineteen
+                }
+                notie.alert({type: 'error', text: text });
+            }
+            if (notie_message == 'mlp_upgraded') {
+                if (this.localeData.notie.twenty == undefined) {
+                    text = this.fallbackLocaleData.notie.twenty
+                } else {
+                    text = this.localeData.notie.twenty
+                }
+                notie.alert({type: 'warning', text: text, stay: 'true'});
+            }
         },
         getCookie(name) {
           let matches = document.cookie.match(new RegExp(
             "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
           ));
           return matches ? decodeURIComponent(matches[1]) : undefined;
+        },
+        upgradeCheck (){
+        	// store current mlp version for automatic localStorage and cookie cleanup after mlp upgrade 
+        	/*if (!(this.getCookie('mlp_current_version'))) {
+        		document.cookie = "mlp_current_version="+parser_version+"; max-age=2147483647";
+        	}*/
+        	//console.log(this.getCookie('mlp_current_version'));
+			//console.log(parser_version);
+
+        	if ((!(this.getCookie('mlp_current_version')))||(this.getCookie('mlp_current_version') != parser_version)) {
+        		// clear localstorage
+        		localStorage.clear();
+
+        		var mlp_current_version = "mlp_current_version="+parser_version+"; max-age=2147483647";
+        		var mlp_current_version_cookie = this.getCookie('mlp_current_version')
+
+        		// clear all cookies
+				var cookies = document.cookie.split(";");
+				for(var i=0; i < cookies.length; i++) {
+				    var equals = cookies[i].indexOf("=");
+				    var name = equals > -1 ? cookies[i].substr(0, equals) : cookies[i];
+				    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+				}
+
+				// store current mlp version for automatic localStorage and cookie cleanup after mlp upgrade 
+				document.cookie = mlp_current_version;
+
+				if (mlp_current_version_cookie) {
+        			notie_message = "mlp_upgraded";
+        			this.notieMessages ();
+	        		setTimeout(() => {
+						window.location = path_prefix+'/logout';
+					}, 5000);
+        		} else {
+					window.location = path_prefix+'/logout';
+        		}
+        	}
+
+
         },
         async updateCheck() {
             if (!(this.getCookie('mlp_latest_version'))) {
@@ -1535,8 +1683,13 @@ const app = Vue.createApp({
                             } else {
                                 text = window.app.localeData.footer.four
                             }
+                            if (window.app.localeData.footer.five == undefined) {
+                                text2 = window.app.fallbackLocaleData.footer.five
+                            } else {
+                                text2 = window.app.localeData.footer.five
+                            }
                             if ($('#update_available').length == 0) {
-                                $(elm).append(' | '+'<span id="update_available" class="blinking">'+text+'</span>');
+                                $(elm).append(' | '+'<span id="update_available" class="blinking">'+text+" <a href='https://github.com/drlight17/mta-log-parser/releases/latest' target='_BLANK'>"+response["tag_name"].substring(1)+"</a>"+text2+'</span>');
                             }
                         });
                     }
@@ -1559,20 +1712,29 @@ const app = Vue.createApp({
                         } else {
                             text = window.app.localeData.footer.four
                         }
+                        if (window.app.localeData.footer.five == undefined) {
+                            text2 = window.app.fallbackLocaleData.footer.five
+                        } else {
+                            text2 = window.app.localeData.footer.five
+                        }
+
                         if ($('#update_available').length == 0) {
                             //console.log($(elm));
-                            $(elm).append(' | '+'<span id="update_available" class="blinking">'+text+'</span>');
+                            $(elm).append(' | '+'<span id="update_available" class="blinking">'+text+" <a href='https://github.com/drlight17/mta-log-parser/releases/latest' target='_BLANK'>"+this.getCookie('mlp_latest_version')+"</a>"+text2+'</span>');
                         }
                     });
                 }
             }
-        }
+        },
     },
     mounted() {
-
         //TODO need to fix dropdown update
         //$('select.dropdown').addClass("menu");
         //$('select.dropdown ').addClass("dropdown ui");
+
+        // menu vertical-horizontal toggle
+        this.menu_vertical_switch();
+        window.addEventListener('resize', this.menu_vertical_switch);
 
         // detect dark mode
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && (localStorage.getItem('dark') === null)) {
@@ -1607,7 +1769,7 @@ const app = Vue.createApp({
         if (path.split('/').reverse()[0] == 'emails') {
         	this.path_page = 2;
         }
-        console.log(this.path_page);
+        //console.log(this.path_page);
         // check if we are on auth page
         /*this.waitForElm('#auth-list').then((elm) => {
             this.loadAccounts();
@@ -1631,35 +1793,49 @@ const app = Vue.createApp({
         
         this.loadLocaleMessages();
 
+        // check for mlp upgraded
+        this.upgradeCheck();
+
         $('select.dropdown option').addClass("item");  
         
-        // check setDuration option set
-        this.setDuration();
+        // check emails applicapable functions
+        if (this.path_page == 2) {
+            // check setDuration option set
+            this.setDuration();
 
-        // load saved filters
-        if (this.settings.filters) {
-            this.loadFilters();
+            // load saved filters
+            if (this.settings.filters) {
+                this.loadFilters();
+            }
         }
-        // check if we are on login or api_error screen
-        /*if (($("div.logo.login").length > 0) || ($(".api_error_container").length > 0)) {
-            this.toggleLoading(false);
-        }*/
+
 
         this.$nextTick(function () {
 
-            /*if ($("#auth-list").length > 0) {
-            }*/
 	        // check hidden tips and settings
 
 	        if ((localStorage.getItem("hidden_settings_tips") === null) || (localStorage.getItem("hidden_settings_tips") === 'false'))  {
-	        	$('.hidable').show();
-	        	this.hidden = false;
+	        	$('.settips').show();
+	        	this.hidden_settips = false;
                 //$('#current_user').hide();
 	        } else {
-	        	$('.hidable').hide();
-	        	this.hidden = true;
+	        	$('.settips').hide();
+	        	this.hidden_settips = true;
                 //$('#current_user').show();
 	        }
+
+            // check hidden stats
+
+            if ((localStorage.getItem("hidden_stats") === null) || (localStorage.getItem("hidden_stats") === 'false'))  {
+                $('#charts-wrapper').show();
+                this.hidden_stats = false;
+                //$('#current_user').hide();
+            } else {
+                $('#charts-wrapper').hide();
+                this.hidden_stats = true;
+                //$('#current_user').show();
+            }
+
             // apply mail domain from current domain URL if .env MAIL_DOMAIN is empty
             if (mail_domain == '') {
                 $('h1 > span').text(window.location.hostname);
@@ -1669,17 +1845,22 @@ const app = Vue.createApp({
                 setTimeout(() => $('#marquee_sw input').prop('disabled', true), 1000);
             }*/
             
-            
 			this.notieMessages ();
 
             // focus on password input timeout
-            //setTimeout(() => $("input.ui").focus(), 1000);
-
             this.waitForElm('input.ui').then((elm) => {
                 elm.focus();
                 window.app.validation(false);
             });
 
+            // check if we are on login or api_error screen
+            //if (($("div.logo.login").length > 0) || ($(".api_error_container").length > 0)) {
+            if (this.path_page == 0) {
+            	if (notie_message != "mlp_upgraded") {
+	                this.toggleLoading(false);
+	                this.updateCheck();
+	            }
+            }
 
             // load saved page
             this.loadCurPage();

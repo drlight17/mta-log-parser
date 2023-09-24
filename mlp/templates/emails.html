@@ -10,22 +10,33 @@
                 <h1 v-if="localeData.app_title">[[ localeData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
                 <h1 v-else>[[ fallbackLocaleData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
             </div>
-            
-        </div>
-        <div class="ui two column grid hide_settings_tips_container">
-            <div v-if="!loading" class="logout" >
-                <button @click="auth()" class="ui button green center"><i class="user lock icon"></i><span v-if="localeData.user_settings.acc_ctrl" v-html="localeData.user_settings.acc_ctrl"></span><span v-else v-html="fallbackLocaleData.user_settings.acc_ctrl"></span></button>
-            </div>
-            <div v-if="!loading" class="logout">
-                <button @click="logout()" class="ui button red center"><i class="sign out alternate icon"></i><span v-if="localeData.user_settings.log_out" v-html="localeData.user_settings.log_out"></span><span v-else v-html="fallbackLocaleData.user_settings.log_out"></span></button>
-            </div>
-            <div v-if="!loading" class="hide_settings_tips">
-                <button :title="localeData.hide_set_tips_title" @click="toggleSetTips()" class="ui button gray center">
-                <div v-show="hidden" id="current_user"><span v-if="localeData.user_settings.current_user" v-html="localeData.user_settings.current_user"></span><b><u><span v-html="login"></span></u></b></div><i class ="chevron icon" :class="{ up: !hidden, down: hidden }" class="chevron icon"></i></button>
-            </div>
         </div>
     </div>
-    <div class="ui stackable two column grid hidable" style="align-items: stretch;">
+
+	<div v-if="!loading" :class="{ icon: vertical_menu, vertical: vertical_menu, inverted: settings.dark }" class="ui menu">
+	  <a :title="localeData.user_settings.current_user_title" class="item"><i class="user icon"></i>&nbsp;<span v-if="localeData.user_settings.current_user" v-html="localeData.user_settings.current_user"></span>
+	  <span v-else v-html="fallbackLocaleData.user_settings.current_user"></span>&nbsp;
+	    	<b><u><span v-html="login"></span></u></b></a>
+	  {% if not settings.ldap_connect %}
+	  <a :title="localeData.user_settings.acc_ctrl_title" @click="auth()" class="item"><i class="user lock icon"></i>&nbsp;&nbsp;<span v-if="localeData.user_settings.acc_ctrl" v-html="localeData.user_settings.acc_ctrl"></span><span v-else v-html="fallbackLocaleData.user_settings.acc_ctrl"></span></a>
+	  {% else %}
+	  <a :title="localeData.user_settings.acc_ctrl_disabled_title" class="item disabled"><i class="address card icon"></i>&nbsp;<span v-if="localeData.user_settings.acc_ctrl_disabled" v-html="localeData.user_settings.acc_ctrl_disabled"></span><span v-else v-html="fallbackLocaleData.user_settings.acc_ctrl_disabled"></span></a>
+	  {% endif %}
+	  <!--<a @click="exportDataFromJSON(emails)" class="item"><i class="file excel icon"></i><span v-if="localeData.user_settings.export_to_xls" v-html="localeData.user_settings.export_to_xls"></span><span v-else v-html="fallbackLocaleData.user_settings.export_to_xls"></span></a>-->
+	  <a :title="localeData.user_settings.export_to_xls_title" @click="ExportToExcel('xlsx')" class="item"><i class="file excel icon"></i>&nbsp;<span v-if="localeData.user_settings.export_to_xls" v-html="localeData.user_settings.export_to_xls"></span><span v-else v-html="fallbackLocaleData.user_settings.export_to_xls"></span></a>
+	  <div class="right menu">
+	    <a :title="localeData.user_settings.log_out_title" @click="logout()" class="item"><i class="sign out alternate icon"></i>&nbsp;<span v-if="localeData.user_settings.log_out" v-html="localeData.user_settings.log_out"></span><span v-else v-html="fallbackLocaleData.user_settings.log_out"></span></a>
+	    <a :title="localeData.hide_charts_title" @click="toggleHide('#charts-wrapper')" class="item">
+			<i class ="chartline icon"></i>&nbsp;
+			<i class ="chevron icon" :class="{ up: !hidden_stats, down: hidden_stats }"></i>
+	    </a>
+	    <a :title="localeData.hide_set_tips_title" @click="toggleHide('.settips')" class="item togglesettips">
+	    	<i class="user icon"></i><i class="bookmark icon"></i>&nbsp;
+			<i class ="chevron icon" :class="{ up: !hidden_settips, down: hidden_settips }"></i>
+	    </a>
+	  </div>
+	</div>
+    <div class="ui stackable two column grid settips" style="align-items: stretch;">
         <div id="user-settings" class="six wide column">
             <local-settings @settings-loaded="settings_loaded" @settings-saved="settings_saved"></local-settings>
         </div>
@@ -41,6 +52,9 @@
                     </li>
                     <li v-if="localeData.tips.twelve" v-html="localeData.tips.twelve">
                     <li v-else v-html="fallbackLocaleData.tips.twelve">
+                    </li>
+                    <li v-if="localeData.tips.sixteen" v-html="localeData.tips.sixteen">
+                    <li v-else v-html="fallbackLocaleData.tips.sixteen">
                     </li>
                     <li v-if="localeData.tips.three" v-html="localeData.tips.three">
                     <li v-else v-html="fallbackLocaleData.tips.three">
@@ -91,21 +105,24 @@
             </div>
         </div>
     </div>
+
+	<stats v-if="!loading"></stats>
+
     <div id="filters-wrapper" v-if="!loading" class="ui segment stackable two column grid">
-        <div class="eight wide column">
+        <div class="seven wide column">
             <h3><span v-if="localeData.filters.search" v-html="localeData.filters.search"></span><span v-else v-html="fallbackLocaleData.filters.search"></span></h3>
             <div class="ui form">
                 <div class="three fields">
-                    <div class="field">
+                    <div class="eight wide field">
                         <div class="ui input left icon">
-                            <input id="text_search" v-if="localeData.filters.search_placeholder" v-model="search" type="text" class="ui input" :placeholder="localeData.filters.search_placeholder">
-                            <input id="text_search" v-else v-model="search" type="text" class="ui input" :placeholder="fallbackLocaleData.filters.search_placeholder">
+                            <input v-on:keyup.enter="debounce_emails(true)" id="text_search" v-if="localeData.filters.search_placeholder" v-model="search" type="text" class="ui input" :placeholder="localeData.filters.search_placeholder">
+                            <input v-on:keyup.enter="debounce_emails(true)" id="text_search" v-else v-model="search" type="text" class="ui input" :placeholder="fallbackLocaleData.filters.search_placeholder">
                             <i class="search icon"></i>
                         </div>
                     </div>
                     <span v-if="localeData.filters.search_by" v-html="localeData.filters.search_by" id="by"></span>
                     <span v-else v-html="fallbackLocaleData.filters.search_by" id="by"></span>
-                    <div class="field">
+                    <div class="four wide field">
                         <select name="searchby-email" id="searchby-email" v-model="search_by" class="ui selection dropdown">
                             <!--<option value="id" data-content="<i class='stream icon'></i>Queue ID"></option>-->
                             <option v-if="localeData.filters.search_by_id" value="id" v-html="localeData.filters.search_by_id"></option>
@@ -122,7 +139,7 @@
                             <option value="timestamp__gt">Newer Than</option>-->
                         </select>
                     </div>
-                    <div class="field">
+                    <div class="four wide field">
                         <select name="filter-email" id="filter-email" v-model="status_filter" class="ui selection dropdown">
                             <option v-if="localeData.filters.status_filter_NOFILTER" value="NOFILTER" v-html="localeData.filters.status_filter_NOFILTER"></option>
                             <option v-else value="NOFILTER" v-html="fallbackLocaleData.filters.status_filter_NOFILTER"></option>
@@ -146,10 +163,10 @@
                 </div>
             </div>
         </div>
-        <div class="eight wide column">
+        <div class="five wide column">
             <h3><span v-if="localeData.filters.date_filter_title" v-html="localeData.filters.date_filter_title"></span><span v-else v-html="fallbackLocaleData.filters.date_filter_title"></span></h3>
             <div class="ui form">
-                <div class="three fields">
+                <div class="two fields">
                   <div class="field">
                     <div class="ui calendar" :class="{ inverted: settings.dark, disabled: !settings.filters }" id="rangestart">
                       <div class="ui input left icon">
@@ -159,19 +176,29 @@
                       </div>
                     </div>
                   </div>
-                  <div class="field">
-                    <div class="ui calendar" :class="{ inverted: settings.dark }" id="rangeend">
-                      <div class="ui input left icon">
-                        <i class="calendar icon"></i>
-                        <input v-if="localeData.filters.date_filter__lt_placeholder" v-model="date_filter__lt" type="text" :placeholder="localeData.filters.date_filter__lt_placeholder">
-                        <input v-else v-model="date_filter__lt" type="text" :placeholder="fallbackLocaleData.filters.date_filter__lt_placeholder">
-                      </div>
-                    </div>
+	            <div class="field">
+	                  <div class="ui calendar" :class="{ inverted: settings.dark }" id="rangeend">
+	                      <div class="ui input left icon">
+	                        <i class="calendar icon"></i>
+	                        <input v-if="localeData.filters.date_filter__lt_placeholder" v-model="date_filter__lt" type="text" :placeholder="localeData.filters.date_filter__lt_placeholder">
+	                        <input v-else v-model="date_filter__lt" type="text" :placeholder="fallbackLocaleData.filters.date_filter__lt_placeholder">
+	                      </div>
+	                  </div>
+	              </div>
+	            </div>
+	        </div>
+        </div>
+        <div class="four wide column">
+            <h3><span v-if="localeData.filters.filters_ctrl_title" v-html="localeData.filters.filters_ctrl_title"></span><span v-else v-html="fallbackLocaleData.filters.filters_ctrl_title"></span></h3>
+            <div class="ui form">
+            	<div class="two fields">
+				  <div style="max-width: 100%" class="field">
+                    	<button :title="localeData.filters.filter_link_tip" @click="debounce_emails(true)" class="ui button primary" v-if="!loading" v-bind:disabled="!isDisabled"><i class="search icon"></i></button>
                   </div>
-                  <div class="field">
-                    <button @click="resetFilters()" class="ui button grey" v-if="!loading" v-bind:disabled="!isDisabled"><i class="eraser icon"></i><span v-if="localeData.filters.reset_button" v-html="localeData.filters.reset_button"></span><span v-else v-html="fallbackLocaleData.filters.reset_button"></span></button>
+                  <div style="max-width: 100%" class="field">
+                    <button :title="localeData.filters.reset_button_tip"  @click="resetFilters()" class="ui button orange" v-if="!loading" v-bind:disabled="!isDisabled"><i class="eraser icon"></i></button>
                   </div>
-                </div>
+              </div>
             </div>
         </div>
     </div>

@@ -2,16 +2,19 @@ version: '3.9'
 
 services:
   mlp:
-    image: drlight17/mta-log-parser:latest
     container_name: mta-log-parser
+    build:
+      context: .
+      dockerfile: Dockerfile
     command: /app/run.sh ${COMMAND}
     ports:
       - ${PORT}:${PORT}
     restart: always
     volumes:
-      - ./.env:/app/.env
+      - .:/app
       - /tmp:/tmp
       - ${MAIL_LOG_PATH}:${MAIL_LOG_PATH}
+
     depends_on:
       - rethinkdb
 
