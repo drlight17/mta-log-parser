@@ -9,3 +9,9 @@ Dockerfile
 *.JPG
 build
 build/*
+rethinkdb_data
+rethinkdb_data/*
+*.crt
+*.pem
+*.cert
+
