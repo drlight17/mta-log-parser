@@ -24,9 +24,13 @@ RethinkDB server. Dockerized however is designed to run on the same server, but 
 
 ![Screenshot of Email Show Modal Dark](https://raw.githubusercontent.com/drlight17/mta-log-parser/master/screenshot4.JPG)
 
+![Screenshot of summaries and stats Dark](https://raw.githubusercontent.com/drlight17/mta-log-parser/master/screenshot5.JPG)
+
 ![Screenshot of Log View Web UI](https://raw.githubusercontent.com/drlight17/mta-log-parser/master/screenshot1.JPG)
 
 ![Screenshot of Email Show Modal](https://raw.githubusercontent.com/drlight17/mta-log-parser/master/screenshot2.JPG)
+
+![Screenshot of summaries and stats](https://raw.githubusercontent.com/drlight17/mta-log-parser/master/screenshot6.JPG)
 
 
 Dockerized usage (recommended for production and development)
