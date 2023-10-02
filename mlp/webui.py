@@ -297,18 +297,16 @@ async def api_auth():
 # All GET params are used for api/stats?status=reject
 @app.route(f'{PREFIX}/api/stats', methods=['GET'])
 async def api_stats():
+	
     if 'admin' not in session:
         session['NOTIE_MESSAGE'] = "unauth"
         return redirect(f'{PREFIX}/')
 
     if not settings.ldap_connect:
-        auth_status = await check_user_pass(session['login'],None, 2)
+    	auth_status = await check_user_pass(session['login'],None, 2)
     else:
-        session['NOTIE_MESSAGE'] = "unauth"
-        return redirect(f'{PREFIX}/')
-        #auth_status = await ldap_auth(session['login'], None, 2)
+    	auth_status = await ldap_auth(session['login'], None, 2)
     if auth_status == 0 or auth_status == 3 or auth_status == 2:
-
         #print("Current user wasnt found. Force log out!")
         return redirect(f'{PREFIX}/logout')
 
