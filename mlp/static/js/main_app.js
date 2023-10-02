@@ -38,8 +38,8 @@ const app = Vue.createApp({
             fallbackLocaleData: [],
             locales: lang_files,
             loading: true,
-            hidden_settips: false,
-            hidden_stats: false,
+            hidden_settips: true,
+            hidden_stats: true,
             error: null,
             emails: [],
             search: "",
@@ -68,7 +68,8 @@ const app = Vue.createApp({
             contdown_sec: 0,
             contdown: '',
             contdown_timer: 0,
-            vertical_menu: false
+            vertical_menu: false,
+            filters_changed: false
         }
     },
     computed: {
@@ -132,9 +133,11 @@ const app = Vue.createApp({
                     }
                     if (this.settings.filters) {
                         this.saveFilters();
+                        
                     } else {
                         $('#default_period_div').show();
                     }
+                    this.filters_changed = true;
                     this.search_error = false;
                     this.reset_page();
                     
@@ -151,6 +154,7 @@ const app = Vue.createApp({
                     } else {
                         $('#default_period_div').show();
                     }
+                    this.filters_changed = true;
                     this.reset_page();
                     
                 //} else {
@@ -164,15 +168,22 @@ const app = Vue.createApp({
             if (this.settings.filters) {
                 this.saveFilters();
             }
+            this.filters_changed = true;
             this.reset_page();
             this.debounce_emails(true);
         },
         date_filter__gt(val) {
+            // check if empty
+            if (val == '' ) {
+                this.check_date_lt();
+            }
             // no need after ver.1.1.5 query update
             //if (this.search_by !== "log_lines") {
-                if (this.settings.filters) {
+                //if (this.settings.filters) {
                     this.saveFilters();
-                }
+                //}
+                //window.localStorage['saved_filters.date_filter__gt'] = this.date_filter__gt;
+                this.filters_changed = true;
                 this.reset_page();
                 
             //}  else {
@@ -185,6 +196,7 @@ const app = Vue.createApp({
             if (this.settings.filters) {
                 this.saveFilters();
             }
+            this.filters_changed = true;
             this.reset_page();
             this.debounce_emails(true);
         },
@@ -230,13 +242,23 @@ const app = Vue.createApp({
               throw new Error("Parsing failed!");
             }
         },*/
+        check_date_lt () {
+            if (window.app.settings.filters) {
+                if (window.app.date_filter__gt == '') {
+                    notie_message = "empty_date_lt";
+                    window.app.notieMessages ();
+                }
+            }
+        },
         // table to excel export
         ExportToExcel(type, fn, dl) {
            var elt = document.getElementById('emails-list');
            var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
+           cur_date = new Date(Date.now());
+           cur_date = this.format_date(cur_date,datetime_format,true);
            return dl ?
              XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }):
-             XLSX.writeFile(wb, fn || ('exported-data.' + (type || 'xlsx')));
+             XLSX.writeFile(wb, fn || ('exported-data_' + cur_date + '.' + (type || 'xlsx')));
         },
     		// bind arrow keys for modal left and right buttons
 		arrowKeyBind(modal) {
@@ -427,6 +449,8 @@ const app = Vue.createApp({
                     if (object == '#charts-wrapper') {
                         window.localStorage.setItem("hidden_stats", true);
                         window.app.hidden_stats = true;
+                        $(window.app.$refs.statsRef.stop_draws());
+
                     }
                     
                     //$('#current_user').show();
@@ -439,6 +463,17 @@ const app = Vue.createApp({
                      if (object == '#charts-wrapper') {
                         window.localStorage.setItem("hidden_stats", false);
                         window.app.hidden_stats = false;
+                        // force clear stats cookies before show filtered stats
+                        window.app.clear_cookies('filtered_pie');
+                        window.app.clear_cookies('filtered_pie_created');
+                        window.app.clear_cookies('filtered_top_senders');
+                        window.app.clear_cookies('filtered_top_senders_created');
+                        window.app.clear_cookies('filtered_top_recipients');
+                        window.app.clear_cookies('filtered_top_recipients_created');
+                        $(window.app.$refs.statsRef.run_draws('overall_pie'));
+						$(window.app.$refs.statsRef.run_draws('filtered_pie'));
+                        $(window.app.$refs.statsRef.run_draws('filtered_top_senders'));
+                        $(window.app.$refs.statsRef.run_draws('filtered_top_recipients'));
                      }
     					
                     //$('#current_user').hide();
@@ -676,7 +711,7 @@ const app = Vue.createApp({
                     } else {
                         text = this.localeData.notie.eight
                     }
-                    notie.alert({type: 'error', text: text });
+                    notie.alert({type: 'error', text: text, stay: true });
                 }
                 //}, wait);
                 table.hide();
@@ -792,7 +827,8 @@ const app = Vue.createApp({
                 }
         },
         loadEmails(refresh) {
-            //var wait = 0;
+            
+            this.check_date_lt();
 
             // call to resresh countdown
             this.setRefresh();
@@ -848,7 +884,6 @@ const app = Vue.createApp({
                 return fetch(url).then(function (response) {
                     return response.json();
                 }).then((res) => {
-                	
     	                this.emails = res['result'];
     	                // get format from .env var
     	                for (let i = 0; i < this.emails.length; i++) {
@@ -1067,11 +1102,21 @@ const app = Vue.createApp({
     	                    });
     	                    // set dark mode
     	                    this.setDark($found_table);
+                            this.filters_changed = false;
     	                });
     				this.updateCheck();
                 }).catch((res) => {
                     console.error('Error:', res);
-                    window.app.additional_styling(element);
+                    if (this.path_page == 2) {
+                        this.toggleLoading(false);
+                        this.filters_changed = false;
+                        this.waitForElm('#emails-list').then((elm) => {
+                            //console.log(elm)
+                            window.app.additional_styling(elm);
+                            window.app.check_nothing_found(this.count,$(elm),true);
+                        })
+                        //window.app.additional_styling(element);
+                    }
                 });
             }
 
@@ -1132,7 +1177,16 @@ const app = Vue.createApp({
             localStorage.setItem('dark',dark);
             localStorage.setItem('hidden_settings_tips',hidden_settings_tips);
             localStorage.setItem('hidden_stats',hidden_stats);
-            
+
+            // clear stats
+            this.clear_cookies('filtered_pie');
+            this.clear_cookies('filtered_pie_created');
+            //this.clear_cookies('overall_pie');
+            this.clear_cookies('filtered_top_senders');
+            this.clear_cookies('filtered_top_senders_created');
+            this.clear_cookies('filtered_top_recipients');
+            this.clear_cookies('filtered_top_recipients_created');
+
             window.location = path_prefix+'/logout';
 
         },
@@ -1299,7 +1353,16 @@ const app = Vue.createApp({
             this.search_by = "id";
             // change start date based on saving filters option?
             if (this.settings.filters) {
-                this.date_filter__gt = "";
+                // don't clearup date_filter__gt for optimization purposes! show warning!
+                //this.date_filter__gt = "";
+                //console.log("Queries without date filter will significally slow down the performance!")
+                if (this.localeData.notie.twenty_one == undefined) {
+                    text = this.fallbackLocaleData.notie.twenty_one
+                } else {
+                    text = this.localeData.notie.twenty_one
+                }
+                notie.alert({type: 'warning', text: text, time: 10 });
+
             } else {
                 this.setDuration();
             }
@@ -1319,7 +1382,7 @@ const app = Vue.createApp({
             } else {
                 text = this.localeData.notie.four
             }
-            notie.alert({type: 'warning', text: text});
+            //notie.alert({type: 'warning', text: text});
             this.reset_page();
             this.debounce_emails(true);
         },
@@ -1454,8 +1517,9 @@ const app = Vue.createApp({
             if (updatePage) {
                 // reset date filter after save filters is switched on
                 if (this.settings.filters) {
-                    this.date_filter__gt = "";
-                    this.date_filter__lt = "";
+                    // don't clearup date_filter__gt for optimization purposes! show warning!
+                    //this.date_filter__gt = "";
+                    //this.date_filter__lt = "";
                 } else {
                     this.setDuration();
                 }
@@ -1624,12 +1688,33 @@ const app = Vue.createApp({
                 }
                 notie.alert({type: 'warning', text: text, stay: 'true'});
             }
+            if (notie_message == 'empty_date_lt') {
+                if (this.localeData.notie.twenty_two == undefined) {
+                    text = this.fallbackLocaleData.notie.twenty_two
+                } else {
+                    text = this.localeData.notie.twenty_two
+                }
+                notie.alert({type: 'warning', text: text, time: 10});
+            }
         },
         getCookie(name) {
           let matches = document.cookie.match(new RegExp(
             "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
           ));
           return matches ? decodeURIComponent(matches[1]) : undefined;
+        },
+        clear_cookies(name) {
+            // clear all cookies
+            var cookies = document.cookie.split(";");
+            if (!(name)) {
+                for(var i=0; i < cookies.length; i++) {
+                    var equals = cookies[i].indexOf("=");
+                    var name = equals > -1 ? cookies[i].substr(0, equals) : cookies[i];
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                }
+            } else {
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            }
         },
         upgradeCheck (){
         	// store current mlp version for automatic localStorage and cookie cleanup after mlp upgrade 
@@ -1646,13 +1731,7 @@ const app = Vue.createApp({
         		var mlp_current_version = "mlp_current_version="+parser_version+"; max-age=2147483647";
         		var mlp_current_version_cookie = this.getCookie('mlp_current_version')
 
-        		// clear all cookies
-				var cookies = document.cookie.split(";");
-				for(var i=0; i < cookies.length; i++) {
-				    var equals = cookies[i].indexOf("=");
-				    var name = equals > -1 ? cookies[i].substr(0, equals) : cookies[i];
-				    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-				}
+                this.clear_cookies();
 
 				// store current mlp version for automatic localStorage and cookie cleanup after mlp upgrade 
 				document.cookie = mlp_current_version;
@@ -1824,18 +1903,6 @@ const app = Vue.createApp({
                 //$('#current_user').show();
 	        }
 
-            // check hidden stats
-
-            if ((localStorage.getItem("hidden_stats") === null) || (localStorage.getItem("hidden_stats") === 'false'))  {
-                $('#charts-wrapper').show();
-                this.hidden_stats = false;
-                //$('#current_user').hide();
-            } else {
-                $('#charts-wrapper').hide();
-                this.hidden_stats = true;
-                //$('#current_user').show();
-            }
-
             // apply mail domain from current domain URL if .env MAIL_DOMAIN is empty
             if (mail_domain == '') {
                 $('h1 > span').text(window.location.hostname);
@@ -1844,7 +1911,7 @@ const app = Vue.createApp({
             /*if (navigator.userAgent.search("Firefox") > -1) {
                 setTimeout(() => $('#marquee_sw input').prop('disabled', true), 1000);
             }*/
-            
+            this.check_date_lt();
 			this.notieMessages ();
 
             // focus on password input timeout
@@ -1875,6 +1942,9 @@ const app = Vue.createApp({
               zIndex: 5,
               cornerOffset: 30
             });
+
+            this.filters_changed = false;
+
         });
     }
 });

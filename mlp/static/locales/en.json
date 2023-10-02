@@ -9,6 +9,8 @@
   "filtered_top_senders": "Filtered top 10 senders",
   "filtered_top_recipients": "Filtered top 10 recipients",
   "no_data": "No data",
+  "force_refresh_stats": "Force refresh this chart",
+  "cached": "cached at",
   "notie": {
     "one": "Forbidden special character(s) in text search input: <b>«",
     "two": "User settings are saved successfully",
@@ -29,7 +31,9 @@
     "seventeen": "Error bindind LDAP. Check your LDAP_BIND_DN and/or LDAP_BIND_DN_PWD!",
     "eighteen": "No LDAP accounts found! Check your LDAP_SEARCHFILTER, LDAP_SEARCHBASE, LDAP_USERNAME_ATTR or LDAP_USERNAME_DOMAIN_PART!",
     "nineteen": "This path is not available under LDAP user!",
-    "twenty": "MLP version has just upgraded! All caches were cleared and you have been logged out! Page will be reload in 5 seconds. If nothing happened refresh page manually."
+    "twenty": "MLP version has just upgraded! All caches were cleared and you have been logged out! Page will be reload in 5 seconds. If nothing happened refresh page manually.",
+    "twenty_one": "Start date filter could only be manually removed because of potential performance degrade!",
+    "twenty_two": "Warning! Empty start date filter will potentially degrade performance!"
   },
   "login": {
     "message": "Please login to proceed.",

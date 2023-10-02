@@ -112,6 +112,7 @@ async def parse_line(mline) -> dict:
     lm = {}
 
     _to = find_to.match(mline)
+    #print(mline)
     _from = find_from.match(mline)
     _subject = find_subject.match(mline)
     _size = find_size.match(mline)

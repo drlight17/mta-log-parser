@@ -7,6 +7,23 @@ Unreleased VER.
 - save settings into cookies (for firefox private window mainly) + accept cookies modal (?)
 - fix dropdown update if use fomantic ui div based dropdown
 - add not (!) to text filters
+- fix sort icon to the same shevrons as main menu gui show/hide buttons  
+- upgrade procedure from GUI (?) if decided to do so use [this manual](https://stackoverflow.com/questions/32163955/how-to-run-shell-script-on-host-from-docker-container/63719458#63719458)
+
+VER. 1.5
+- ~~BUG: exim regexp for qid sometimes no mail_from match!~~
+- ~~use between instead of filter in emails api~~
+- ~~add buttons to manually refresh stats~~
+- ~~add timestamps of stats cookies to charts (watermark)~~
+- ~~exported name with date~~
+- ~~stats refresh animation~~
+- ~~notie warning about not filled dates with stay (when filters set to true)~~
+- ~~cache all charts until filters change (compare localStorage filters values with current vue vars values)~~
+- ~~apply current date filter to top_senders and top_recipients (between hack)~~
+- ~~force clear cookie before show filtered stats~~
+- ~~deal with stats visibility and run draw charts~~
+- ~~fix of fetch errors in main_app.js~~
+- ~~reconnection to rethinkdb if disconnected in case of multiple refreshes with heavy queries~~
 
 VER. 1.4
 - ~~summaries and graphs for period and overall:~~

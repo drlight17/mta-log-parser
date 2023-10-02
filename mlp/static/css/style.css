@@ -17,6 +17,29 @@
 #app.dark .developed_by {
 	filter: brightness(1);
 }
+
+.stats_refresh:hover {
+    opacity: 1!important;
+}
+
+.stats_refresh {
+    transition: all 0.15s ease-in-out;
+    opacity: .7!important;
+    position: absolute;
+    right: 3vh;
+    text-align: right!important;
+    cursor: pointer;
+    font-size: x-large!important;
+    background: radial-gradient(circle, rgba(255,255,255,1) 50%, rgba(0,0,0,0) 100%);;
+}
+
+#app.dark .stats_refresh {
+    background: radial-gradient(circle, rgba(43,43,43,1) 50%, rgba(0,0,0,0) 100%);
+}
+.title_refresh {
+    display: flex;
+
+}
 .developed_by {
 	display: inline;
     height: 55px;

@@ -28,7 +28,7 @@ from mlp import settings, api
 
 
 from mlp.exceptions import APIException
-from mlp.core import get_rethink
+from mlp.core import get_rethink, __STORE
 from quart import Quart, session, redirect, render_template, request, flash, jsonify
 from privex.helpers import random_str, empty, filter_form, DictDataClass, DictObject
 # for timestamp process
@@ -40,6 +40,9 @@ import moment
 
 # add ldap support 
 import ldap
+
+# temp for time measurements
+import time
 
 log = logging.getLogger(__name__)
 
@@ -64,6 +67,8 @@ app.secret_key = settings.secret_key
 Table = rethinkdb.query.ast.Table
 RqlQuery = rethinkdb.query.ast.RqlQuery
 QueryOrTable = Union[Table, RqlQuery]
+
+
 
 @app.route(f'{PREFIX}/', methods=['GET'])
 async def index():
@@ -312,6 +317,7 @@ async def api_stats():
     _sm = r.table('sent_mail')
 
     frm = dict(request.args)
+    start_time = time.time()
 
     if 'statuses' in frm:
         
@@ -319,38 +325,68 @@ async def api_stats():
         #del frm['statuses']
 
         #print(str(frm.pop('status')))
-        _sm = await _sm.filter(lambda m: m["status"]["code"] == response).count().run(conn, array_limit=settings.rethink_arr_limit)
-        print(_sm)
+        # without index
+        #_sm = await _sm.filter(lambda m: m["status"]["code"] == response).count().run(conn, array_limit=settings.rethink_arr_limit)
+        # with index
+        #_sm, res = await _paginate_query(_sm, frm, rt_conn=conn, rt_query=r_q, order_by=order_by, order_dir=order_dir)
+        _sm = await _sm.get_all(response, index = 'status_code').count().run(conn, array_limit=settings.rethink_arr_limit)
+
+        #print(_sm)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print("\nStatus "+response+" query is completed in {:.2f} seconds".format(elapsed_time))
         return {response: _sm}
     if 'top_senders' in frm:
         del frm['top_senders']
+        if 'log_lines' in frm:
+        	del frm['log_lines']
 
-        _senders_array = await _process_filters(query=_sm, frm=frm)
+        _senders_array = await _process_filters(0, r_q=r_q, query=_sm, frm=frm)
         _senders_array = _senders_array.pluck("mail_from").distinct()
         _senders_array = await _senders_array.run(conn, array_limit=settings.rethink_arr_limit)
 
-        #senders_array = {}
         senders_array = []
         sender = {}
 
         for s in _senders_array:
-            _senders_count = await _process_filters(query=_sm, frm=frm)
-            _senders_count = await _senders_count.filter(lambda m: m["mail_from"] == s['mail_from']).count().run(conn, array_limit=settings.rethink_arr_limit)
+        	# hack to force between find one contain
+            _senders_count = _sm.between(s['mail_from'], s['mail_from']+" ", index = 'mail_from')
+            _senders_count = await _process_filters(1, r_q=r_q, query=_senders_count, frm=frm)
+            _senders_count = await  _senders_count.count().run(conn, array_limit=settings.rethink_arr_limit)
+
             sender['mail_from'] = s['mail_from']
             sender['count'] = _senders_count
+
             senders_array.append(dict(sender))
-            #senders_array[s['mail_from']] = _senders_count
 
         # sort array reverse and limit by 10    
         senders_array = sorted(senders_array, key=lambda d: d['count'], reverse=True)[:10]
-        #senders_array = sorted(senders_array.items(), key=lambda x:x[1], reverse=True)
-        #senders_array = dict(sorted(senders_array.items(), key=lambda x:x[1], reverse=True)[:10])
+
+        # old overall rank with index
+        #_senders_array = await _process_filters(r_q=r_q, query=_sm, frm=frm)
+        #_senders_array = await _sm.distinct(index = 'mail_from').map(lambda m: {'mail_from': m, 'count': _sm.get_all(m, index = 'mail_from').count()}).order_by(r_q.desc('count')).limit(10).run(conn, array_limit=settings.rethink_arr_limit)
+
+        # temp time measurements
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print("\nTop_senders query is completed in {:.2f} seconds".format(elapsed_time))
         return jsonify(senders_array)
+
+    '''if 'top_recipients' in frm:
+        del frm['top_recipients']
+        # with index
+        _recipients_array = await _sm.distinct(index = 'mail_to').map(lambda m: {'mail_to': m, 'count': _sm.get_all(m, index = 'mail_to').count()}).order_by(r_q.desc('count')).limit(10).run(conn, array_limit=settings.rethink_arr_limit)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print("\nTop_recipients query is completed in {:.2f} seconds".format(elapsed_time))
+        return jsonify(_recipients_array)'''
 
     if 'top_recipients' in frm:
         del frm['top_recipients']
+        if 'log_lines' in frm:
+        	del frm['log_lines']
 
-        _recipients_array = await _process_filters(query=_sm, frm=frm)
+        _recipients_array = await _process_filters(0, r_q=r_q, query=_sm, frm=frm)
         _recipients_array = _recipients_array.pluck("mail_to").distinct()
         _recipients_array = await _recipients_array.run(conn, array_limit=settings.rethink_arr_limit)
 
@@ -358,14 +394,27 @@ async def api_stats():
         recipient = {}
 
         for s in _recipients_array:
-            _recipients_count = await _process_filters(query=_sm, frm=frm)
-            _recipients_count = await _recipients_count.filter(lambda m: m["mail_to"] == s['mail_to']).count().run(conn, array_limit=settings.rethink_arr_limit)
+        	# hack to force between find one contain
+            _recipients_count = _sm.between(s['mail_to'], s['mail_to']+" ", index = 'mail_to')
+            _recipients_count = await _process_filters(1, r_q=r_q, query=_recipients_count, frm=frm)
+            _recipients_count = await  _recipients_count.count().run(conn, array_limit=settings.rethink_arr_limit)
+
             recipient['mail_to'] = s['mail_to']
             recipient['count'] = _recipients_count
+
             recipients_array.append(dict(recipient))
 
         # sort array reverse and limit by 10    
         recipients_array = sorted(recipients_array, key=lambda d: d['count'], reverse=True)[:10]
+
+        # old overall rank with index
+        #_senders_array = await _process_filters(r_q=r_q, query=_sm, frm=frm)
+        #_senders_array = await _sm.distinct(index = 'mail_from').map(lambda m: {'mail_from': m, 'count': _sm.get_all(m, index = 'mail_from').count()}).order_by(r_q.desc('count')).limit(10).run(conn, array_limit=settings.rethink_arr_limit)
+
+        # temp time measurements
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print("\nTop_recipients query is completed in {:.2f} seconds".format(elapsed_time))
         return jsonify(recipients_array)
 
 
@@ -455,10 +504,12 @@ async def api_emails():
         _sm = _sm.get_all(r_q.args(ids), index='id').distinct()
         
     # Handle appending .filter() to `_sm` for each filter key in `frm`
-    _sm = await _process_filters(query=_sm, frm=frm)
+    _sm = await _process_filters(1, r_q=r_q, query=_sm, frm=frm)
 
     _sm, res = await _paginate_query(_sm, frm, rt_conn=conn, rt_query=r_q, order_by=order_by, order_dir=order_dir)
-    _sm = await _sm.run(conn, array_limit=settings.rethink_arr_limit)
+    #print(settings.max_limit)
+    #print(_sm)
+    _sm = await _sm.limit(settings.max_limit).run(conn, array_limit=settings.rethink_arr_limit)
 
     #print(list(_sm))
 
@@ -490,6 +541,7 @@ async def _paginate_query(query: QueryOrTable, frm: Mapping, rt_conn: DefaultCon
     # rt_query: RqlTopLevelQuery
     r_order = order_by if order_dir == 'asc' else rt_query.desc(order_by)
     limit = settings.default_limit if limit <= 0 else (settings.max_limit if limit > settings.max_limit else limit)
+
     offset = (count - limit if (count - limit) > 0 else 0) if offset >= count else offset
     page = int(offset / limit) + 1
     # fix of pagination wrong total_pages calc
@@ -504,26 +556,66 @@ async def _paginate_query(query: QueryOrTable, frm: Mapping, rt_conn: DefaultCon
     query = query.order_by(r_order).skip(offset).limit(limit)
     return query, res
 
-
-async def _process_filters(query: QueryOrTable, frm: Mapping, skip_keys: List[str] = None) -> QueryOrTable:
+async def _process_filters(mode, r_q, query: QueryOrTable, frm: Mapping, skip_keys: List[str] = None) -> QueryOrTable:
     if empty(frm, itr=True):
         return query
     
     skip_keys = ['limit', 'offset', 'page'] if not skip_keys else skip_keys
-    
+    fval_gt = ''
+    fval_lt = ''
+    if mode == 0:
+        for fkey, fval in frm.items():
+            if fkey in skip_keys:
+                continue
+            # check timestamps and prepend them to query
+            if '__gt' in fkey:
+                fkey_ts = fkey.replace('__gt', '')
+                fval_gt = moment.date(fval,settings.datetime_format).date
+                fval_gt = fval_gt.replace(tzinfo=timezone.utc)
+                if fval_lt == '':
+                    fval_lt = r_q.maxval
+                continue
+
+            if '__lt' in fkey:
+                fkey_ts = fkey.replace('__lt', '')
+                fval_lt = moment.date(fval,settings.datetime_format).date
+                fval_lt = fval_lt.replace(tzinfo=timezone.utc)
+                if fval_gt == '':
+                    fval_gt = r_q.minval
+                continue
+
+        if fval_gt and fval_lt:
+            query = query.between(fval_gt, fval_lt, right_bound='closed', index=fkey_ts)
+    elif mode == 1:
+        for fkey, fval in frm.items():
+            if fkey in skip_keys:
+                continue
+            if '__lt' in fkey:
+                fkey = fkey.replace('__lt', '')
+                fval = moment.date(fval,settings.datetime_format).date
+                fval = fval.replace(tzinfo=timezone.utc)
+                query = query.filter(lambda m: m[fkey] <= fval)
+            if '__gt' in fkey:
+                fkey = fkey.replace('__gt', '')
+                fval = moment.date(fval,settings.datetime_format).date
+                fval = fval.replace(tzinfo=timezone.utc)
+                query = query.filter(lambda m: m[fkey] >= fval)
+
+    # check for other filters and append them to query
     for fkey, fval in frm.items():
         if fkey in skip_keys:
             continue
-        query = await _filter_form_key(fkey=fkey, fval=fval, query=query)
+        if '__gt' not in fkey and '__lt' not in fkey:
+            query = await _filter_form_key(fkey=fkey, fval=fval, query=query)
+    
     #print("query: ",query)
     return query
-
 
 async def _filter_form_key(fkey: str, fval: str, query: QueryOrTable) -> QueryOrTable:
     if '.' in fkey:
         k1, k2 = fkey.split('.')
         return query.filter(lambda m: m[k1][k2] == fval)
-    if '__lt' in fkey:
+    '''if '__lt' in fkey:
         fkey = fkey.replace('__lt', '')
         fval = moment.date(fval,settings.datetime_format).date
         fval = fval.replace(tzinfo=timezone.utc)
@@ -532,7 +624,8 @@ async def _filter_form_key(fkey: str, fval: str, query: QueryOrTable) -> QueryOr
         fkey = fkey.replace('__gt', '')
         fval = moment.date(fval,settings.datetime_format).date
         fval = fval.replace(tzinfo=timezone.utc)
-        return query.filter(lambda m: m[fkey] >= fval)
+        return query.filter(lambda m: m[fkey] >= fval)'''
+
     # full wildcard to key value (i.e. *find string*)
     rval = fval.replace('*', '')  # fval but without asterisks
     query = query.filter(lambda m: m[fkey].match(rval))
@@ -610,35 +703,50 @@ async def ldap_auth(u,p,mode):
 # check user and password
 async def check_user_pass(u,p,mode):
     #print("Checking user "+u+" with password "+p)
+    
+    
 
     r, conn, r_q = await get_rethink()
     r_q: rethinkdb.query
 
     _sm = r.table('auth')
+    #print(conn);
+
+
     # authentication
-    if mode == 1 and u is not None and p is not None:
-        _sm = await _sm.filter({"id": u,"password": p}).run(conn, array_limit=settings.rethink_arr_limit)
-    # check for any user existence
-    elif mode == 0:
-        _sm = await _sm.run(conn, array_limit=settings.rethink_arr_limit)
-    # check for logged in user
-    elif mode == 2:
-        _sm = await _sm.filter({"id": u}).run(conn, array_limit=settings.rethink_arr_limit)
+    try:
+        if mode == 1 and u is not None and p is not None:
+            _sm = await _sm.filter({"id": u,"password": p}).run(conn, array_limit=settings.rethink_arr_limit)
+        # check for any user existence
+        elif mode == 0:
+            _sm = await _sm.run(conn, array_limit=settings.rethink_arr_limit)
+        # check for logged in user
+        elif mode == 2:
+            _sm = await _sm.filter({"id": u}).run(conn, array_limit=settings.rethink_arr_limit)
 
-    sm = []
-    if type(_sm) is list:
-        sm = list(_sm)
-    else:
-        async for s in _sm:
-            sm.append(dict(s))
-    #print(sm)
+        sm = []
+        if type(_sm) is list:
+            sm = list(_sm)
+        else:
+            async for s in _sm:
+                sm.append(dict(s))
+        #print(sm)
 
-    if sm:
-        #print("Found user and password.")
-        return 1
+        if sm:
+            #print("Found user and password.")
+            return 1
 
-    #print("User and/or password is not found.")
-    return 0
+        #print("User and/or password is not found.")
+        return 0
+
+    except:
+        #This is acceptable at the moment since that's the normal behavior for every management script
+        print("Cannot connect to rethinkdb, trying to reconnect!")
+        __STORE.clear()
+        r, conn, r_q = await get_rethink()
+        return redirect(f'{PREFIX}/')
+        #conn.reconnect(noreply_wait=True)
+        #sys.exit(1) 
 
 # create/edit new user
 async def edit_user(u,p,mode):

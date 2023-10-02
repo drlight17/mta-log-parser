@@ -60,12 +60,13 @@ async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:
     if 'rethink' in __STORE:
         return __STORE['rethink']
 
+    
+
     # Setup RethinkDB connection
     # log.debug('Initialising RethinkDB connector')
     r: rethinkdb.query = RethinkDB()
     r.set_loop_type('asyncio')
     conn = await r.connect(settings.rethink_host, settings.rethink_port)
-
     dbs = await r.db_list().run(conn, array_limit=settings.rethink_arr_limit)
     if settings.rethink_db not in dbs:
         log.debug('Database %s did not exist. Creating.', settings.rethink_db)
@@ -84,9 +85,14 @@ async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:
         idxs = await db.table(t).index_list().run(conn, array_limit=settings.rethink_arr_limit)
         for index in indexes:
             if index not in idxs:
-                log.debug('Index %s on table %s did not exist. Creating.', index, t)
-                await db.table(t).index_create(index).run(conn, array_limit=settings.rethink_arr_limit)
 
+                log.debug('Index %s on table %s did not exist. Creating.', index, t)
+                if index == 'status_code':
+                    # TODO need to test index creation
+                    await db.table(t).index_create(index,r.row['status']['code'], multi=True).run(conn, array_limit=settings.rethink_arr_limit)
+                else:
+                    await db.table(t).index_create(index).run(conn, array_limit=settings.rethink_arr_limit)
+                
     __STORE['rethink'] = db, conn, r
     return __STORE['rethink']
 

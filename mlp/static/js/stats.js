@@ -1,9 +1,8 @@
     app.component('stats', {
         template: `
         <div id="charts-wrapper" class="ui segment stackable two column grid">
-
             <div class="three wide column">
-                <h3><i class="calendar outline icon"></i><i class="chart pie icon"></i><span v-if="$parent.localeData.overall_pie" v-html="$parent.localeData.overall_pie"></span><span v-else v-html="$parent.fallbackLocaleData.overall_pie"></span></h3>
+                <h3><i class="calendar outline icon"></i><i class="chart pie icon"></i><span v-if="$parent.localeData.overall_pie" v-html="$parent.localeData.overall_pie"></span><span v-else v-html="$parent.fallbackLocaleData.overall_pie"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="overall_pie stats_refresh sync icon"></i></h3>
                 <div class="ui form">
                     <canvas v-if="!loading_overall_pie" id="overall_pie"></canvas>
                     <div v-else class="ui active huge indeterminate text loader">
@@ -14,7 +13,7 @@
             </div>
 
             <div class="three wide column">
-                <h3><i class="filter icon"></i><i class="chart pie icon"></i><span v-if="$parent.localeData.filtered_pie" v-html="$parent.localeData.filtered_pie"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_pie"></span></h3>
+                <h3><i class="filter icon"></i><i class="chart pie icon"></i><span v-if="$parent.localeData.filtered_pie" v-html="$parent.localeData.filtered_pie"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_pie"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="filtered_pie stats_refresh sync icon"></i></h3>
                 <div class="ui form">
                     <canvas v-if="!loading_filtered_pie" id="filtered_pie"></canvas>
                     <div v-else class="ui active huge indeterminate text loader">
@@ -25,7 +24,7 @@
             </div>
 
             <div class="ten wide column">
-                <h3><i class="chart bar icon"></i><span v-if="$parent.localeData.filtered_top_senders" v-html="$parent.localeData.filtered_top_senders"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_top_senders"></span></h3>
+                <h3><i class="chart bar icon"></i><span v-if="$parent.localeData.filtered_top_senders" v-html="$parent.localeData.filtered_top_senders"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_top_senders"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="filtered_top_senders stats_refresh sync icon"></i></h3>
                 <div class="ui form">
                     <canvas v-if="!loading_filtered_top_senders" id="filtered_top_senders"></canvas>
                     <div v-else class="ui active huge indeterminate text loader">
@@ -33,7 +32,7 @@
                         <span v-else v-html="$parent.fallbackLocaleData.loading"></span>
                     </div>
                 </div>
-                <h3><i class="chart bar outline icon"></i><span v-if="$parent.localeData.filtered_top_recipients" v-html="$parent.localeData.filtered_top_recipients"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_top_recipients"></span></h3>
+                <h3><i class="chart bar outline icon"></i><span v-if="$parent.localeData.filtered_top_recipients" v-html="$parent.localeData.filtered_top_recipients"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_top_recipients"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="filtered_top_recipients stats_refresh sync icon"></i></h3>
                 <div class="ui form">
                     <canvas v-if="!loading_filtered_top_recipients" id="filtered_top_recipients"></canvas>
                     <div v-else class="ui active huge indeterminate text loader">
@@ -69,12 +68,13 @@
 	                  }
 	                }
 
-	                if (!hasData) {
-	                  const {chartArea: {left, top, right, bottom}, ctx} = chart;
-	                  const centerX = (left + right) / 2;
-	                  const centerY = (top + bottom) / 2;
-	                  const r = Math.min(right - left, bottom - top) / 2;
+	               
+                     const {chartArea: {left, top, right, bottom}, ctx} = chart;
+                     const centerX = (left + right) / 2;
+                     const centerY = (top + bottom) / 2;
+                     const r = Math.min(right - left, bottom - top) / 2;
 
+                     if (!hasData) {
 	                  ctx.beginPath();
 	                  ctx.lineWidth = width || 2;
 	                  ctx.strokeStyle = color;
@@ -85,6 +85,7 @@
 	                  } else {
 						fontSize = (chart.height / 110).toFixed(2);
 	                  }
+
 	                  ctx.textAlign = 'center';
 	                  ctx.textBaseline = 'top';
 	                  ctx.font = fontSize + "rem Arial";
@@ -97,7 +98,35 @@
 	                  ctx.fillRect(chart.width / 2 - text_width / 2, chart.height / 2 - ( fontSize * 1.5) / 2, text_width, parseInt(ctx.font, 10));
 
 	                  ctx.stroke();
-	                }
+	                } else {
+                        // add watermarked current timestamp
+                        //ctx.globalCompositeOperation='destination-over'; // reverse z-index of canvas drawing
+                        //ctx.globalCompositeOperation = 'xor';
+                        if (chart.config._config.type == 'doughnut') {
+                            fontSize = (chart.height / 400).toFixed(2);
+                            ch_height = chart.height/1.3
+                            ch_width = chart.width / 2
+                            ctx.textAlign = 'center';
+                        } else {
+                            fontSize = (chart.height / 200).toFixed(2);
+                            ch_height = chart.height / 2
+                            ch_width = chart.width / 1.5
+                            ctx.textAlign = 'left';
+                        }
+                        ctx.globalAlpha = .4;
+                        ctx.textBaseline = 'bottom';
+                        ctx.font = fontSize + "rem Arial";
+                        ctx.fillStyle = text_color;
+                        //console.log(chart.canvas.id)
+                        //console.log(datetime_format)
+                        timestamp = stats_app.$parent.format_date(stats_app.$parent.getCookie(chart.canvas.id+"_created"),datetime_format,false);
+
+                        //timestamp = stats_app.$parent.getCookie(chart.canvas.id+"_created");
+
+                        ctx.fillText(stats_app.$parent.localeData.cached + " " + timestamp, ch_width, ch_height);
+                        ctx.closePath();
+                        ctx.globalAlpha = 1;
+                    }
               	  },
                 }
             }
@@ -106,7 +135,90 @@
         },
         computed: {
         },
+        watch: {
+        },
         methods: {
+        	create_donut (chart_type, view_data, bgd_color, text_color) {
+    			const ctx = document.getElementById(chart_type);
+                let chart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: view_data,
+                    plugins: [stats_app.noData_plugin],
+                    options: {
+                        plugins: {
+                            noData: {
+                                color: 'rgba(128, 128, 128, 0.3)',
+                                text_color: text_color,
+                                bg_color: bgd_color,
+                                width: 40,
+                                radiusDecrease: 20
+                            },
+                            legend: {
+                                labels: {
+                                    filter: (legendItem, data) => (
+                                        data.datasets[0].data[legendItem.index] != 0 && typeof data.datasets[0].data[legendItem.index] !== 'undefined'
+                                    ),
+                                    color: text_color,
+                                    font: {
+                                        size: 15
+                                    }
+                                }
+                            },
+                        },
+                        responsive: true,
+                        maintainAspectRatio: false,
+
+                    }
+                });
+            },
+
+            create_chart(chart_type, view_data, bgd_color, text_color) {
+				const ctx = document.getElementById(chart_type);
+                let chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: view_data,
+                    plugins: [stats_app.noData_plugin],
+                    options: {
+                        indexAxis: 'y',
+                        plugins: {
+                        	noData: {
+                                    color: 'rgba(128, 128, 128, 0.3)',
+                                    text_color: text_color,
+                                    bg_color: bgd_color,
+                                    width: 40,
+                                    radiusDecrease: 20
+                                },
+                            legend: {
+                              display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                             ticks: {
+                                fontColor: text_color,
+                                backdropColor: text_color,
+                                color: text_color,
+                                font: {
+                                        size: 15
+                                    }
+                                }
+                            },
+                            y: {
+                             ticks: {
+                                fontColor: text_color,
+                                backdropColor: text_color,
+                                color: text_color,
+                                font: {
+                                        size: 15
+                                    }
+                                }
+                             }
+                        },
+                        responsive: true,
+                        maintainAspectRatio: false,
+                    }
+            	});
+            },
             dynamicColors() {
                 var r = Math.floor(Math.random() * 255);
                 var g = Math.floor(Math.random() * 255);
@@ -121,34 +233,62 @@
                 return pool;
             },
             async draw_chart(chart_type,mode) {
-                if (mode == 1) {
-                    try {
+                //if (mode == 1) {
+
+                    
+
+                    // check cache in cookie with expiration
+                    if ((this.$parent.getCookie(chart_type)) && (this.$parent.getCookie(chart_type) !== '{}')) {
+
                         if (chart_type == 'filtered_top_senders') {
                             this.loading_filtered_top_senders = true;
-                            let result = await this.call_stats_data(chart_type);
-                            if (result == 1) {
-                                this.draw_chart(chart_type,0);
-                                return 0;
-                            } else {
-                                return 0;
-                            }
+                            // get cached data from cookie
+                            data = JSON.parse(this.$parent.getCookie(chart_type));
+                            this.loading_filtered_top_senders = false;
                         }
                         if (chart_type == 'filtered_top_recipients') {
+                            // get cached data from cookie
                             this.loading_filtered_top_recipients = true;
-                            let result = await this.call_stats_data(chart_type);
-                            if (result == 1) {
-                                this.draw_chart(chart_type,0);
-                                return 0;
-                            } else {
-                                return 0;
-                            }
+                            data = JSON.parse(this.$parent.getCookie(chart_type));
+                            this.loading_filtered_top_recipients = false;
                         }
+                        if (this.check_filters_changes() == 1) {
+                            this.draw_chart(chart_type,0);
+                        }
+                    } else {
+                        try {
+                            if (chart_type == 'filtered_top_senders') {
+                                this.loading_filtered_top_senders = true;
+                                let result = await this.call_stats_data(chart_type);
+                                if (result == 1) {
+                                    this.draw_chart(chart_type,0);
+                                    return 0;
+                                } else {
+                                    this.loading_filtered_top_senders = false;
+                                    data = 'error'
+                                    //return 0;
+                                }
+                            }
+                            if (chart_type == 'filtered_top_recipients') {
+                                this.loading_filtered_top_recipients = true;
+                                let result = await this.call_stats_data(chart_type);
+                                if (result == 1) {
+                                    this.draw_chart(chart_type,0);
+                                    return 0;
+                                } else {
+                                    this.loading_filtered_top_recipients = false;
+                                    data = 'error'
+                                    //return 0;
+                                }
+                            }
 
 
-                    } catch (err) {
-
-                    }   
-                }
+                        } catch (err) {
+                            console.error('Error:', err);
+                            return 0;
+                        }
+                    }
+                //}
 
                 var brightness = 0;
                 var text_color = "black";
@@ -165,20 +305,55 @@
 
                 if (chart_type == 'filtered_top_senders') {
                     this.loading_filtered_top_senders = false;
-                    this.array_filtered_top_senders.forEach((item, index) => {
-                      dataset.push(item['count'])
-                      labels.push(item['mail_from'])
-                    })
+                    if (data !== 'error') {
+                        data.forEach((item, index) => {
+                              dataset.push(item['count'])
+                              if ((item['mail_from'] !== '')&&(item['mail_from'] !== '<>')) {
+                                labels.push(item['mail_from'])
+                              } else {
+                                labels.push('unknown')
+                              }
+                        })
+                    } else {
+                        if (!(this.array_filtered_top_senders.error)) {
+    	                    this.array_filtered_top_senders.forEach((item, index) => {
+    	                      dataset.push(item['count'])
+    	                      if ((item['mail_from'] !== '')&&(item['mail_from'] !== '<>')) {
+                                labels.push(item['mail_from'])
+                              } else {
+                                labels.push('unknown')
+                              }
+    	                    })
+    	                }
+                    }
+
                 }
 
                 if (chart_type == 'filtered_top_recipients') {
                     this.loading_filtered_top_recipients = false;
-                    this.array_filtered_top_recipients.forEach((item, index) => {
-                      dataset.push(item['count'])
-                      labels.push(item['mail_to'])
-                    })
+                    if (data !== 'error') {
+                        data.forEach((item, index) => {
+                              dataset.push(item['count'])
+                              if (item['mail_to'] !== '') {
+                                labels.push(item['mail_to'])
+                              } else {
+                                labels.push('unknown')
+                              }
+                        })
+                    } else {
+                        if (!(this.array_filtered_top_recipients.error)) {
+    	                    this.array_filtered_top_recipients.forEach((item, index) => {
+    	                      dataset.push(item['count'])
+    	                      if (item['mail_to'] !== '') {
+                                labels.push(item['mail_to'])
+                              } else {
+                                labels.push('unknown')
+                              }
+    	                    })
+    	                }
+                    }
                 }
-
+                // 
                 var view_data = {
                   labels: labels,
                   datasets: [{
@@ -192,62 +367,29 @@
                 };
 
                 this.$nextTick(function () {
-                    const ctx = document.getElementById(chart_type);
-                    let chart = new Chart(ctx, {
-                        type: 'bar',
-                        data: view_data,
-                        plugins: [stats_app.noData_plugin],
-                        options: {
-                            indexAxis: 'y',
-                            plugins: {
-                            	noData: {
-                                        color: 'rgba(128, 128, 128, 0.3)',
-                                        text_color: text_color,
-                                        bg_color: bgd_color,
-                                        width: 40,
-                                        radiusDecrease: 20
-                                    },
-                                legend: {
-                                  display: false
-                                }
-                            },
-                            scales: {
-                                x: {
-                                 ticks: {
-                                    fontColor: text_color,
-                                    backdropColor: text_color,
-                                    color: text_color,
-                                    font: {
-                                            size: 15
-                                        }
-                                    }
-                                },
-                                y: {
-                                 ticks: {
-                                    fontColor: text_color,
-                                    backdropColor: text_color,
-                                    color: text_color,
-                                    font: {
-                                            size: 15
-                                        }
-                                    }
-                                 }
-                            },
-                            responsive: true,
-                            maintainAspectRatio: false,
-                        }
-                    });
+                    stats_app.create_chart(chart_type, view_data, bgd_color, text_color)
                 });
             },
             async draw_donut(chart_type,mode) {
-                if (mode == 1) {
+                //if (mode == 1) {
                     // check cache in cookie with expiration
-                    if (this.$parent.getCookie(chart_type)) {
-                        this.loading_overall_pie = true;
-                        // get cached data from cookie
-                        data = JSON.parse(this.$parent.getCookie(chart_type));
+                    if ((this.$parent.getCookie(chart_type))/* && (this.$parent.getCookie(chart_type) !== '{}'*/) {
+
                         if (chart_type == 'overall_pie') {
+                            this.loading_overall_pie = true;
+                            // get cached data from cookie
+                            data = JSON.parse(this.$parent.getCookie(chart_type));
                             this.loading_overall_pie = false;
+                        }
+                        if (chart_type == 'filtered_pie') {
+                            // get cached data from cookie
+                            this.loading_filtered_pie = true;
+                            data = JSON.parse(this.$parent.getCookie(chart_type));
+                            this.loading_filtered_pie = false;
+                        }
+
+                        if (this.check_filters_changes() == 1) {
+                            this.draw_donut(chart_type,0);
                         }
                     } else {
                         try {
@@ -258,7 +400,9 @@
                                     this.draw_donut(chart_type,1);
                                     return 0;
                                 } else {
-                                    return 0;
+                                    this.loading_overall_pie = false;
+                                    data = "error"
+                                    //return 0;
                                 }
                             }
                             if (chart_type == 'filtered_pie') {
@@ -268,19 +412,22 @@
                                     this.draw_donut(chart_type,0);
                                     return 0;
                                 } else {
-                                    return 0;
+                                    this.loading_filtered_pie = false;
+                                    data = "error"
+                                    //return 0;
                                 }
                             }
 
 
                         } catch (err) {
-
+                            console.error('Error:', err);
+                            return 0;
                         }    
                     }
-                } else {
+                /* }else {
                     this.loading_filtered_pie = false;
                     data = this.array_filtered;
-                }
+                }*/
 
                 var brightness = 0;
                 var text_color = "black";
@@ -292,7 +439,11 @@
                 }
 
                 stats_app = this
-                var dataset = [data['sent'], data['deferred'], data['reject'], data['bounced'], data['unknown'], data['multiple']]
+                if (data !== 'error') {
+                    var dataset = [data['sent'], data['deferred'], data['reject'], data['bounced'], data['unknown'], data['multiple']]
+                } else {
+                    var dataset = '';
+                }
                 
 
                 var view_data = {
@@ -312,7 +463,7 @@
                             callbacks: {
                                 label: function(context) {
                                     let label = context.label;
-                                    let value = context.formattedValue;
+                                    let value = context.raw;
 
                                     if (!label)
                                         label = 'Unknown'
@@ -335,38 +486,13 @@
                 };
 
                 this.$nextTick(function () {
-                    const ctx = document.getElementById(chart_type);
-                    let chart = new Chart(ctx, {
-                        type: 'doughnut',
-                        data: view_data,
-                        plugins: [stats_app.noData_plugin],
-                        options: {
-                            plugins: {
-                                noData: {
-                                    color: 'rgba(128, 128, 128, 0.3)',
-                                    text_color: text_color,
-                                    bg_color: bgd_color,
-                                    width: 40,
-                                    radiusDecrease: 20
-                                },
-                                legend: {
-                                    labels: {
-                                        filter: (legendItem, data) => (
-                                            data.datasets[0].data[legendItem.index] != 0 && typeof data.datasets[0].data[legendItem.index] !== 'undefined'
-                                        ),
-                                        color: text_color,
-                                        font: {
-                                            size: 15
-                                        }
-                                    }
-                                },
-                            },
-                            responsive: true,
-                            maintainAspectRatio: false,
-
-                        }
-                    });
+                    stats_app.create_donut(chart_type, view_data, bgd_color, text_color);
                 });
+            },
+            create_cookie_timestamp(){
+                var date = new Date(new Date(Date.now()));
+                date = this.$parent.format_date(date,this.$parent.datetime_format,true);
+                return date;
             },
             // function to fetch data for charts and save cache to cookies? or localStorage?
             async call_stats_data(chart_type){
@@ -379,11 +505,23 @@
                     //console.log("Fetch data for "+chart_type);
                     for (const element of ['sent','deferred','reject','bounced','unknown','multiple']) {
                       url_upd = url+`statuses=`+element;
-                      await this.fetch_stats_data(url_upd,chart_type,element);
+                      response = await this.fetch_stats_data(url_upd,chart_type,element);
                     }
+                    
                     // store to cookie with expiration after hour
-                    document.cookie = chart_type+"="+JSON.stringify(this.array_overall)+"; max-age=3600"
-                    return 1;
+                    if (response == 0) {
+                        return 0;
+                    } else {
+                        if (!(((this.array_overall['sent'] == null) && (this.array_overall['deferred'] == null) && (this.array_overall['reject'] == null) && (this.array_overall['bounced'] == null) && (this.array_overall['unknown'] == null) && (this.array_overall['multiple'] == null)))) {
+                            document.cookie = chart_type+"="+JSON.stringify(this.array_overall)+"; max-age=3600"
+                            
+                            document.cookie = chart_type+"_created="+this.create_cookie_timestamp()+"; max-age=3600"
+                            return 1;
+                        } else {
+                            return this.array_overall
+                        }
+                    }
+
 
                 } else if (chart_type == 'filtered_pie') {
                     var url = base_url, queries = 0;
@@ -405,16 +543,28 @@
                     if (element_status != '') {
                         url_upd = url+`status.code=`+element_status;
                         url_upd += `&page=${this.$parent.page}&limit=${this.$parent.settings.page_limit}`;
-                        await this.fetch_stats_data(url_upd,chart_type,element_status);
-                        return 1;
+                        response = await this.fetch_stats_data(url_upd,chart_type,element_status);
+                        //return 1;
                     } else {
                         for (const element of ['sent','deferred','reject','bounced','unknown','multiple']) {
                           url_upd = url+`status.code=`+element;
                           url_upd += `&page=${this.$parent.page}&limit=${this.$parent.settings.page_limit}`;
-                          await this.fetch_stats_data(url_upd,chart_type,element);
+                          response = await this.fetch_stats_data(url_upd,chart_type,element);
 
                         }
-                        return 1;
+                        //return 1;
+                    }
+                    // store to cookie with expiration after hour
+                    if (response == 0) {
+                        return 0;
+                    } else {
+                        if (!(((this.array_filtered['sent'] == null) && (this.array_filtered['deferred'] == null) && (this.array_filtered['reject'] == null) && (this.array_filtered['bounced'] == null) && (this.array_filtered['unknown'] == null) && (this.array_filtered['multiple'] == null)))) {
+                            document.cookie = chart_type+"="+JSON.stringify(this.array_filtered)+"; max-age=3600"
+                            document.cookie = chart_type+"_created="+this.create_cookie_timestamp()+"; max-age=3600"
+                            return 1;
+                        } else {
+                            return this.array_filtered
+                        } 
                     }
 
                 } else if (chart_type == 'filtered_top_senders'){
@@ -426,8 +576,20 @@
                         queries += 1;
                     }
                     url_upd = url;
-                    await this.fetch_stats_data(url_upd,chart_type,0);
-                    return 1;
+                    response = await this.fetch_stats_data(url_upd,chart_type,0);
+                    // store to cookie with expiration after hour
+                    if (response == 0) {
+                        return 0;
+                    } else {
+                        if (!(this.array_filtered_top_senders.error)) {
+                            document.cookie = chart_type+"="+JSON.stringify(this.array_filtered_top_senders)+"; max-age=3600"
+                            document.cookie = chart_type+"_created="+this.create_cookie_timestamp()+"; max-age=3600"
+                            return 1;
+                        } else {
+                            return this.array_filtered_top_senders
+                        } 
+                    }
+                    //return 1;
                     //console.log("Cache data");
 
                 } else if (chart_type == 'filtered_top_recipients'){
@@ -439,8 +601,20 @@
                         queries += 1;
                     }
                     url_upd = url;
-                    await this.fetch_stats_data(url_upd,chart_type,0);
-                    return 1;
+                    response = await this.fetch_stats_data(url_upd,chart_type,0);
+                    // store to cookie with expiration after hour
+                    if (response == 0) {
+                        return 0;
+                    } else {
+                        if (!(this.array_filtered_top_recipients.error)) {
+                            document.cookie = chart_type+"="+JSON.stringify(this.array_filtered_top_recipients)+"; max-age=3600"
+                            document.cookie = chart_type+"_created="+this.create_cookie_timestamp()+"; max-age=3600"
+                            return 1;
+                        } else {
+                            return this.array_filtered_top_recipients;
+                        }
+                    }
+                    //return 1;
                     //console.log("Cache data");
                 }
 
@@ -449,7 +623,7 @@
             fetch_stats_data(url,chart_type,element){
 
                 return fetch(url).then(function (response) {
-                    return response.json();
+                    return response.clone().json();
                 }).then((res) => {
                     if (chart_type == 'overall_pie') {
                         this.array_overall[element] = res[element];
@@ -465,18 +639,104 @@
                     }
                 }).catch((res) => {
                     console.error('Error:', res);
+                    if ((chart_type == 'overall_pie') || (chart_type == 'filtered_pie')) {
+						this.create_donut(chart_type)
+					} else {
+						this.create_chart(chart_type)
+					}
+                    return 0;
                 });
+            },
+            force_refresh: function (event) {
+                chart_type = event.target.classList[0];
+                // show rotation animation
+                $('.'+chart_type).addClass('rotate');
+                setTimeout(() =>  $('.'+chart_type).removeClass('rotate'), 1000);
+                
+                this.$parent.clear_cookies(chart_type);
+                this.$parent.clear_cookies(chart_type+"_created");
+                this.stop_draws(chart_type);
+                this.run_draws(chart_type);
+            },
+            run_draws(chart_type) {
+
+                //this.stop_draws(chart_type);
+
+                if ((chart_type == 'overall_pie') || (chart_type == 'filtered_pie')) {
+                	// draw donuts
+                    this.draw_donut(chart_type, 1);
+                }
+                if ((chart_type == 'filtered_top_senders') || (chart_type == 'filtered_top_recipients')) {
+                    // draw bars
+                    this.draw_chart(chart_type, 1);
+                }
+            },
+            stop_draws(chart_type) {
+            	//console.log("Forcing draws stop!");
+            	//for (const f of ['overall_pie', 'filtered_pie', 'filtered_top_senders', 'filtered_top_recipients']) {
+					if (Chart.getChart(chart_type) != undefined) {
+					  Chart.getChart(chart_type).destroy();
+					}
+				//}
+            },
+            check_filters_changes(){
+                //console.log(this.$parent.filters_changed)
+                if ((!('filters' in window.localStorage)) ||(window.localStorage['filters'] === 'false')) {
+                    //console.log("Don't cache stats!")
+                    if (this.$parent.filters_changed) {
+                        this.$parent.clear_cookies('filtered_pie');
+                        this.$parent.clear_cookies('filtered_pie_created');
+                        this.$parent.clear_cookies('filtered_top_senders');
+                        this.$parent.clear_cookies('filtered_top_senders_created');
+                        this.$parent.clear_cookies('filtered_top_recipients');
+                        this.$parent.clear_cookies('filtered_top_recipients_created');
+                    }
+                    return 0;
+                } else {
+                    if (this.$parent.filters_changed) {
+                        //console.log("Filter values were changed. Clear filtered stats cookies and recache.")
+                        this.$parent.clear_cookies('filtered_pie');
+                        this.$parent.clear_cookies('filtered_pie_created');
+                        this.$parent.clear_cookies('filtered_top_senders');
+                        this.$parent.clear_cookies('filtered_top_senders_created');
+                        this.$parent.clear_cookies('filtered_top_recipients');
+                        this.$parent.clear_cookies('filtered_top_recipients_created');
+                        return 1;
+                    } else {
+                        //console.log("Caching stats!")
+                        return 0;
+                    }
+                }
             }
+
         },
         mounted() {
-            // draw overall
-            this.draw_donut('overall_pie', 1);
-            // draw filtered
-            this.draw_donut('filtered_pie', 1);
-            // draw filtered top senders
-            this.draw_chart('filtered_top_senders', 1);
-            // draw filtered top recipients
-            this.draw_chart('filtered_top_recipients', 1);
+        	// TODO do msomething to check visibility of stats and run draw functions
+
+            if ((localStorage.getItem("hidden_stats") === null) || (localStorage.getItem("hidden_stats") === 'false'))  {
+                $('#charts-wrapper').show();
+                this.$parent.hidden_stats = false;
+                this.run_draws('overall_pie');
+                this.run_draws('filtered_pie');
+                this.run_draws('filtered_top_senders');
+                this.run_draws('filtered_top_recipients');
+                
+                //$('#current_user').hide();
+            } else {
+                $('#charts-wrapper').hide();
+                this.$parent.hidden_stats = true;
+                this.stop_draws('overall_pie');
+                this.stop_draws('filtered_pie');
+                this.stop_draws('filtered_top_senders');
+                this.stop_draws('filtered_top_recipients');
+                //$('#current_user').show();
+            }
+
+        	/*if ((localStorage.getItem("hidden_stats") === null) || (localStorage.getItem("hidden_stats") === 'false'))  {
+				this.$parent.hidden_stats = false;
+        	} else {
+        		this.$parent.hidden_stats = true;
+        	}
+        	this.$parent.toggleHide('#charts-wrapper')*/
         }
     });
-

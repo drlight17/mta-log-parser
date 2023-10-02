@@ -38,7 +38,7 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.4"
+VERSION ="1.5"
 
 # postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
 #postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
@@ -52,7 +52,8 @@ postf_match = r'.*\:[ \t]([A-Z0-9]{1,15})\:[ \t]+?(.*)'
 #exim_match += r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+|\d{4}-\d{2}-\d{2}.\d{2}\:\d{2}\:\d{2}.([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
 #exim_match += r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
 #exim_match += r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
-exim_match = r'.*([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
+#exim_match = r'.*([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
+exim_match = r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
 """Regex to match the (1) Message ID and the (2) Log Message"""
 
 # sendmail regexp
@@ -85,7 +86,6 @@ else:
     exit()
 
 match = re.compile(_match)
-
 
 class ObjectExists(BaseException):
     pass
@@ -162,14 +162,22 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             line = f.readline().decode(errors='replace')
             if not line: break
 
-            m = match.match(line)
-            #print(line)
-            
+            #m = match.match(line)
+            # change to search for exim
+            if settings.mta == 'exim':
+                m = match.search(line)
+            else:
+                m = match.match(line)
+            #print(m)
+
             if not m: continue
             #print(m.group(0))
 
             # TODO test new universal datetime extractor instead of regexps (cut first 20 symbols from the string)
-            dtimes = datefinder.find_dates(m.group(0)[:20])
+            # change to line for exim
+            #dtimes = datefinder.find_dates(m.group(0)[:20])
+            dtimes = datefinder.find_dates(line[:20])
+            #print(line[:20])
 
             for dtime in dtimes:
                 dtime = dtime
@@ -319,6 +327,7 @@ async def main():
                 m['subject'] = decodev2(m.get('subject'))
             except:
                 m['subject'] = m.get('subject')
+
             mfrom, mto = m.get('mail_from'), m.get('mail_to')
             """samoilov to fix index out of range error"""
 
@@ -343,7 +352,7 @@ async def main():
                 continue
             # check if there are many recipients
             if m.get('id') in set(multiple_recipients):
-                print("There multiple recipients in ",m.get('id'))
+                #print("There multiple recipients in ",m.get('id'))
                 m['mail_to'] += " and more (check log lines)"
                 m['status']['code'] = 'multiple'
                 m['status']['message'] = 'multiple, see log lines below'

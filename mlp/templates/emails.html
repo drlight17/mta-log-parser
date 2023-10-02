@@ -106,7 +106,7 @@
         </div>
     </div>
 
-	<stats v-if="!loading"></stats>
+	<stats v-if="!loading" ref="statsRef"></stats>
 
     <div id="filters-wrapper" v-if="!loading" class="ui segment stackable two column grid">
         <div class="seven wide column">
