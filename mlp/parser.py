@@ -32,7 +32,8 @@ postf_client = re.compile(r'.*client=([a-zA-Z0-9-._]+)\[(.*)\]')
 
 # exim regexp
 exim_to = re.compile(r'.*>.(.*).R=')
-exim_from = re.compile(r'.*<=.(.*).H=|.*F=<(.*)>')
+exim_from = re.compile(r'.*<=.(.*).[U|H]=|.*F=<(.*)>')
+#exim_from = re.compile(r'.*<=.(.*).H=|.*F=<(.*)>')
 #exim_from = re.compile(r'.*<=.(.*).H=|.*F=<(.*)>|.*\*\*.(.*).R=')
 exim_subject = re.compile(r'.*Subject:\s(.*)')
 exim_size = re.compile(r'.*S=([0-9]{1,}).*')

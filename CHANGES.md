@@ -10,6 +10,11 @@ Unreleased VER.
 - fix sort icon to the same shevrons as main menu gui show/hide buttons  
 - upgrade procedure from GUI (?) if decided to do so use [this manual](https://stackoverflow.com/questions/32163955/how-to-run-shell-script-on-host-from-docker-container/63719458#63719458)
 
+VER. 1.5.1
+- ~~exim mail_from parser improvement~~
+- ~~quart + werkzeug versions pip fix~~
+- ~~filter notie message doubling fix~~
+
 VER. 1.5
 - ~~BUG: exim regexp for qid sometimes no mail_from match!~~
 - ~~use between instead of filter in emails api~~

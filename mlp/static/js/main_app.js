@@ -243,10 +243,16 @@ const app = Vue.createApp({
             }
         },*/
         check_date_lt () {
-            if (window.app.settings.filters) {
-                if (window.app.date_filter__gt == '') {
-                    notie_message = "empty_date_lt";
-                    window.app.notieMessages ();
+            if (this.path_page == 2) {
+                if (window.app.settings.filters) {
+                    if (window.app.date_filter__gt == '') {
+                        if (this.localeData.notie.twenty_two == undefined) {
+                            text = this.fallbackLocaleData.notie.twenty_two
+                        } else {
+                            text = this.localeData.notie.twenty_two
+                        }
+                        notie.alert({type: 'warning', text: text, time: 10});
+                    }
                 }
             }
         },
@@ -1688,14 +1694,6 @@ const app = Vue.createApp({
                 }
                 notie.alert({type: 'warning', text: text, stay: 'true'});
             }
-            if (notie_message == 'empty_date_lt') {
-                if (this.localeData.notie.twenty_two == undefined) {
-                    text = this.fallbackLocaleData.notie.twenty_two
-                } else {
-                    text = this.localeData.notie.twenty_two
-                }
-                notie.alert({type: 'warning', text: text, time: 10});
-            }
         },
         getCookie(name) {
           let matches = document.cookie.match(new RegExp(
@@ -1911,7 +1909,7 @@ const app = Vue.createApp({
             /*if (navigator.userAgent.search("Firefox") > -1) {
                 setTimeout(() => $('#marquee_sw input').prop('disabled', true), 1000);
             }*/
-            this.check_date_lt();
+            //this.check_date_lt();
 			this.notieMessages ();
 
             // focus on password input timeout
