@@ -93,7 +93,7 @@ const app = Vue.createApp({
         },
         isDisabled() {
             return (
-                this.search_by!== "id" || this.search.length > 0 || this.status_filter !== "NOFILTER" || this.date_filter__gt.length > 0 || this.date_filter__lt.length > 0
+                 (this.search_by!== "id" || this.search.length > 0 || this.status_filter !== "NOFILTER" || this.date_filter__gt.length > 0 || this.date_filter__lt.length > 0) && !this.search_error
                 )
         },
         has_error() {
@@ -121,47 +121,32 @@ const app = Vue.createApp({
                 $('#text_search').focus();
                 $('#text_search').css('color','red');
                 this.search_error = true;
-                //this.search = this.search.slice(0,-1);
-                //return;
             } else {
-                // no need after ver.1.1.5 query update
-                //if (this.search_by !== "log_lines") {
-                    if (this.settings.dark) {
-                        $('#text_search').css('color', 'white');
-                    } else {
-                        $('#text_search').css('color', 'initial');
-                    }
-                    if (this.settings.filters) {
-                        this.saveFilters();
-                        
-                    } else {
-                        $('#default_period_div').show();
-                    }
-                    this.filters_changed = true;
-                    this.search_error = false;
-                    this.reset_page();
+                if (this.settings.dark) {
+                    $('#text_search').css('color', 'white');
+                } else {
+                    $('#text_search').css('color', 'initial');
+                }
+                if (this.settings.filters) {
+                    this.saveFilters();
                     
-                // no need after 1.4 run as search by button
-                //this.debounce_emails(true);
+                } else {
+                    $('#default_period_div').show();
+                }
+                this.filters_changed = true;
+                this.search_error = false;
+                this.reset_page();
             }
         },
         search_by(val) {
             if (this.search !== "") {
-                // no need after ver.1.1.5 query update
-                //if (this.search_by !== "log_lines") {
-                    if (this.settings.filters) {
-                        this.saveFilters();
-                    } else {
-                        $('#default_period_div').show();
-                    }
-                    this.filters_changed = true;
-                    this.reset_page();
-                    
-                //} else {
-                //    this.setDuration_Log_lines();
-                //}
-                // no need after 1.4 run as search by button
-                //this.debounce_emails(true);
+                if (this.settings.filters) {
+                    this.saveFilters();
+                } else {
+                    $('#default_period_div').show();
+                }
+                this.filters_changed = true;
+                this.reset_page();
             }
         },
         status_filter(val) {
@@ -177,19 +162,11 @@ const app = Vue.createApp({
             if (val == '' ) {
                 this.check_date_lt();
             }
-            // no need after ver.1.1.5 query update
-            //if (this.search_by !== "log_lines") {
-                //if (this.settings.filters) {
-                    this.saveFilters();
-                //}
-                //window.localStorage['saved_filters.date_filter__gt'] = this.date_filter__gt;
-                this.filters_changed = true;
-                this.reset_page();
-                
-            //}  else {
-            //    this.setDuration_Log_lines();
-            //}
-            // do not debounce on datestart change ???
+            this.saveFilters();
+            this.filters_changed = true;
+            this.reset_page();
+
+            // do not debounce on datestart change
             this.debounce_emails(true);
         },
         date_filter__lt(val) {
@@ -224,24 +201,11 @@ const app = Vue.createApp({
 			}
 
 		},
-
-        // excel parser
-        /*exportDataFromJSON(data, newFileName, fileExportType) {
-            data.forEach(function(element, index){
-                delete element.client;
-                delete element.lines;
-                delete element.relay;
-            })
-
-            if (!data) return;
-            try {
-              const fileName = newFileName || "exported-data";
-              const exportType = exportFromJSON.types[fileExportType || "xls"];
-              return exportFromJSON({ data, fileName, exportType });
-            } catch (e) {
-              throw new Error("Parsing failed!");
+        check_button() {
+            if (this.isDisabled) {
+                this.debounce_emails(true);
             }
-        },*/
+        },
         check_date_lt () {
             if (this.path_page == 2) {
                 if (window.app.settings.filters) {
@@ -266,7 +230,10 @@ const app = Vue.createApp({
              XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }):
              XLSX.writeFile(wb, fn || ('exported-data_' + cur_date + '.' + (type || 'xlsx')));
         },
-    		// bind arrow keys for modal left and right buttons
+        arrowKeyUnBind() {
+            document.onkeydown = null;
+        },
+    	// bind arrow keys for modal left and right buttons
 		arrowKeyBind(modal) {
 			document.onkeydown = function(e) {
 			    switch(e.which) {
@@ -400,10 +367,8 @@ const app = Vue.createApp({
         },
         //seconds to hours and days converter
         ConvertSeconds(totalSeconds,show_sec) {
-            //return (new Date(num * 1000).toISOString().substring(14, 19));
             d = Math.floor(totalSeconds/60/1440); // 60*24
             h = Math.floor((totalSeconds/60-(d*1440))/60);
-            //h = Math.floor(totalSeconds / 3600);
             totalSeconds %= 3600;
             m = Math.floor(totalSeconds / 60);
             s = totalSeconds % 60;
@@ -466,7 +431,7 @@ const app = Vue.createApp({
     					window.localStorage.setItem("hidden_settings_tips", false);
                         window.app.hidden_settips = false;
                     }
-                     if (object == '#charts-wrapper') {
+                    if (object == '#charts-wrapper') {
                         window.localStorage.setItem("hidden_stats", false);
                         window.app.hidden_stats = false;
                         // force clear stats cookies before show filtered stats
@@ -480,22 +445,10 @@ const app = Vue.createApp({
 						$(window.app.$refs.statsRef.run_draws('filtered_pie'));
                         $(window.app.$refs.statsRef.run_draws('filtered_top_senders'));
                         $(window.app.$refs.statsRef.run_draws('filtered_top_recipients'));
-                     }
-    					
-                    //$('#current_user').hide();
+                    }
 				}
             });  
         },
-        /*apply_marquee(found_table,vue) {              
-            // do not marquee in mobile mode
-            if (window.matchMedia('(min-width: 767px)').matches) {
-                found_table.on('resize', function(event, columns) {
-                    $(".emails-list td:not(:last-child):not(.exclude-marquee)").unbind().marquee();
-                });
-
-                $(".emails-list td:not(:last-child):not(.exclude-marquee), .emails-list th:not(.exclude-marquee)").marquee();
-            }
-        },*/
         reset_page() {
             this.page_reset = true;
             this.page_count = 1;
@@ -520,7 +473,6 @@ const app = Vue.createApp({
                 });
                 $('.JCLRgrips').remove();
             }
-            //console.log($found_table);
             $found_table.colResizable({
                 postbackSafe: true,
                 useLocalStorage: true,
@@ -559,16 +511,13 @@ const app = Vue.createApp({
             }
             if (multiple_check >=0) {
 				str_to_localize = object.text().substr(multiple_check, object.text().length);
-            	//console.log (str_to_localize);
             	localized_str = object.text().replace(str_to_localize, text);
             	object.text(localized_str);
             }
         },
         multiple_localize(object) {
             //console.log("Rewrite multiple status and message");
-            //console.log(object);
             multiple_check = object.text().indexOf(' and more');
-            //console.log(multiple_check);
             if (this.localeData.emails_list.multiple == undefined) {
                 text1 = this.fallbackLocaleData.emails_list.multiple
             } else {
@@ -576,7 +525,6 @@ const app = Vue.createApp({
             }
             if (multiple_check >=0) {
             	str_to_localize = object.text().substr(multiple_check, object.text().length);
-            	//console.log (str_to_localize);
             	localized_str = object.text().replace(str_to_localize, text1);
             	object.text(localized_str);
             }
@@ -622,7 +570,6 @@ const app = Vue.createApp({
 
                     // localize multiple mail_to
                     object = $(obj).find('span');
-                    //console.log(object)
                     search_str = window.app.multiple_localize(object);
 
                     object.attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
@@ -692,9 +639,7 @@ const app = Vue.createApp({
                 var isDark = (window.localStorage['dark'] === 'true');
                 $('#loading-modal').modal({closable: false,blurring: this.settings.blurring,inverted: !isDark}).modal('show');
             } else {
-                //setTimeout(() => $('#loading-modal').modal('hide'), 500);
                 $('#loading-modal').modal('hide');
-                //setTimeout(() => $("#main-wrapper").show(), 500);
                 $("#main-wrapper").show()
                 this.loading = false;
             }
@@ -702,8 +647,6 @@ const app = Vue.createApp({
         check_nothing_found(count,table,error) {
             // if no results don't show table and show notification
             if (count == 0) {
-                // make delay for notie only, not hide operations
-                //setTimeout(() => {
                 if (!(error)) {
                     if (this.localeData.notie.nine == undefined) {
                         text = this.fallbackLocaleData.notie.nine
@@ -719,13 +662,12 @@ const app = Vue.createApp({
                     }
                     notie.alert({type: 'error', text: text, stay: true });
                 }
-                //}, wait);
+
                 table.hide();
                 $('.JCLRgrips').hide();
             }
         },
         loadAccounts() {
-            //var url = base_url2, queries = 0;
             var url = base_url2;
             var no_results = false;
 
@@ -733,7 +675,6 @@ const app = Vue.createApp({
                 return response.json();
             }).then((res) => {
                 this.accounts = res;
-                //console.log(this.accounts)
             })
 
         },
@@ -839,18 +780,6 @@ const app = Vue.createApp({
             // call to resresh countdown
             this.setRefresh();
 
-            // show 
-            // no need after ver.1.1.5 query update
-            /*if (this.search_by == "log_lines") {
-                wait = 3000;
-                if (this.localeData.notie.three == undefined) {
-                    text = this.fallbackLocaleData.notie.ten
-                } else {
-                    text = this.localeData.notie.ten
-                }
-                notie.alert({type: 'warning', text: text});
-            }*/        
-
             // check if search_error clear search text
             if (this.search_error) {
                 this.search = "";
@@ -859,8 +788,6 @@ const app = Vue.createApp({
             // show loading modal on emails load
             if (refresh) {
                 $('#main-wrapper').hide();
-                // 17.07.2023 TODO check if nothing is broken
-                // 27.08.2023 TODO breaks #update_available show
                 if (!(this.loading)) {
                     this.toggleLoading(true);
                 }
@@ -872,7 +799,6 @@ const app = Vue.createApp({
             // load saved sort
             this.loadSort();
 
-            //console.log("Current filters: "+JSON.stringify(this.email_filter));
             for (var f in this.email_filter) {
                 url += (queries === 0) ? '?' : '&';
                 url += `${f}=${this.email_filter[f]}`;
@@ -901,10 +827,6 @@ const app = Vue.createApp({
     	                this.page_count = res['total_pages'];
     	                this.count = res['count'];
 
-    	                // to avoid setTimeout
-    	                /*if (!(this.loading)) {
-    	                    this.toggleLoading(true);  
-    	                }*/
     	                this.toggleLoading(false);
     	                // check for updates
     	                this.updateCheck();
@@ -921,9 +843,7 @@ const app = Vue.createApp({
     	                        // scroll to the table top
     	                        if ($found_table.find('td:first').length > 0) {
     	                            const element = $found_table.find('td:first')[0];
-    	                            //console.log(thead.height());
     	                            var yOffset = 0;
-                                    //console.log(window.screen.width)
     	                            if (this.settings.resizable) {
                                         if (window.screen.width >= 768) {
                                             // desktop
@@ -946,7 +866,10 @@ const app = Vue.createApp({
     	                            // scrolling offset by hide-sticky-header-button height
     	                            window.scrollTo({top: y, behavior: 'smooth'});
     	                        }
-    	                    }
+    	                    } else {
+                                // set timestamp_gt if saving filters is off and refresh is false
+                                window.app.setDuration();
+                            }
     	                    // style selected column for sort
     	                    $found_table.find('#'+this.order).removeClass().addClass(this.order_dir);
     	                    // if no results don't process empty table
@@ -982,8 +905,6 @@ const app = Vue.createApp({
     	                        if (this.settings.resizable) {
     	                            // add class resizable
     	                            $found_table.addClass('resizable');
-    	                            // dirty fix of callResizableTableColumns with 500 ms timeout
-    	                            //setTimeout(() => this.callResizableTableColumns($found_table), 500);
     	                            this.callResizableTableColumns($found_table);
 
     	                            if (this.localeData.user_settings.resizable_title_tip == undefined) {
@@ -994,7 +915,6 @@ const app = Vue.createApp({
     	                            thead.find('th').attr('title',text)
     	                            // reset colResizable() widths states
     	                            thead.find('th:not(#refresh-button)').one( "contextmenu", function() {
-    	                                //console.log("colResizable() widths are reset!");
     	                                window.localStorage.removeItem($found_table.attr('id'));
     	                                window.app.loadEmails(true);
     	                                return false;
@@ -1006,10 +926,6 @@ const app = Vue.createApp({
     	                        }
     	                    }
 
-    	                    // to apply marquee
-    	                    /*if (this.settings.marquee) {
-    	                        this.apply_marquee($found_table, this);
-    	                    }*/
     	                    // styling of statuses and status filter dropdown
     	                    if (!$found_table.find('td:nth-child(3)').hasClass('styled')) {
     	                        $found_table.find('td:nth-child(3):contains("deferred")').addClass('styled').prepend(this.settings.status_icon['deferred']);
@@ -1031,10 +947,8 @@ const app = Vue.createApp({
     	                            if (this.settings.dark) {
     	                                if (x != 'NOFILTER') {
     	                                    color = this.shadeColor(color,-40);
-    	                                    //text_color = "white";
     	                                } else {
     	                                    color = this.settings.status_color.NOFILTER_dark;
-    	                                    //text_color = filter_email[0].style.Color;
     	                                }
     	                                text_color = "white";
     	                            }
@@ -1046,12 +960,11 @@ const app = Vue.createApp({
 
     	                        // coloring current selected option
 
-    	                        //if (filter_email[0].options[filter_email[0].selectedIndex].value !='NOFILTER') {
-    	                            filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
-    	                            filter_email.one('change', function () {
-    	                                filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
-    	                            });
-    	                        //} 
+	                            filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
+	                            filter_email.one('change', function () {
+	                                filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
+	                            });
+
     	                    }
     	                    // styling sorted column
     	                    var sort_column = thead.find('th.asc, th.desc');
@@ -1074,7 +987,6 @@ const app = Vue.createApp({
     	                    // samoilov add calendar date picker fields
     	                    $('#rangestart').calendar({
     	                      onChange: function(date, text, mode) {
-    	                          //console.log('change: ' + date + "  text: " + text + "  mode: " + mode)
     	                          // fomat date to iso8601
     	                          window.app.date_filter__gt = text;
     	                      },
@@ -1090,11 +1002,8 @@ const app = Vue.createApp({
     	                    });
     	                    $('#rangeend').calendar({
     	                      onChange: function(date, text, mode) {
-    	                          //console.log('change: ' + date + "  text: " + text + "  mode: " + mode)
     	                          // fomat date to iso8601
     	                          window.app.date_filter__lt = text;
-    	                          //$(".ui.popup.left").removeClass("visible").addClass("invisible");
-    	                          //$('#rangestart').calendar('clear');
     	                      },
     	                      text: this.localeData.calendar,
     	                      startCalendar: $('#rangestart'),
@@ -1117,11 +1026,9 @@ const app = Vue.createApp({
                         this.toggleLoading(false);
                         this.filters_changed = false;
                         this.waitForElm('#emails-list').then((elm) => {
-                            //console.log(elm)
                             window.app.additional_styling(elm);
                             window.app.check_nothing_found(this.count,$(elm),true);
                         })
-                        //window.app.additional_styling(element);
                     }
                 });
             }
@@ -1130,11 +1037,9 @@ const app = Vue.createApp({
                 this.toggleLoading(false);
                 
                 this.waitForElm('#auth-list').then((elm) => {
-                    //console.log(elm)
                     window.app.additional_styling(elm);
                     this.loadAccounts();
                 })
-                
             }
 
             if (this.path_page == 0) {
@@ -1154,16 +1059,9 @@ const app = Vue.createApp({
             //this.notieMessages ();
 
             this.$nextTick(function () {
-                // check if we are on login or api_error screen
-                /*if (!(($("div.logo.login").length > 0) || ($(".api_error_container").length > 0))) {
-                    this.check_nothing_found(0,$(element),true);
-                }*/
                 // set dark mode
                 this.setDark($(element));
                 $(element).show();
-                // to avoid setTimeout
-                //this.toggleLoading(true);
-                //this.toggleLoading(false);
                 this.updateCheck();
             });
             
@@ -1187,7 +1085,6 @@ const app = Vue.createApp({
             // clear stats
             this.clear_cookies('filtered_pie');
             this.clear_cookies('filtered_pie_created');
-            //this.clear_cookies('overall_pie');
             this.clear_cookies('filtered_top_senders');
             this.clear_cookies('filtered_top_senders_created');
             this.clear_cookies('filtered_top_recipients');
@@ -1199,8 +1096,6 @@ const app = Vue.createApp({
         show_acc_modal(a,index,type) {
         	this.edit_type = type;
 
-        	//console.log("Edit type: "+this.edit_type)
-
             modal = $('#acc-modal');
 
             if (this.edit_type) {
@@ -1211,8 +1106,6 @@ const app = Vue.createApp({
             	this.index = '';	
             }
 
-
-            //this.msg_length = m.length;
             modal.modal({
                 onHidden: function () {
                     $('body').removeClass('scrolling');
@@ -1231,6 +1124,7 @@ const app = Vue.createApp({
             $('#mail-modal').modal({
             onHidden: function () {
                 $('body').removeClass('scrolling');
+                window.app.arrowKeyUnBind();
             },
             onVisible: function () {
             	window.app.arrowKeyBind($(this)[0]);
@@ -1244,11 +1138,6 @@ const app = Vue.createApp({
             $('body').addClass('scrolling');
             // apply styling to modal
             this.$nextTick(function () {
-
-            	// add event handlers and set
-                // set focus on  arrow
-            	//$('.next_email').focus();
-
                 $('#mail-modal > div.header > span > i').remove();
                 $('#mail-modal > div.header > span').prepend(this.settings.status_icon[m[index].status.code]);
                 // TLS encryption logo and title
@@ -1272,9 +1161,6 @@ const app = Vue.createApp({
                 window.app.multiple_status_localize($('#email-metadata code'));
 
                 if (this.settings.colored) {
-
-                    /*$('#email-metadata td:contains("'+m.status.code+'")').css('background-color',this.settings.status_color[m.status.code].slice(0, -2) + '.4)');
-                    $('.ui.modal>.header').css('background-color',this.settings.status_color[m.status.code].slice(0, -2) + '.4)');*/
                     var brightness = 0;
                     if (this.settings.dark) {
                         brightness = -40;
@@ -1285,8 +1171,6 @@ const app = Vue.createApp({
 
                 } else {
                     // change to inherit due to dark mode changes
-                    //$('#email-metadata td:contains("'+m.status.code+'")').css('background-color',this.settings.status_color['NOFILTER']);
-                    //$('.ui.modal>.header').css('background-color',this.settings.status_color['NOFILTER']);
                     $('#email-metadata td:contains("'+m[index].status.code+'")').css('background-color','inherit');
                     $('.ui.modal>.header').css('background-color','inherit');
                 }
@@ -1361,7 +1245,6 @@ const app = Vue.createApp({
             if (this.settings.filters) {
                 // don't clearup date_filter__gt for optimization purposes! show warning!
                 //this.date_filter__gt = "";
-                //console.log("Queries without date filter will significally slow down the performance!")
                 if (this.localeData.notie.twenty_one == undefined) {
                     text = this.fallbackLocaleData.notie.twenty_one
                 } else {
@@ -1372,7 +1255,6 @@ const app = Vue.createApp({
             } else {
                 this.setDuration();
             }
-            //this.date_filter__gt = this.setDuration();
             this.date_filter__lt = "";
             var text_color = 'black';
             if (this.settings.dark) {
@@ -1382,28 +1264,17 @@ const app = Vue.createApp({
                 color = this.settings.status_color.NOFILTER;
             }
             $("#filter-email").css({'background-color':color,'color': text_color});
-            //notie.alert({type: 'warning', text: 'All filters are reset successfully'});
             if (this.localeData.notie.four == undefined) {
                 text = this.fallbackLocaleData.notie.four
             } else {
                 text = this.localeData.notie.four
             }
-            //notie.alert({type: 'warning', text: text});
             this.reset_page();
             this.debounce_emails(true);
         },
         saveCurPage() {
             window.localStorage['cur_page']=this.page;
         },
-        // no need after ver.1.1.5 query update
-        /*setDuration_Log_lines() {
-            $('#default_period_div').hide();
-            var startdate = new Date(new Date(Date.now()) - 24 * 60 * 60000);
-            startdate = this.format_date(startdate,datetime_format,true);
-            this.date_filter__gt = startdate;
-            this.date_filter__lt = "";
-            this.saveFilters();
-        },*/
         setDuration() {
             this.$nextTick(function () {
                 if (!(this.settings.filters)) {
@@ -1450,7 +1321,6 @@ const app = Vue.createApp({
         },
         setDark(table) {
             this.$nextTick(function () {
-                //console.log(window.app.settings.dark);
                 if ('dark' in window.localStorage) {
                     if (window.localStorage['dark'] === 'true') {
                         $('#app').addClass('dark');
@@ -1458,9 +1328,7 @@ const app = Vue.createApp({
                         $('#user-settings-wrapper > div').addClass('inverted');
                         $('#tips > div').addClass('inverted');
                         $('#filters-wrapper').addClass('inverted');
-                        //$('.ui.menu').addClass('inverted');
                         $('#charts-wrapper').addClass('inverted');
-                        //$('.dimmer').addClass('inverted');
                         if (table) {
                             table.addClass('inverted');
                         }
@@ -1483,7 +1351,6 @@ const app = Vue.createApp({
                         $('#user-settings-wrapper > div').removeClass('inverted');
                         $('#tips > div').removeClass('inverted');
                         $('#filters-wrapper').removeClass('inverted');
-                        //$('.ui.menu').removeClass('inverted');
                         $('#charts-wrapper').removeClass('inverted');
                         if (table) {
                             table.removeClass('inverted');
@@ -1533,18 +1400,14 @@ const app = Vue.createApp({
                 this.setRefresh();
 
                 if (reload) {
-                    //location.reload();
                     // show loading modal before reload
                     this.toggleLoading(true);
-                    // timeout to show notie
-                    //setTimeout(() => location.reload(), 2000);
                     location.reload();
                 } else {
                     this.debounce_emails(true);
                 }
 
             }
-            // notie.alert('success', `User settings ${update_type} successfully`)
         },
         // function for setTimeout in waiting loops
         waitForElm(selector) {
@@ -1567,9 +1430,6 @@ const app = Vue.createApp({
             });
         },
         notieMessages () {
-            
-            //console.log(notie_message);
-
             // if current browser locale is not supported
             if (window.localStorage["falled_back"]) {
                 text = "Current browser «"+ navigator.language.toUpperCase() + "» locale is not supported. Falling back to default «EN» locale!";
@@ -1645,14 +1505,7 @@ const app = Vue.createApp({
                 }
                 notie.alert({type: 'error', text: text});
             }
-            /*if (notie_message == 'passwords_not_same') {
-                if (this.localeData.notie.eleven == undefined) {
-                    text = this.fallbackLocaleData.notie.eleven
-                } else {
-                    text = this.localeData.notie.eleven
-                }
-                notie.alert({type: 'error', text: text});
-            }*/
+
             if (notie_message == 'no_users_found') {
                 if (this.localeData.notie.thirteen == undefined) {
                     text = this.fallbackLocaleData.notie.thirteen
@@ -1715,13 +1568,6 @@ const app = Vue.createApp({
             }
         },
         upgradeCheck (){
-        	// store current mlp version for automatic localStorage and cookie cleanup after mlp upgrade 
-        	/*if (!(this.getCookie('mlp_current_version'))) {
-        		document.cookie = "mlp_current_version="+parser_version+"; max-age=2147483647";
-        	}*/
-        	//console.log(this.getCookie('mlp_current_version'));
-			//console.log(parser_version);
-
         	if ((!(this.getCookie('mlp_current_version')))||(this.getCookie('mlp_current_version') != parser_version)) {
         		// clear localstorage
         		localStorage.clear();
@@ -1778,12 +1624,8 @@ const app = Vue.createApp({
                     console.log(JSON.parse(JSON.stringify(json_data_fallback)))
                 })
             } else {
-                //console.log(parser_version);
-                //console.log(this.getCookie('mlp_latest_version'));
                 if (parser_version != this.getCookie('mlp_latest_version')) {
-
                     window.app.waitForElm('#footer > div > span:nth-child(2)').then((elm) => {
-                        //alert(elm);
                         if (window.app.localeData.footer.four == undefined) {
                             text = window.app.fallbackLocaleData.footer.four
                         } else {
@@ -1796,7 +1638,6 @@ const app = Vue.createApp({
                         }
 
                         if ($('#update_available').length == 0) {
-                            //console.log($(elm));
                             $(elm).append(' | '+'<span id="update_available" class="blinking">'+text+" <a href='https://github.com/drlight17/mta-log-parser/releases/latest' target='_BLANK'>"+this.getCookie('mlp_latest_version')+"</a>"+text2+'</span>');
                         }
                     });
@@ -1821,7 +1662,6 @@ const app = Vue.createApp({
 
         // fix of footer position
         this.waitForElm('#footer').then((elm) => {
-            //$(elm).addClass('inverted');
             if ($("div.logo.login").length > 0) {
                 $(elm).css({'position':'absolute', 'bottom': 0, 'width': '99%'});
             }
@@ -1846,13 +1686,6 @@ const app = Vue.createApp({
         if (path.split('/').reverse()[0] == 'emails') {
         	this.path_page = 2;
         }
-        //console.log(this.path_page);
-        // check if we are on auth page
-        /*this.waitForElm('#auth-list').then((elm) => {
-            this.loadAccounts();
-            // set dark mode
-            this.setDark($(elm));
-        });*/
 
         // set refresh interval
         this.setRefresh();
@@ -1886,7 +1719,6 @@ const app = Vue.createApp({
             }
         }
 
-
         this.$nextTick(function () {
 
 	        // check hidden tips and settings
@@ -1894,22 +1726,15 @@ const app = Vue.createApp({
 	        if ((localStorage.getItem("hidden_settings_tips") === null) || (localStorage.getItem("hidden_settings_tips") === 'false'))  {
 	        	$('.settips').show();
 	        	this.hidden_settips = false;
-                //$('#current_user').hide();
 	        } else {
 	        	$('.settips').hide();
 	        	this.hidden_settips = true;
-                //$('#current_user').show();
 	        }
 
             // apply mail domain from current domain URL if .env MAIL_DOMAIN is empty
             if (mail_domain == '') {
                 $('h1 > span').text(window.location.hostname);
             }
-            // if cur browser is mozilla turn off marquee function dirty with timeout
-            /*if (navigator.userAgent.search("Firefox") > -1) {
-                setTimeout(() => $('#marquee_sw input').prop('disabled', true), 1000);
-            }*/
-            //this.check_date_lt();
 			this.notieMessages ();
 
             // focus on password input timeout
@@ -1919,7 +1744,6 @@ const app = Vue.createApp({
             });
 
             // check if we are on login or api_error screen
-            //if (($("div.logo.login").length > 0) || ($(".api_error_container").length > 0)) {
             if (this.path_page == 0) {
             	if (notie_message != "mlp_upgraded") {
 	                this.toggleLoading(false);
@@ -1940,9 +1764,7 @@ const app = Vue.createApp({
               zIndex: 5,
               cornerOffset: 30
             });
-
             this.filters_changed = false;
-
         });
     }
 });

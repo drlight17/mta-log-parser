@@ -10,6 +10,12 @@ Unreleased VER.
 - fix sort icon to the same shevrons as main menu gui show/hide buttons  
 - upgrade procedure from GUI (?) if decided to do so use [this manual](https://stackoverflow.com/questions/32163955/how-to-run-shell-script-on-host-from-docker-container/63719458#63719458)
 
+VER. 1.5.2
+- ~~remove arrow key binding after modal close~~
+- ~~filter on stats click~~
+- ~~auto refresh must change timestamp_lt~~
+- ~~fix maximum call stack size exceeded when draw_donut is called~~
+
 VER. 1.5.1
 - ~~exim mail_from parser improvement~~
 - ~~quart + werkzeug versions pip fix~~

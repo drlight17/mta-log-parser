@@ -100,8 +100,6 @@
 	                  ctx.stroke();
 	                } else {
                         // add watermarked current timestamp
-                        //ctx.globalCompositeOperation='destination-over'; // reverse z-index of canvas drawing
-                        //ctx.globalCompositeOperation = 'xor';
                         if (chart.config._config.type == 'doughnut') {
                             fontSize = (chart.height / 400).toFixed(2);
                             ch_height = chart.height/1.3
@@ -117,12 +115,7 @@
                         ctx.textBaseline = 'bottom';
                         ctx.font = fontSize + "rem Arial";
                         ctx.fillStyle = text_color;
-                        //console.log(chart.canvas.id)
-                        //console.log(datetime_format)
                         timestamp = stats_app.$parent.format_date(stats_app.$parent.getCookie(chart.canvas.id+"_created"),datetime_format,false);
-
-                        //timestamp = stats_app.$parent.getCookie(chart.canvas.id+"_created");
-
                         ctx.fillText(stats_app.$parent.localeData.cached + " " + timestamp, ch_width, ch_height);
                         ctx.closePath();
                         ctx.globalAlpha = 1;
@@ -139,85 +132,142 @@
         },
         methods: {
         	create_donut (chart_type, view_data, bgd_color, text_color) {
-    			const ctx = document.getElementById(chart_type);
-                let chart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: view_data,
-                    plugins: [stats_app.noData_plugin],
-                    options: {
-                        plugins: {
-                            noData: {
-                                color: 'rgba(128, 128, 128, 0.3)',
-                                text_color: text_color,
-                                bg_color: bgd_color,
-                                width: 40,
-                                radiusDecrease: 20
-                            },
-                            legend: {
-                                labels: {
-                                    filter: (legendItem, data) => (
-                                        data.datasets[0].data[legendItem.index] != 0 && typeof data.datasets[0].data[legendItem.index] !== 'undefined'
-                                    ),
-                                    color: text_color,
-                                    font: {
-                                        size: 15
-                                    }
-                                }
-                            },
-                        },
-                        responsive: true,
-                        maintainAspectRatio: false,
-
-                    }
-                });
-            },
-
-            create_chart(chart_type, view_data, bgd_color, text_color) {
-				const ctx = document.getElementById(chart_type);
-                let chart = new Chart(ctx, {
-                    type: 'bar',
-                    data: view_data,
-                    plugins: [stats_app.noData_plugin],
-                    options: {
-                        indexAxis: 'y',
-                        plugins: {
-                        	noData: {
+                if (chart_type == 'overall_pie') {
+                    stats_app.loading_overall_pie = false;
+                }
+                if (chart_type == 'filtered_pie') {
+                    stats_app.loading_filtered_pie = false;
+                }
+                this.$nextTick(function () {
+        			const ctx = document.getElementById(chart_type);
+                    // try to destroy before create
+                    this.stop_draws(chart_type);
+                    let chart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: view_data,
+                        plugins: [stats_app.noData_plugin],
+                        options: {
+                            plugins: {
+                                noData: {
                                     color: 'rgba(128, 128, 128, 0.3)',
                                     text_color: text_color,
                                     bg_color: bgd_color,
                                     width: 40,
                                     radiusDecrease: 20
                                 },
-                            legend: {
-                              display: false
-                            }
-                        },
-                        scales: {
-                            x: {
-                             ticks: {
-                                fontColor: text_color,
-                                backdropColor: text_color,
-                                color: text_color,
-                                font: {
-                                        size: 15
+                                legend: {
+                                    labels: {
+                                        filter: (legendItem, data) => (
+                                            data.datasets[0].data[legendItem.index] != 0 && typeof data.datasets[0].data[legendItem.index] !== 'undefined'
+                                        ),
+                                        color: text_color,
+                                        font: {
+                                            size: 15
+                                        }
                                     }
+                                },
+                            },
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            onHover: (event, chartElement) => {
+                                event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'
+                            },
+                            onClick: (e, element) => {
+                              const elements = chart.getElementsAtEventForMode(e, 'index', { intersect: true }, true);
+                              if (elements.length) {
+                                this.$parent.status_filter = chart.data.labels[elements[0].index]
+                              }
+                            },
+                        }
+                    });
+                })
+            },
+
+            create_chart(chart_type, view_data, bgd_color, text_color) {
+                if (chart_type == 'filtered_top_senders') {
+                    stats_app.loading_filtered_top_senders = false;
+                }
+                if (chart_type == 'filtered_top_recipients') {
+                    stats_app.loading_filtered_top_recipients = false;
+                }
+                this.$nextTick(function () {
+    				const ctx = document.getElementById(chart_type);
+                    this.stop_draws(chart_type);
+                    let chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: view_data,
+                        plugins: [stats_app.noData_plugin],
+                        options: {
+                            indexAxis: 'y',
+                            plugins: {
+                            	noData: {
+                                        color: 'rgba(128, 128, 128, 0.3)',
+                                        text_color: text_color,
+                                        bg_color: bgd_color,
+                                        width: 40,
+                                        radiusDecrease: 20
+                                    },
+                                legend: {
+                                  display: false
                                 }
                             },
-                            y: {
-                             ticks: {
-                                fontColor: text_color,
-                                backdropColor: text_color,
-                                color: text_color,
-                                font: {
-                                        size: 15
+                            scales: {
+                                x: {
+                                 ticks: {
+                                    fontColor: text_color,
+                                    backdropColor: text_color,
+                                    color: text_color,
+                                    font: {
+                                            size: 15
+                                        }
                                     }
+                                },
+                                y: {
+                                 ticks: {
+                                    fontColor: text_color,
+                                    backdropColor: text_color,
+                                    color: text_color,
+                                    font: {
+                                            size: 15
+                                        }
+                                    }
+                                 }
+                            },
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            onHover: (event, chartElement) => {
+                                event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'
+                            },
+                            onClick: (e, element) => {
+                              const elements = chart.getElementsAtEventForMode(e, 'index', { intersect: true }, true);
+                              //console.log(chart.data.labels[elements[0].index])
+                              //return 0;
+                              if (elements.length) {
+                                if (chart.ctx.canvas.id == "filtered_top_senders") {
+                                    if (chart.data.labels[elements[0].index] != "unknown") {
+                                        this.$parent.search_by = 'mail_from';
+                                        this.$parent.search = chart.data.labels[elements[0].index]
+                                    }
+                                    // debounce if no text validation errors
+                                    stats_app.$nextTick(function () {
+                                        stats_app.$parent.check_button();
+                                    })
                                 }
-                             }
-                        },
-                        responsive: true,
-                        maintainAspectRatio: false,
-                    }
-            	});
+                                if (chart.ctx.canvas.id == "filtered_top_recipients") {
+                                    if (chart.data.labels[elements[0].index] != "unknown") {
+                                        this.$parent.search_by = 'mail_to';
+                                        this.$parent.search = chart.data.labels[elements[0].index]
+                                    }
+                                    // debounce if no text validation errors
+                                    stats_app.$nextTick(function () {
+                                        stats_app.$parent.check_button();
+                                    })
+                                }
+                              }
+                            },
+                        }
+                	});
+                });
             },
             dynamicColors() {
                 var r = Math.floor(Math.random() * 255);
@@ -234,9 +284,6 @@
             },
             async draw_chart(chart_type,mode) {
                 //if (mode == 1) {
-
-                    
-
                     // check cache in cookie with expiration
                     if ((this.$parent.getCookie(chart_type)) && (this.$parent.getCookie(chart_type) !== '{}')) {
 
@@ -252,9 +299,7 @@
                             data = JSON.parse(this.$parent.getCookie(chart_type));
                             this.loading_filtered_top_recipients = false;
                         }
-                        if (this.check_filters_changes() == 1) {
-                            this.draw_chart(chart_type,0);
-                        }
+                        this.check_filters_changes();
                     } else {
                         try {
                             if (chart_type == 'filtered_top_senders') {
@@ -326,7 +371,6 @@
     	                    })
     	                }
                     }
-
                 }
 
                 if (chart_type == 'filtered_top_recipients') {
@@ -366,9 +410,9 @@
                   }]
                 };
 
-                this.$nextTick(function () {
+                //this.$nextTick(function () {
                     stats_app.create_chart(chart_type, view_data, bgd_color, text_color)
-                });
+                //});
             },
             async draw_donut(chart_type,mode) {
                 //if (mode == 1) {
@@ -388,17 +432,17 @@
                             this.loading_filtered_pie = false;
                         }
 
-                        if (this.check_filters_changes() == 1) {
-                            this.draw_donut(chart_type,0);
-                        }
+                        this.check_filters_changes();
+
                     } else {
                         try {
                             if (chart_type == 'overall_pie') {
                                 this.loading_overall_pie = true;
                                 let result = await this.call_stats_data(chart_type);
                                 if (result == 1) {
+                                    //data = this.array_overall
                                     this.draw_donut(chart_type,1);
-                                    return 0;
+                                    //return 0;
                                 } else {
                                     this.loading_overall_pie = false;
                                     data = "error"
@@ -409,8 +453,9 @@
                                 this.loading_filtered_pie = true;
                                 let result = await this.call_stats_data(chart_type);
                                 if (result == 1) {
+                                    //data = this.array_filtered
                                     this.draw_donut(chart_type,0);
-                                    return 0;
+                                    //return 0;
                                 } else {
                                     this.loading_filtered_pie = false;
                                     data = "error"
@@ -485,24 +530,22 @@
                     }],
                 };
 
-                this.$nextTick(function () {
+                //this.$nextTick(function () {
                     stats_app.create_donut(chart_type, view_data, bgd_color, text_color);
-                });
+                //});
             },
             create_cookie_timestamp(){
                 var date = new Date(new Date(Date.now()));
                 date = this.$parent.format_date(date,this.$parent.datetime_format,true);
                 return date;
             },
-            // function to fetch data for charts and save cache to cookies? or localStorage?
+            // function to fetch data for charts and save cache to cookies
             async call_stats_data(chart_type){
                
-
                 if (chart_type == 'overall_pie') {
                     var url = base_url3, queries = 0;
                     url += (queries === 0) ? '?' : '&';
-
-                    //console.log("Fetch data for "+chart_type);
+                    
                     for (const element of ['sent','deferred','reject','bounced','unknown','multiple']) {
                       url_upd = url+`statuses=`+element;
                       response = await this.fetch_stats_data(url_upd,chart_type,element);
@@ -539,20 +582,16 @@
                     }
                     url += (queries === 0) ? '&' : '';
 
-                    //console.log("Fetch data for "+chart_type);
                     if (element_status != '') {
                         url_upd = url+`status.code=`+element_status;
                         url_upd += `&page=${this.$parent.page}&limit=${this.$parent.settings.page_limit}`;
                         response = await this.fetch_stats_data(url_upd,chart_type,element_status);
-                        //return 1;
                     } else {
                         for (const element of ['sent','deferred','reject','bounced','unknown','multiple']) {
                           url_upd = url+`status.code=`+element;
                           url_upd += `&page=${this.$parent.page}&limit=${this.$parent.settings.page_limit}`;
                           response = await this.fetch_stats_data(url_upd,chart_type,element);
-
                         }
-                        //return 1;
                     }
                     // store to cookie with expiration after hour
                     if (response == 0) {
@@ -568,7 +607,6 @@
                     }
 
                 } else if (chart_type == 'filtered_top_senders'){
-                    //console.log("Fetch data for "+chart_type);
                     var url = base_url3, queries = 0;
                     url += '?top_senders&';
                     for (var f in this.$parent.email_filter) {
@@ -589,11 +627,7 @@
                             return this.array_filtered_top_senders
                         } 
                     }
-                    //return 1;
-                    //console.log("Cache data");
-
                 } else if (chart_type == 'filtered_top_recipients'){
-                    //console.log("Fetch data for "+chart_type);
                     var url = base_url3, queries = 0;
                     url += '?top_recipients&';
                     for (var f in this.$parent.email_filter) {
@@ -614,8 +648,6 @@
                             return this.array_filtered_top_recipients;
                         }
                     }
-                    //return 1;
-                    //console.log("Cache data");
                 }
 
                 return 0;
@@ -659,9 +691,6 @@
                 this.run_draws(chart_type);
             },
             run_draws(chart_type) {
-
-                //this.stop_draws(chart_type);
-
                 if ((chart_type == 'overall_pie') || (chart_type == 'filtered_pie')) {
                 	// draw donuts
                     this.draw_donut(chart_type, 1);
@@ -672,15 +701,12 @@
                 }
             },
             stop_draws(chart_type) {
-            	//console.log("Forcing draws stop!");
-            	//for (const f of ['overall_pie', 'filtered_pie', 'filtered_top_senders', 'filtered_top_recipients']) {
-					if (Chart.getChart(chart_type) != undefined) {
-					  Chart.getChart(chart_type).destroy();
-					}
-				//}
+				if (Chart.getChart(chart_type) != undefined) {
+				  Chart.getChart(chart_type).destroy();
+				}
+
             },
             check_filters_changes(){
-                //console.log(this.$parent.filters_changed)
                 if ((!('filters' in window.localStorage)) ||(window.localStorage['filters'] === 'false')) {
                     //console.log("Don't cache stats!")
                     if (this.$parent.filters_changed) {
@@ -711,7 +737,6 @@
 
         },
         mounted() {
-        	// TODO do msomething to check visibility of stats and run draw functions
 
             if ((localStorage.getItem("hidden_stats") === null) || (localStorage.getItem("hidden_stats") === 'false'))  {
                 $('#charts-wrapper').show();
@@ -720,8 +745,6 @@
                 this.run_draws('filtered_pie');
                 this.run_draws('filtered_top_senders');
                 this.run_draws('filtered_top_recipients');
-                
-                //$('#current_user').hide();
             } else {
                 $('#charts-wrapper').hide();
                 this.$parent.hidden_stats = true;
@@ -729,14 +752,6 @@
                 this.stop_draws('filtered_pie');
                 this.stop_draws('filtered_top_senders');
                 this.stop_draws('filtered_top_recipients');
-                //$('#current_user').show();
             }
-
-        	/*if ((localStorage.getItem("hidden_stats") === null) || (localStorage.getItem("hidden_stats") === 'false'))  {
-				this.$parent.hidden_stats = false;
-        	} else {
-        		this.$parent.hidden_stats = true;
-        	}
-        	this.$parent.toggleHide('#charts-wrapper')*/
         }
     });

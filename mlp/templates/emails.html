@@ -115,8 +115,8 @@
                 <div class="three fields">
                     <div class="eight wide field">
                         <div class="ui input left icon">
-                            <input v-on:keyup.enter="debounce_emails(true)" id="text_search" v-if="localeData.filters.search_placeholder" v-model="search" type="text" class="ui input" :placeholder="localeData.filters.search_placeholder">
-                            <input v-on:keyup.enter="debounce_emails(true)" id="text_search" v-else v-model="search" type="text" class="ui input" :placeholder="fallbackLocaleData.filters.search_placeholder">
+                            <input v-on:keyup.enter="check_button()" id="text_search" v-if="localeData.filters.search_placeholder" v-model="search" type="text" class="ui input" :placeholder="localeData.filters.search_placeholder">
+                            <input v-on:keyup.enter="check_button()" id="text_search" v-else v-model="search" type="text" class="ui input" :placeholder="fallbackLocaleData.filters.search_placeholder">
                             <i class="search icon"></i>
                         </div>
                     </div>
@@ -196,7 +196,7 @@
                     	<button :title="localeData.filters.filter_link_tip" @click="debounce_emails(true)" class="ui button primary" v-if="!loading" v-bind:disabled="!isDisabled"><i class="search icon"></i></button>
                   </div>
                   <div style="max-width: 100%" class="field">
-                    <button :title="localeData.filters.reset_button_tip"  @click="resetFilters()" class="ui button orange" v-if="!loading" v-bind:disabled="!isDisabled"><i class="eraser icon"></i></button>
+                    <button :title="localeData.filters.reset_button_tip"  @click="resetFilters()" class="ui button orange" v-if="!loading" ><i class="eraser icon"></i></button>
                   </div>
               </div>
             </div>
