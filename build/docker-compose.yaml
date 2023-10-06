@@ -15,9 +15,11 @@ services:
       - .:/app
       - /tmp:/tmp
       - ${MAIL_LOG_PATH}:${MAIL_LOG_PATH}
-
     depends_on:
       - rethinkdb
+    networks:
+      - internal
+
 
   rethinkdb:
     image: rethinkdb:2.4
@@ -27,3 +29,12 @@ services:
     restart: always
     volumes:
       - ./:/data
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+      com.docker.network.bridge.name: mlp_iface
