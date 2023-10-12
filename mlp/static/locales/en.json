@@ -33,7 +33,9 @@
     "nineteen": "This path is not available under LDAP user!",
     "twenty": "MLP version has just upgraded! All caches were cleared and you have been logged out! Page will be reload in 5 seconds. If nothing happened refresh page manually.",
     "twenty_one": "Start date filter could only be manually removed because of potential performance degrade!",
-    "twenty_two": "Warning! Empty start date filter will potentially degrade performance!"
+    "twenty_two": "Warning! Empty start date filter will potentially degrade performance!",
+    "twenty_three": "Share link is successfully copied to the clipboard.",
+    "twenty_four": "\"Date from\" can't be set from shared link because \"Save filters\" is not turned on!"
   },
   "login": {
     "message": "Please login to proceed.",
@@ -175,7 +177,8 @@
     "date_filter__gt_placeholder": "Start date",
     "date_filter__lt_placeholder": "End date",
     "reset_button_tip": "Click to reset all filters",
-    "reset_button": "Reset"
+    "reset_button": "Reset",
+    "share_button_tip": "Click to share current page"
   },
   "pager": {
     "first": "First Page",

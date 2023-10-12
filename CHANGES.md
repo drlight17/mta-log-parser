@@ -10,6 +10,13 @@ Unreleased VER.
 - fix sort icon to the same shevrons as main menu gui show/hide buttons  
 - upgrade procedure from GUI (?) if decided to do so use [this manual](https://stackoverflow.com/questions/32163955/how-to-run-shell-script-on-host-from-docker-container/63719458#63719458)
 
+VER. 1.5.3
+- ~~share link~~  
+- ~~fix order by share_link (call get_URL_params in proper place)~~
+- ~~dont fetch all statuses in filtered_pie if status is in the filter + get all statuses from emails response to form filtered_pie~~
+- ~~fix api error loading hide~~
+- ~~fix invalid date in lt~~
+
 VER. 1.5.2
 - ~~remove arrow key binding after modal close~~
 - ~~filter on stats click~~

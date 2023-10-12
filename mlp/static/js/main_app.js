@@ -167,7 +167,7 @@ const app = Vue.createApp({
             this.reset_page();
 
             // do not debounce on datestart change
-            this.debounce_emails(true);
+            //this.debounce_emails(true);
         },
         date_filter__lt(val) {
             if (this.settings.filters) {
@@ -774,7 +774,7 @@ const app = Vue.createApp({
                 }
         },
         loadEmails(refresh) {
-            
+
             this.check_date_lt();
 
             // call to resresh countdown
@@ -1221,9 +1221,15 @@ const app = Vue.createApp({
                 this.search_by = window.localStorage['saved_filters.search_by'];
             }
             if ('saved_filters.date_filter__gt' in window.localStorage) {
+                if (window.localStorage['saved_filters.date_filter__gt'] == 'Invalid date') {
+                     window.localStorage.setItem("saved_filters.date_filter__gt", '');
+                }
                 this.date_filter__gt = window.localStorage['saved_filters.date_filter__gt'];
             }
             if ('saved_filters.date_filter__lt' in window.localStorage) {
+                if (window.localStorage['saved_filters.date_filter__lt'] == 'Invalid date') {
+                     window.localStorage.setItem("saved_filters.date_filter__lt", '');
+                }
                 this.date_filter__lt = window.localStorage['saved_filters.date_filter__lt'];
             }
 
@@ -1644,8 +1650,122 @@ const app = Vue.createApp({
                 }
             }
         },
+        get_URL_params () {
+
+            let urlParams = new URLSearchParams(window.location.search);
+            if (!(this.settings.filters)) {
+                 window.localStorage.setItem("filters", true);
+                 this.settings.filters = true;
+                 //this.saveFilters();
+            }
+
+            for (const entry of urlParams.entries()) {
+                if (entry[0] == 'search') {
+                    this.search = entry[1]
+                }
+                if (entry[0] == 'status_filter') {
+                    if (entry[1] == 'sent' || entry[1] == 'reject' || entry[1] == 'deferred' || entry[1] == 'bounced' || entry[1] == 'multiple' || entry[1] == 'unknown') {
+                        this.status_filter = entry[1];
+                    } else {
+                        this.status_filter = 'NOFILTER';
+                    }
+                }
+                if (entry[0] == 'search_by') {
+                    if (entry[1] == 'id' || entry[1] == 'mail_from' || entry[1] == 'mail_to' || entry[1] == 'subject' || entry[1] == 'log_lines') {
+                        this.search_by = entry[1]
+                    }
+                }
+                if (entry[0] == 'date_filter__gt') {
+                    if (this.settings.filters) {
+                        this.date_filter__gt = entry[1]
+                    }/* else {
+                        if (this.localeData.notie.twenty_four == undefined) {
+                            text = this.fallbackLocaleData.notie.twenty_four
+                        } else {
+                            text = this.localeData.notie.twenty_four
+                        }
+                        notie.alert({type: 'warning', text: text });
+                    }*/
+                }
+                if (entry[0] == 'date_filter__lt') {
+                    //this.date_filter__lt = this.format_date(entry[1],datetime_format,true);
+                    this.date_filter__lt = entry[1]
+                }
+                if (entry[0] == 'page') {
+                    this.page = entry[1];
+                    this.saveCurPage();
+                }
+                if (entry[0] == 'order') {
+                    if (entry[1] == 'timestamp' || entry[1] == 'id' || entry[1] == 'status' || entry[1] == 'mail_from' || entry[1] == 'mail_to' || entry[1] == 'subject' || entry[1] == 'size' || entry[1] == 'first_attempt' || entry[1] == 'last_attempt') {
+                        console.log('found order')
+                        this.order = entry[1]
+                    }
+                }
+                if (entry[0] == 'order_dir') {
+                    if (entry[1] == 'asc' || entry[1] == 'desc') {
+                        console.log('found order_dir')
+                        this.order_dir = entry[1]
+                    }
+                }
+            }
+            // clear browser address bar after params get
+            history.pushState(null, "", location.href.split("?")[0]);
+        },
+        unsecuredCopyToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.focus({preventScroll: true});
+            textArea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Unable to copy to clipboard', err);
+            }
+            document.body.removeChild(textArea);
+        },
+        async shareLink() {
+            link = window.location.origin+window.location.pathname+'?'
+
+            if (this.search) {
+                link += 'search='+this.search
+            }
+
+            if (this.search_by) {
+                link += '&search_by='+this.search_by
+            }
+
+            if (this.status_filter) {
+                link += '&status_filter='+this.status_filter
+            }
+
+            if (this.date_filter__gt) {
+                link += '&date_filter__gt='+this.date_filter__gt
+            }
+
+            if (this.date_filter__lt) {
+                link += '&date_filter__lt='+this.date_filter__lt
+            }
+
+            link += '&page='+this.page+'&order='+this.order+'&order_dir='+this.order_dir;
+
+            if (window.isSecureContext && navigator.clipboard) {
+                navigator.clipboard.writeText(link);
+            } else {
+                this.unsecuredCopyToClipboard(link);
+            }
+
+            if (this.localeData.notie.twenty_three == undefined) {
+                text = this.fallbackLocaleData.notie.twenty_three
+            } else {
+                text = this.localeData.notie.twenty_three
+            }
+            notie.alert({type: 'info', text: text });
+
+        }
     },
     mounted() {
+
         //TODO need to fix dropdown update
         //$('select.dropdown').addClass("menu");
         //$('select.dropdown ').addClass("dropdown ui");
@@ -1721,6 +1841,11 @@ const app = Vue.createApp({
 
         this.$nextTick(function () {
 
+            // check and override filters based on the URL params
+             if (this.path_page == 2) {
+                this.get_URL_params();
+             }
+
 	        // check hidden tips and settings
 
 	        if ((localStorage.getItem("hidden_settings_tips") === null) || (localStorage.getItem("hidden_settings_tips") === 'false'))  {
@@ -1765,6 +1890,12 @@ const app = Vue.createApp({
               cornerOffset: 30
             });
             this.filters_changed = false;
+
+            // hide load if at error page
+            if ($('.api_error_container').length > 0 ) {
+                this.toggleLoading(false);
+                this.updateCheck();
+            }
         });
     }
 });

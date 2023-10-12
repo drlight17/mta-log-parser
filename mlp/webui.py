@@ -742,6 +742,7 @@ async def check_user_pass(u,p,mode):
         print("Cannot connect to rethinkdb, trying to reconnect!")
         __STORE.clear()
         r, conn, r_q = await get_rethink()
+        session['NOTIE_MESSAGE'] = "api_error"
         return redirect(f'{PREFIX}/')
         #conn.reconnect(noreply_wait=True)
         #sys.exit(1) 

@@ -198,6 +198,9 @@
                   <div style="max-width: 100%" class="field">
                     <button :title="localeData.filters.reset_button_tip"  @click="resetFilters()" class="ui button orange" v-if="!loading" ><i class="eraser icon"></i></button>
                   </div>
+                  <div style="max-width: 100%" class="field">
+                    <button :title="localeData.filters.share_button_tip"  @click="shareLink()" class="ui button green" v-if="!loading" ><i class="share alternate icon"></i></button>
+                  </div>
               </div>
             </div>
         </div>

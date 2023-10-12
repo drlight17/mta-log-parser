@@ -587,10 +587,21 @@
                         url_upd += `&page=${this.$parent.page}&limit=${this.$parent.settings.page_limit}`;
                         response = await this.fetch_stats_data(url_upd,chart_type,element_status);
                     } else {
-                        for (const element of ['sent','deferred','reject','bounced','unknown','multiple']) {
-                          url_upd = url+`status.code=`+element;
-                          url_upd += `&page=${this.$parent.page}&limit=${this.$parent.settings.page_limit}`;
-                          response = await this.fetch_stats_data(url_upd,chart_type,element);
+                        // check for statuses in current fetched emails table
+                        var statuses = [];
+                        for (let i = 0; i < this.$parent.emails.length; i++) {
+                             if (statuses.indexOf(this.$parent.emails[i].status.code) === -1) {
+                                statuses.push(this.$parent.emails[i].status.code)
+                             }
+                        }
+                        if (statuses.length < 1) {
+                            response = 0;
+                        } else {
+                            for (const element of statuses) {
+                            url_upd = url+`status.code=`+element;
+                            url_upd += `&page=${this.$parent.page}&limit=${this.$parent.settings.page_limit}`;
+                            response = await this.fetch_stats_data(url_upd,chart_type,element);
+                            }
                         }
                     }
                     // store to cookie with expiration after hour

@@ -92,7 +92,7 @@ async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:
                     await db.table(t).index_create(index,r.row['status']['code'], multi=True).run(conn, array_limit=settings.rethink_arr_limit)
                 else:
                     await db.table(t).index_create(index).run(conn, array_limit=settings.rethink_arr_limit)
-                
+
     __STORE['rethink'] = db, conn, r
     return __STORE['rethink']
 
