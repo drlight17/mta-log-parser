@@ -10,6 +10,11 @@ Unreleased VER.
 - fix sort icon to the same shevrons as main menu gui show/hide buttons  
 - upgrade procedure from GUI (?) if decided to do so use [this manual](https://stackoverflow.com/questions/32163955/how-to-run-shell-script-on-host-from-docker-container/63719458#63719458)
 
+VER. 1.5.4
+- ~~save incoming URL if not authorized to get to this URL after authorization~~
+- ~~widths of footer and main wrapper are now 100%~~
+- ~~fix of filter buttons in responsive mode~~
+
 VER. 1.5.3
 - ~~share link~~  
 - ~~fix order by share_link (call get_URL_params in proper place)~~

@@ -184,6 +184,7 @@ summary {
 /*logo*/
 #main-wrapper {
     display: flex;
+    width: 100%;
     align-items: center;
     justify-content: center;
     flex-direction: column;
@@ -333,14 +334,16 @@ summary {
 
 .emails-list th.asc {
     background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7)!important;
-    background-position: bottom 7px center!important;
+    /*background-position: bottom 7px center!important;*/
+    background-position: center right!important;
     background-repeat: no-repeat!important;
     /*background-color: #e1dcdc!important;*/
 }
 
 .emails-list th.desc {
     background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7)!important;
-    background-position: bottom 7px center!important;
+    /*background-position: bottom 7px center!important;*/
+    background-position: center right!important;
     background-repeat: no-repeat!important;
     /*background-color: #e1dcdc!important;*/
 }
@@ -453,6 +456,18 @@ summary {
     }
 }
 
+#emails_list {
+    width: 100%;
+}
+
+@media only screen and (max-width: 963px) {
+    #filters-wrapper > div.five.wide.column {
+        width: 55%!important;
+    }
+    #filters-wrapper > div.four.wide.column {
+        width: 100%!important;
+    }
+}
 
 @media only screen and (min-width: 767px) and (max-width: 1000px){
     #refresh-button button span, #user-settings > div.logo  button span{

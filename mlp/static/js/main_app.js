@@ -29,6 +29,9 @@ var lang_files = JSON.parse(document.currentScript.getAttribute('lang_files'));
 //var notie_message_code = document.currentScript.getAttribute('notie_message_code');
 var notie_message = document.currentScript.getAttribute('notie_message');
 
+// get args if any
+var sent_args = document.currentScript.getAttribute('args');
+
 const app = Vue.createApp({
     // to work with both quart and vue variables on the template pages
     delimiters: ['[[', ']]'],
@@ -1651,12 +1654,20 @@ const app = Vue.createApp({
             }
         },
         get_URL_params () {
+            if (sent_args != '') {
+                check_params = sent_args.split("?")[1]
+            } else {
+                check_params = window.location.search
+            }
 
-            let urlParams = new URLSearchParams(window.location.search);
-            if (!(this.settings.filters)) {
-                 window.localStorage.setItem("filters", true);
-                 this.settings.filters = true;
-                 //this.saveFilters();
+            let urlParams = new URLSearchParams(check_params);
+
+            if (this.path_page == 2) {
+                if (!(this.settings.filters)) {
+                     window.localStorage.setItem("filters", true);
+                     this.settings.filters = true;
+                     //this.saveFilters();
+                }
             }
 
             for (const entry of urlParams.entries()) {
@@ -1697,17 +1708,18 @@ const app = Vue.createApp({
                 }
                 if (entry[0] == 'order') {
                     if (entry[1] == 'timestamp' || entry[1] == 'id' || entry[1] == 'status' || entry[1] == 'mail_from' || entry[1] == 'mail_to' || entry[1] == 'subject' || entry[1] == 'size' || entry[1] == 'first_attempt' || entry[1] == 'last_attempt') {
-                        console.log('found order')
                         this.order = entry[1]
+                        this.saveSort();
                     }
                 }
                 if (entry[0] == 'order_dir') {
                     if (entry[1] == 'asc' || entry[1] == 'desc') {
-                        console.log('found order_dir')
                         this.order_dir = entry[1]
+                        this.saveSort();
                     }
                 }
             }
+
             // clear browser address bar after params get
             history.pushState(null, "", location.href.split("?")[0]);
         },
@@ -1842,9 +1854,7 @@ const app = Vue.createApp({
         this.$nextTick(function () {
 
             // check and override filters based on the URL params
-             if (this.path_page == 2) {
-                this.get_URL_params();
-             }
+            this.get_URL_params();
 
 	        // check hidden tips and settings
 

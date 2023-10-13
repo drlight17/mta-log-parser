@@ -171,14 +171,19 @@ async def login():
 @app.route(f'{PREFIX}/emails', methods=['GET'])
 @app.route(f'{PREFIX}/emails/', methods=['GET'])
 async def emails_ui():
-
+    # to save args from shared link
+    ARGS = ''
     if 'admin' not in session:
         session['NOTIE_MESSAGE'] = "unauth"
+        session['args'] = request.url
         return redirect(f'{PREFIX}/')
+
+    if 'args' in session:
+        ARGS = session['args']
+        del session['args']
 
     NOTIE_MESSAGE = await _process_notie()
 
-    #print(session['login'])
     # check if current user exists
     # check if LDAP is configured
     if not settings.ldap_connect:
@@ -189,7 +194,7 @@ async def emails_ui():
         #print("Current user wasnt found. Force log out!")
         return redirect(f'{PREFIX}/logout')
 
-    return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, NOTIE_MESSAGE=NOTIE_MESSAGE, settings=settings, VERSION=VERSION, LOGIN=session['login'])
+    return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, NOTIE_MESSAGE=NOTIE_MESSAGE, ARGS=ARGS, settings=settings, VERSION=VERSION, LOGIN=session['login'])
 
 @app.route(f'{PREFIX}/auth', methods=['GET'])
 @app.route(f'{PREFIX}/auth/', methods=['GET'])
