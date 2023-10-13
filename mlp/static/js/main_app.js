@@ -1540,6 +1540,14 @@ const app = Vue.createApp({
                 }
                 notie.alert({type: 'error', text: text, stay: 'true'});
             }
+            if (notie_message == 'other_ldap_error') {
+                if (this.localeData.notie.twenty_five == undefined) {
+                    text = this.fallbackLocaleData.notie.twenty_five
+                } else {
+                    text = this.localeData.notie.twenty_five
+                }
+                notie.alert({type: 'error', text: text, stay: 'true'});
+            }
             if (notie_message == 'unauth_ldap') {
                 if (this.localeData.notie.nineteen == undefined) {
                     text = this.fallbackLocaleData.notie.nineteen

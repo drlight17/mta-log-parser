@@ -14,6 +14,7 @@ VER. 1.5.4
 - ~~save incoming URL if not authorized to get to this URL after authorization~~
 - ~~widths of footer and main wrapper are now 100%~~
 - ~~fix of filter buttons in responsive mode~~
+- ~~LDAP version override function (for errors like "Operation unavailable without authentication")~~
 
 VER. 1.5.3
 - ~~share link~~  

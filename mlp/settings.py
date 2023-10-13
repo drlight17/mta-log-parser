@@ -46,6 +46,7 @@ rethink_tables = [
 
 # add ldap vars from env
 ldap_connect = env('LDAP_CONNECT','')
+ldap_version = int(env('LDAP_VERSION',3))
 ldap_bind_dn = env('LDAP_BIND_DN', '')
 ldap_bind_dn_pwd = env('LDAP_BIND_DN_PWD', '')
 ldap_searchbase = env('LDAP_SEARCHBASE' ,'')
