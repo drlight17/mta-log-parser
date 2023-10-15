@@ -510,24 +510,34 @@ async def api_emails():
         
     # Handle appending .filter() to `_sm` for each filter key in `frm`
     _sm = await _process_filters(1, r_q=r_q, query=_sm, frm=frm)
+    try:
+        _sm, res = await _paginate_query(_sm, frm, rt_conn=conn, rt_query=r_q, order_by=order_by, order_dir=order_dir)
+        #print(settings.max_limit)
+        #print(_sm)
+        _sm = await _sm.limit(settings.max_limit).run(conn, array_limit=settings.rethink_arr_limit)
 
-    _sm, res = await _paginate_query(_sm, frm, rt_conn=conn, rt_query=r_q, order_by=order_by, order_dir=order_dir)
-    #print(settings.max_limit)
-    #print(_sm)
-    _sm = await _sm.limit(settings.max_limit).run(conn, array_limit=settings.rethink_arr_limit)
+        #print(list(_sm))
 
-    #print(list(_sm))
+        sm = []
+        if type(_sm) is list:
+            sm = list(_sm)
+        else:
+            async for s in _sm:
+                sm.append(dict(s))
 
-    sm = []
-    if type(_sm) is list:
-        sm = list(_sm)
-    else:
-        async for s in _sm:
-            sm.append(dict(s))
-    
-    res.result = sm
+        res.result = sm
 
-    return jsonify(res.to_json_dict())
+        return jsonify(res.to_json_dict())
+
+    except:
+        #This is acceptable at the moment since that's the normal behavior for every management script
+        print("Cannot connect to rethinkdb, trying to reconnect!")
+        __STORE.clear()
+        r, conn, r_q = await get_rethink()
+        session['NOTIE_MESSAGE'] = "api_error"
+        return redirect(f'{PREFIX}/')
+        #conn.reconnect(noreply_wait=True)
+        #sys.exit(1)
 
 
 async def _paginate_query(query: QueryOrTable, frm: Mapping, rt_conn: DefaultConnection, rt_query: rethinkdb.query,
