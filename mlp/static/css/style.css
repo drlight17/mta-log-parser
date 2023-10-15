@@ -460,7 +460,7 @@ summary {
     width: 100%;
 }
 
-@media only screen and (max-width: 963px) {
+@media only screen and (min-width: 768px) and (max-width: 963px) {
     #filters-wrapper > div.five.wide.column {
         width: 55%!important;
     }
