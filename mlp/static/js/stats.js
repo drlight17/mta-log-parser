@@ -163,7 +163,22 @@
                                         color: text_color,
                                         font: {
                                             size: 15
-                                        }
+                                        },
+                                        /*generateLabels: (chart) => {
+                                            const datasets = chart.data.datasets;
+                                            //console.log(chart.data.labels_orig);
+
+                                            //labels.push(this.$parent.status_localize(item,1))
+
+                                            return datasets[0].data.map((data, i) => ({
+                                                //text: this.$parent.status_localize(data.datasets[0].data[legendItem.index],1)
+                                                //text: this.$parent.status_localize('sent',1)
+                                                //text: `${chart.data.labels[i]} ${data}`,
+                                                text: `${chart.data.labels[i]}`,
+                                                fillStyle: datasets[0].backgroundColor[i],
+                                                index: i
+                                            }))
+                                        }*/
                                     }
                                 },
                             },
@@ -175,7 +190,9 @@
                             onClick: (e, element) => {
                               const elements = chart.getElementsAtEventForMode(e, 'index', { intersect: true }, true);
                               if (elements.length) {
-                                this.$parent.status_filter = chart.data.labels[elements[0].index]
+                                //this.$parent.status_filter = chart.data.labels[elements[0].index]
+                                // send original labels instead of processed
+                                this.$parent.status_filter = chart.data.labels_orig[element[0].index]
                               }
                             },
                         }
@@ -490,9 +507,19 @@
                     var dataset = '';
                 }
                 
+                // localize of status labels
+                var labels = [];
+                labels_orig = ['sent', 'deferred', 'reject', 'bounced', 'unknown', 'multiple'];
+
+                labels_orig.forEach((item, index) => {
+                    labels.push(this.$parent.status_localize(item,1))
+                })
+                //console.log(labels)
+
 
                 var view_data = {
-                    labels: ['sent', 'deferred', 'reject', 'bounced', 'unknown', 'multiple'],
+                    labels_orig: labels_orig,
+                    labels: labels,
                     datasets: [{
                         data: dataset,
                         backgroundColor: [

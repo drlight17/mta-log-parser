@@ -38,7 +38,7 @@
 	</div>
     <div class="ui stackable two column grid settips" style="align-items: stretch;">
         <div id="user-settings" class="six wide column">
-            <local-settings @settings-loaded="settings_loaded" @settings-saved="settings_saved"></local-settings>
+            <local-settings ref="localSettings" @settings-loaded="settings_loaded" @settings-saved="settings_saved"></local-settings>
         </div>
         <div id="tips" v-if="!loading" class="ten wide column">
             <div class="ui segment">
@@ -305,7 +305,7 @@
                         <td v-if="localeData.emails_list.status"><i class="archive icon"></i> [[ localeData.emails_list.status ]]</td>
                         <td v-else><i class="archive icon"></i> [[ fallbackLocaleData.emails_list.status ]]</td>
                         <td class="max-70">
-                            <strong v-if="localeData.emails_list.status_code">[[ localeData.emails_list.status_code ]]:</strong><strong v-else>[[ fallbackLocaleData.emails_list.status_code ]]:</strong> [[ msg.status.code ]] <br/>
+                            <strong v-if="localeData.emails_list.status_code">[[ localeData.emails_list.status_code ]]:</strong><strong v-else>[[ fallbackLocaleData.emails_list.status_code ]]:</strong>&nbsp;<span id="status_code"> [[ msg.status.code ]] </span><br/>
                             <strong v-if="localeData.emails_list.status_message">[[ localeData.emails_list.status_message ]]:</strong><strong v-else>[[ fallbackLocaleData.emails_list.status_message ]]:</strong><br/>
                             <code>[[ msg.status.message ]]</code>
                         </td>

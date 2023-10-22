@@ -518,6 +518,19 @@ const app = Vue.createApp({
             	object.text(localized_str);
             }
         },
+        status_localize(object,mode) {
+            if (mode == 0) {
+                obj_text = object.text();
+            } else {
+                obj_text = object;
+            }
+            if (window.app.localeData.filters['status_filter_'+obj_text] == undefined) {
+                text2 = window.app.fallbackLocaleData.filters['status_filter_'+obj_text]
+            } else {
+                text2 = window.app.localeData.filters['status_filter_'+obj_text]
+            }
+            return text2;
+        },
         multiple_localize(object) {
             //console.log("Rewrite multiple status and message");
             multiple_check = object.text().indexOf(' and more');
@@ -555,8 +568,13 @@ const app = Vue.createApp({
                     })
                 }
                 if ($th.attr('id') == "status") {
+                    // localize status
+                    object = $(obj).find('span');
+                    object.addClass(object.text());
+                    object.text(window.app.status_localize(object,0));
+
                     $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
-                        window.app.status_filter = window.app.returnAllowedString($(obj).text());
+                        window.app.status_filter = window.app.returnAllowedString($(obj).find('span').attr('class'));
                         e.stopPropagation();
                         window.app.debounce_emails(true);
                     })
@@ -1177,6 +1195,9 @@ const app = Vue.createApp({
                     $('#email-metadata td:contains("'+m[index].status.code+'")').css('background-color','inherit');
                     $('.ui.modal>.header').css('background-color','inherit');
                 }
+
+                // status localize
+                $('#email-metadata #status_code').text(window.app.status_localize($('#email-metadata #status_code'),0))
             });
         },
         settings_saved(val) {
@@ -1667,14 +1688,15 @@ const app = Vue.createApp({
             } else {
                 check_params = window.location.search
             }
-
             let urlParams = new URLSearchParams(check_params);
 
-            if (this.path_page == 2) {
+            if ((this.path_page == 2)&&(check_params != '')) {
                 if (!(this.settings.filters)) {
                      window.localStorage.setItem("filters", true);
-                     this.settings.filters = true;
-                     //this.saveFilters();
+                     // set children filters value to true
+                     window.app.$refs.localSettings.settings.filters = true;
+                     window.app.$refs.localSettings.saveSettings();
+
                 }
             }
 
