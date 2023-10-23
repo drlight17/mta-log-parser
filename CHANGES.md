@@ -12,6 +12,7 @@ Unreleased VER.
 
 VER. 1.5.5
 - ~~BUG: auto turn on "save filters" on every link come even without paramaters~~
+- ~~BUG: not active pages buttons~~
 - ~~localize statuses in table~~
 - ~~localize statuses in stats~~
 - ~~BUG: invalid date in watermarks in some conditions (clear_cookies wrong usage, try drop new logs to docker)~~
