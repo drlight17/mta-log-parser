@@ -193,7 +193,7 @@
             <div class="ui form">
             	<div class="two fields">
 				  <div style="max-width: 100%" class="field">
-                    	<button :title="localeData.filters.filter_link_tip" @click="debounce_emails(true)" class="ui button primary" v-if="!loading" v-bind:disabled="!isDisabled"><i class="search icon"></i></button>
+                    	<button :title="localeData.filters.filter_link_tip" @click="reset_page();debounce_emails(true)" class="ui button primary" v-if="!loading" v-bind:disabled="!isDisabled"><i class="search icon"></i></button>
                   </div>
                   <div style="max-width: 100%" class="field">
                     <button :title="localeData.filters.reset_button_tip"  @click="resetFilters()" class="ui button orange" v-if="!loading" ><i class="eraser icon"></i></button>

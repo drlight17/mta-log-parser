@@ -138,7 +138,7 @@ const app = Vue.createApp({
                 }
                 this.filters_changed = true;
                 this.search_error = false;
-                this.reset_page();
+
             }
         },
         search_by(val) {
@@ -167,10 +167,7 @@ const app = Vue.createApp({
                 this.check_date_lt();
             }
             this.saveFilters();
-            //if (this.settings.filters) {
-                this.filters_changed = true;
-            //}
-            this.reset_page();
+            this.filters_changed = true;
 
             // do not debounce on datestart change
             //this.debounce_emails(true);
@@ -200,7 +197,6 @@ const app = Vue.createApp({
            this.loadEmails(refresh);
         }, 400),
 		submitForm(action) {
-			//console.log(action);
 			$(this.$refs.act_type).attr('value', action);
 			if (action == 'delete') {
 				window.app.validation(true);
@@ -847,9 +843,10 @@ const app = Vue.createApp({
     	                    this.emails[i].first_attempt = this.format_date(this.emails[i].first_attempt,datetime_format,false);
     	                    this.emails[i].last_attempt = this.format_date(this.emails[i].last_attempt,datetime_format,false);
     	                }
-    	                 
+
     	                this.page_count = res['total_pages'];
     	                this.count = res['count'];
+                        console.log(this.page_count)
 
     	                this.toggleLoading(false);
     	                // check for updates
@@ -1319,7 +1316,6 @@ const app = Vue.createApp({
                     startdate = this.format_date(startdate,datetime_format,true);
                     //console.log(startdate);
                     this.date_filter__gt = startdate;
-                    this.reset_page();
                 }
             });
         },

@@ -199,6 +199,7 @@
             },
 
             create_chart(chart_type, view_data, bgd_color, text_color) {
+
                 this.$nextTick(function () {
     				const ctx = document.getElementById(chart_type);
                     this.stop_draws(chart_type);
