@@ -125,7 +125,10 @@ async def housekeeping(housekeeping_days):
     r, conn, r_q = await get_rethink()
     r_q: rethinkdb.query
     _sm = r.table('sent_mail')
-    _sm = _sm.filter(r_q.row["timestamp"] <= a).delete()
+
+    #_sm = _sm.filter(r_q.row["timestamp"] <= a).delete()
+    # optimized cleanup query using between
+    _sm = _sm.between(r_q.minval, a, right_bound = 'closed', index = 'timestamp').delete()
     _sm = await _sm.run(conn, array_limit=settings.rethink_arr_limit)
 
     #print (_sm)

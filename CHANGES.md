@@ -14,6 +14,8 @@ VER. 1.5.5
 - ~~BUG: auto turn on "save filters" on every link come even without paramaters~~
 - ~~localize statuses in table~~
 - ~~localize statuses in stats~~
+- ~~BUG: invalid date in watermarks in some conditions (clear_cookies wrong usage, try drop new logs to docker)~~
+- ~~optimize cleanup rethinkdb query with between~~
 
 VER. 1.5.4
 - ~~save incoming URL if not authorized to get to this URL after authorization~~

@@ -161,12 +161,15 @@ const app = Vue.createApp({
             this.debounce_emails(true);
         },
         date_filter__gt(val) {
+            //console.log("Fired!")
             // check if empty
             if (val == '' ) {
                 this.check_date_lt();
             }
             this.saveFilters();
-            this.filters_changed = true;
+            //if (this.settings.filters) {
+                this.filters_changed = true;
+            //}
             this.reset_page();
 
             // do not debounce on datestart change
@@ -886,6 +889,8 @@ const app = Vue.createApp({
     	                            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
     	                            // scrolling offset by hide-sticky-header-button height
     	                            window.scrollTo({top: y, behavior: 'smooth'});
+                                    // to force stats update by timestamp_gt
+                                    window.app.setDuration();
     	                        }
     	                    } else {
                                 // set timestamp_gt if saving filters is off and refresh is false
@@ -1067,6 +1072,7 @@ const app = Vue.createApp({
                 this.toggleLoading(false);
                 window.app.additional_styling();
             }
+
         },
         auth() {
             window.location = path_prefix+'/auth';

@@ -46,6 +46,7 @@
         data() {
             return {
                 array_overall: {},
+                watermark_timestamp: '',
                 array_filtered: {},
                 array_filtered_top_senders: [],
                 array_filtered_top_recipients: {},
@@ -53,7 +54,7 @@
                 loading_filtered_pie: false,
                 loading_filtered_top_senders: false,
                 loading_filtered_top_recipients: false,
-                loading_filtered_throughoutput: false,
+                //loading_filtered_throughoutput: false,
                 noData_plugin: {
                   id: 'noData',
                   afterDraw(chart, args, options) {
@@ -115,7 +116,10 @@
                         ctx.textBaseline = 'bottom';
                         ctx.font = fontSize + "rem Arial";
                         ctx.fillStyle = text_color;
-                        timestamp = stats_app.$parent.format_date(stats_app.$parent.getCookie(chart.canvas.id+"_created"),datetime_format,false);
+
+                       timestamp = stats_app.$parent.format_date(stats_app.$parent.getCookie(chart.canvas.id+"_created"),datetime_format,false);
+                        //console.log(stats_app.$parent.getCookie(chart.canvas.id+"_created"));
+                        //timestamp = stats_app.$parent.format_date(stats_app.watermark_timestamp,datetime_format,false);
                         ctx.fillText(stats_app.$parent.localeData.cached + " " + timestamp, ch_width, ch_height);
                         ctx.closePath();
                         ctx.globalAlpha = 1;
@@ -132,12 +136,6 @@
         },
         methods: {
         	create_donut (chart_type, view_data, bgd_color, text_color) {
-                if (chart_type == 'overall_pie') {
-                    stats_app.loading_overall_pie = false;
-                }
-                if (chart_type == 'filtered_pie') {
-                    stats_app.loading_filtered_pie = false;
-                }
                 this.$nextTick(function () {
         			const ctx = document.getElementById(chart_type);
                     // try to destroy before create
@@ -201,12 +199,6 @@
             },
 
             create_chart(chart_type, view_data, bgd_color, text_color) {
-                if (chart_type == 'filtered_top_senders') {
-                    stats_app.loading_filtered_top_senders = false;
-                }
-                if (chart_type == 'filtered_top_recipients') {
-                    stats_app.loading_filtered_top_recipients = false;
-                }
                 this.$nextTick(function () {
     				const ctx = document.getElementById(chart_type);
                     this.stop_draws(chart_type);
@@ -257,8 +249,6 @@
                             },
                             onClick: (e, element) => {
                               const elements = chart.getElementsAtEventForMode(e, 'index', { intersect: true }, true);
-                              //console.log(chart.data.labels[elements[0].index])
-                              //return 0;
                               if (elements.length) {
                                 if (chart.ctx.canvas.id == "filtered_top_senders") {
                                     if (chart.data.labels[elements[0].index] != "unknown") {
@@ -300,45 +290,36 @@
                 return pool;
             },
             async draw_chart(chart_type,mode) {
+                this.toggle_loading_circle(chart_type,true);
                 //if (mode == 1) {
                     // check cache in cookie with expiration
                     if ((this.$parent.getCookie(chart_type)) && (this.$parent.getCookie(chart_type) !== '{}')) {
-
-                        if (chart_type == 'filtered_top_senders') {
-                            this.loading_filtered_top_senders = true;
-                            // get cached data from cookie
-                            data = JSON.parse(this.$parent.getCookie(chart_type));
-                            this.loading_filtered_top_senders = false;
-                        }
-                        if (chart_type == 'filtered_top_recipients') {
-                            // get cached data from cookie
-                            this.loading_filtered_top_recipients = true;
-                            data = JSON.parse(this.$parent.getCookie(chart_type));
-                            this.loading_filtered_top_recipients = false;
-                        }
-                        this.check_filters_changes();
+                    //if ((this.$parent.getCookie(chart_type))/* && (this.$parent.getCookie(chart_type) !== '{}'*/) {
+                        // get cached data from cookie
+                        data = JSON.parse(this.$parent.getCookie(chart_type));
+                        //this.watermark_timestamp = JSON.parse(this.$parent.getCookie(chart_type+'_created'));
+                        this.check_filters_changes(chart_type);
                     } else {
                         try {
                             if (chart_type == 'filtered_top_senders') {
-                                this.loading_filtered_top_senders = true;
                                 let result = await this.call_stats_data(chart_type);
                                 if (result == 1) {
                                     this.draw_chart(chart_type,0);
                                     return 0;
                                 } else {
-                                    this.loading_filtered_top_senders = false;
+                                    this.toggle_loading_circle(chart_type,false);
                                     data = 'error'
                                     //return 0;
                                 }
                             }
                             if (chart_type == 'filtered_top_recipients') {
-                                this.loading_filtered_top_recipients = true;
+                                //this.loading_filtered_top_recipients = true;
                                 let result = await this.call_stats_data(chart_type);
                                 if (result == 1) {
                                     this.draw_chart(chart_type,0);
                                     return 0;
                                 } else {
-                                    this.loading_filtered_top_recipients = false;
+                                    this.toggle_loading_circle(chart_type,false);
                                     data = 'error'
                                     //return 0;
                                 }
@@ -366,7 +347,6 @@
                 stats_app = this
 
                 if (chart_type == 'filtered_top_senders') {
-                    this.loading_filtered_top_senders = false;
                     if (data !== 'error') {
                         data.forEach((item, index) => {
                               dataset.push(item['count'])
@@ -391,7 +371,6 @@
                 }
 
                 if (chart_type == 'filtered_top_recipients') {
-                    this.loading_filtered_top_recipients = false;
                     if (data !== 'error') {
                         data.forEach((item, index) => {
                               dataset.push(item['count'])
@@ -428,53 +407,45 @@
                 };
 
                 //this.$nextTick(function () {
+                    this.toggle_loading_circle(chart_type,false);
                     stats_app.create_chart(chart_type, view_data, bgd_color, text_color)
                 //});
             },
             async draw_donut(chart_type,mode) {
+                this.toggle_loading_circle(chart_type,true);
                 //if (mode == 1) {
                     // check cache in cookie with expiration
                     if ((this.$parent.getCookie(chart_type))/* && (this.$parent.getCookie(chart_type) !== '{}'*/) {
-
-                        if (chart_type == 'overall_pie') {
-                            this.loading_overall_pie = true;
-                            // get cached data from cookie
-                            data = JSON.parse(this.$parent.getCookie(chart_type));
-                            this.loading_overall_pie = false;
-                        }
-                        if (chart_type == 'filtered_pie') {
-                            // get cached data from cookie
-                            this.loading_filtered_pie = true;
-                            data = JSON.parse(this.$parent.getCookie(chart_type));
-                            this.loading_filtered_pie = false;
-                        }
-
-                        this.check_filters_changes();
+                        // get cached data from cookie
+                        data = JSON.parse(this.$parent.getCookie(chart_type));
+                        this.check_filters_changes(chart_type);
 
                     } else {
                         try {
                             if (chart_type == 'overall_pie') {
-                                this.loading_overall_pie = true;
+                                //this.loading_overall_pie = true;
                                 let result = await this.call_stats_data(chart_type);
                                 if (result == 1) {
                                     //data = this.array_overall
                                     this.draw_donut(chart_type,1);
                                     //return 0;
                                 } else {
-                                    this.loading_overall_pie = false;
+                                    //this.loading_overall_pie = false;
+                                    this.toggle_loading_circle(chart_type,false);
                                     data = "error"
                                     //return 0;
                                 }
                             }
                             if (chart_type == 'filtered_pie') {
-                                this.loading_filtered_pie = true;
+                                //this.loading_filtered_pie = true;
                                 let result = await this.call_stats_data(chart_type);
                                 if (result == 1) {
                                     //data = this.array_filtered
                                     this.draw_donut(chart_type,0);
                                     //return 0;
                                 } else {
-                                    this.loading_filtered_pie = false;
+                                    //this.loading_filtered_pie = false;
+                                    this.toggle_loading_circle(chart_type,false)
                                     data = "error"
                                     //return 0;
                                 }
@@ -490,7 +461,6 @@
                     this.loading_filtered_pie = false;
                     data = this.array_filtered;
                 }*/
-
                 var brightness = 0;
                 var text_color = "black";
                 var bgd_color = "white"
@@ -514,8 +484,6 @@
                 labels_orig.forEach((item, index) => {
                     labels.push(this.$parent.status_localize(item,1))
                 })
-                //console.log(labels)
-
 
                 var view_data = {
                     labels_orig: labels_orig,
@@ -558,6 +526,7 @@
                 };
 
                 //this.$nextTick(function () {
+                    this.toggle_loading_circle(chart_type,false);
                     stats_app.create_donut(chart_type, view_data, bgd_color, text_color);
                 //});
             },
@@ -718,11 +687,16 @@
                 });
             },
             force_refresh: function (event) {
-                chart_type = event.target.classList[0];
-                // show rotation animation
-                $('.'+chart_type).addClass('rotate');
-                setTimeout(() =>  $('.'+chart_type).removeClass('rotate'), 1000);
-                
+                if (event.target) {
+                    chart_type = event.target.classList[0];
+                     // show rotation animation
+                    $('.'+chart_type).addClass('rotate');
+                    setTimeout(() =>  $('.'+chart_type).removeClass('rotate'), 1000);
+
+                } else {
+                    chart_type = event
+                }
+
                 this.$parent.clear_cookies(chart_type);
                 this.$parent.clear_cookies(chart_type+"_created");
                 this.stop_draws(chart_type);
@@ -738,41 +712,38 @@
                     this.draw_chart(chart_type, 1);
                 }
             },
+            toggle_loading_circle(chart_type,operation) {
+                if (chart_type == 'overall_pie') {
+                    this.loading_overall_pie = operation;
+                }
+                if (chart_type == 'filtered_pie') {
+                    this.loading_filtered_pie = operation;
+                }
+                if (chart_type == 'filtered_top_senders') {
+                    this.loading_filtered_top_senders = operation;
+                }
+                if (chart_type == 'filtered_top_recipients') {
+                    this.loading_filtered_top_recipients = operation;
+                }
+            },
             stop_draws(chart_type) {
 				if (Chart.getChart(chart_type) != undefined) {
 				  Chart.getChart(chart_type).destroy();
 				}
 
             },
-            check_filters_changes(){
-                if ((!('filters' in window.localStorage)) ||(window.localStorage['filters'] === 'false')) {
-                    //console.log("Don't cache stats!")
-                    if (this.$parent.filters_changed) {
-                        this.$parent.clear_cookies('filtered_pie');
-                        this.$parent.clear_cookies('filtered_pie_created');
-                        this.$parent.clear_cookies('filtered_top_senders');
-                        this.$parent.clear_cookies('filtered_top_senders_created');
-                        this.$parent.clear_cookies('filtered_top_recipients');
-                        this.$parent.clear_cookies('filtered_top_recipients_created');
-                    }
-                    return 0;
-                } else {
-                    if (this.$parent.filters_changed) {
-                        //console.log("Filter values were changed. Clear filtered stats cookies and recache.")
-                        this.$parent.clear_cookies('filtered_pie');
-                        this.$parent.clear_cookies('filtered_pie_created');
-                        this.$parent.clear_cookies('filtered_top_senders');
-                        this.$parent.clear_cookies('filtered_top_senders_created');
-                        this.$parent.clear_cookies('filtered_top_recipients');
-                        this.$parent.clear_cookies('filtered_top_recipients_created');
-                        return 1;
-                    } else {
-                        //console.log("Caching stats!")
-                        return 0;
-                    }
+            check_filters_changes(chart_type){
+                if (this.$parent.filters_changed) {
+                    this.$nextTick(function () {
+                        if (chart_type != 'overall_pie') {
+                            //console.log("Filter values were changed. Clear filtered stats cookies and recache.");
+                            this.force_refresh(chart_type);
+                        }
+
+                        this.$parent.filters_changed = false;
+                    });
                 }
             }
-
         },
         mounted() {
 
