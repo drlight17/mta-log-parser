@@ -313,6 +313,8 @@
 
                 this.$emit('settings-saved', this.settings);
 
+                // reset to the first page and recount pages
+                this.$parent.reset_page();
                 return this.settings;
             }
 

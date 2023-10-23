@@ -846,7 +846,6 @@ const app = Vue.createApp({
 
     	                this.page_count = res['total_pages'];
     	                this.count = res['count'];
-                        console.log(this.page_count)
 
     	                this.toggleLoading(false);
     	                // check for updates
