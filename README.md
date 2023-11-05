@@ -1,4 +1,4 @@
-<h1><img align="center" width="100" height="60" src="https://raw.githubusercontent.com/drlight17/mta-log-parser/master/logo.png"> MTA Log Parser with Web UI</h1>
+<h1><img align="center" width="100" height="60" src="https://raw.githubusercontent.com/drlight17/mta-log-parser/master/mlp/static/images/logo.png"> MTA Log Parser with Web UI</h1>
 
 
 
