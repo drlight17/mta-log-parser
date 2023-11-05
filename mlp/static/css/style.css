@@ -222,7 +222,7 @@ summary {
 }
 .logo img {
     box-shadow: 3px 3px 3px 0 rgba(34,36,38,.15);
-    background: white;
+    /*background: white;*/
 }
 .title {
     text-overflow: ellipsis;
