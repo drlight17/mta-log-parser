@@ -72,7 +72,8 @@ const app = Vue.createApp({
             contdown: '',
             contdown_timer: 0,
             vertical_menu: false,
-            filters_changed: false
+            filters_changed: false,
+            isEqual: true
         }
     },
     computed: {
@@ -112,7 +113,20 @@ const app = Vue.createApp({
         }*/
     },
     watch: {
+        // equal value watch
+        isEqual: {
+         handler(val){
+           //console.log("isEqual is changed to "+val);
+
+           if (this.settings.filters) {
+                    this.saveFilters();
+                }
+           this.filters_changed = true;
+         },
+         deep: true
+        },
         search(val) {
+
             // text input validation
             if (val.match(/[()\\/$?+\[\]]/)) {
                 if (this.localeData.notie.one == undefined) {
@@ -819,11 +833,18 @@ const app = Vue.createApp({
             // load saved sort
             this.loadSort();
 
+            if (this.search.length > 0) {
+                // add filter equal flag
+                url += `?equal=${this.isEqual}`;
+                queries += 1;
+            }
+
             for (var f in this.email_filter) {
                 url += (queries === 0) ? '?' : '&';
                 url += `${f}=${this.email_filter[f]}`;
                 queries += 1;
             }
+
 
             url += (queries === 0) ? '?' : '&';
             url += `page=${this.page}&limit=${this.settings.page_limit}`;
@@ -1216,6 +1237,7 @@ const app = Vue.createApp({
             //notie.alert({type: 'info', text: `User settings are loaded from Local Storage`, time: 2})
         },
         saveFilters() {
+            window.localStorage['saved_filters.isEqual']=this.isEqual;
             window.localStorage['saved_filters.search']=this.search;
             window.localStorage['saved_filters.status_filter']=this.status_filter;
             window.localStorage['saved_filters.search_by']=this.search_by;
@@ -1237,6 +1259,10 @@ const app = Vue.createApp({
             }
         },
         loadFilters() {
+            if ('saved_filters.isEqual' in window.localStorage) {
+                // convert string to  boolean
+                this.isEqual = (window.localStorage['saved_filters.isEqual'] === 'true');
+            }
             if ('saved_filters.search' in window.localStorage) {
                 this.search = window.localStorage['saved_filters.search'];
             }
@@ -1271,6 +1297,7 @@ const app = Vue.createApp({
         },
         resetFilters() {
             this.search = "";
+            this.isEqual = true;
             this.status_filter = "NOFILTER";
             this.search_by = "id";
             // change start date based on saving filters option?
@@ -1702,6 +1729,9 @@ const app = Vue.createApp({
             }
 
             for (const entry of urlParams.entries()) {
+                if (entry[0] == 'equal') {
+                    this.isEqual = (entry[1] === 'true');
+                }
                 if (entry[0] == 'search') {
                     this.search = entry[1]
                 }
@@ -1769,9 +1799,10 @@ const app = Vue.createApp({
         },
         async shareLink() {
             link = window.location.origin+window.location.pathname+'?'
+            link += 'equal='+this.isEqual
 
             if (this.search) {
-                link += 'search='+this.search
+                link += '&search='+this.search
             }
 
             if (this.search_by) {
@@ -1889,7 +1920,14 @@ const app = Vue.createApp({
 
 	        // check hidden tips and settings
 
-	        if ((localStorage.getItem("hidden_settings_tips") === null) || (localStorage.getItem("hidden_settings_tips") === 'false'))  {
+	        //if ((localStorage.getItem("hidden_settings_tips") === null) || (localStorage.getItem("hidden_settings_tips") === 'false'))  {
+            // set tips hidden by default if not saved
+            if (localStorage.getItem("hidden_settings_tips") === null) {
+                $('.settips').hide();
+                this.hidden_settips = true;
+            }
+
+            if (localStorage.getItem("hidden_settings_tips") === 'false')  {
 	        	$('.settips').show();
 	        	this.hidden_settips = false;
 	        } else {

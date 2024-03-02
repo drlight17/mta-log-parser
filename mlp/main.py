@@ -38,7 +38,7 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.5.5"
+VERSION ="1.6"
 
 # postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
 #postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'

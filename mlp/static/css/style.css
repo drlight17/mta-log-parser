@@ -18,7 +18,16 @@
 	filter: brightness(1);
 }
 
-.stats_refresh:hover {
+
+.eye.slash.icon {
+    position: absolute;
+    right: 1vh;
+    cursor: pointer;
+    opacity: .7 !important;
+    text-decoration: none;
+}
+
+.stats_refresh:hover, .eye.slash.icon:hover {
     opacity: 1!important;
 }
 
@@ -422,13 +431,24 @@ summary {
     flex: 1;
 }
 
-#by {
+#by, #equal {
     display: flex;
     align-items: center;
     justify-content: center;
     width: initial;
     margin-bottom: initial;
 }
+
+ #equal {
+    opacity: .7;
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+ }
+
+ #equal:hover {
+    opacity: 1;
+
+ }
 
 @media only screen and (max-width: 767px){
     #user-settings, #tips {
@@ -450,7 +470,7 @@ summary {
         cursor: pointer;
     }
 
-    #by {
+    #by, #equal {
         width: 100%;
         margin-bottom: 15px;
     }
@@ -669,23 +689,33 @@ i.close.icon::before {
     z-index: 1;
 }
 
-/*canvas.no-data {
-  background: radial-gradient(circle at center, rgba(0,0,0,0) 0, rgba(0,0,0,0) 55%, rgba(0,0,0,0.2) 56%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.2) 64%, rgba(0,0,0,0) 65%,rgba(0,0,0,0) 100%);
-}*/
 
-/* chartist styling*/
-/*.ct-series-a .ct-bar, .ct-series-a .ct-line, .ct-series-a .ct-point, .ct-series-a .ct-slice-donut {
-    stroke: #0CC162;
+/*canvas context menu style*/
+#app.dark .contextMenu {
+    border:1px solid #dedede!important;
+    background-color:rgba(0,0,0,.9);
 }
-.ct-series-b .ct-bar, .ct-series-b .ct-line, .ct-series-b .ct-point, .ct-series-b .ct-slice-donut {
-    stroke: #BBBBBB;
-}
-.ct-chart {
-    margin: auto;
-    width: 300px;
-    height: 300px;
-}*/
 
-/*.ct-label {
-    font-size: 13px!important;
-}*/
+.contextMenu{
+  position: absolute;
+  border:1px solid black;
+  background:white;
+  list-style:none;
+  border-radius: 0 6px 6px;
+  padding: 0 2px;
+  width: fit-content;
+  z-index:99999;
+
+}
+.menu-item {
+    font-size: 14px;
+    line-height: 24px;
+    font-family: sans-serif;
+    padding: 4px 10px;
+}
+
+.menu-item:hover {
+  /*background: #dddddd;*/
+  text-decoration: underline;
+  cursor: pointer;
+}

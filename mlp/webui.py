@@ -346,6 +346,16 @@ async def api_stats():
         if 'log_lines' in frm:
             del frm['log_lines']
 
+        exclude_list = []
+
+        if 'filtered_top_senders_excluded' in frm:
+            exclude_list = json.loads(frm['filtered_top_senders_excluded'])
+            del frm['filtered_top_senders_excluded']
+
+        if 'equal' in frm:
+            equal = str(frm['equal'])
+            #del frm['equal']
+
         _senders_array = await _process_filters(0, r_q=r_q, query=_sm, frm=frm)
         _senders_array = _senders_array.pluck("mail_from").distinct()
         _senders_array = await _senders_array.run(conn, array_limit=settings.rethink_arr_limit)
@@ -353,16 +363,24 @@ async def api_stats():
         senders_array = []
         sender = {}
 
+        if settings.exclude_from_top_senders != '':
+            exclude_list = exclude_list + settings.exclude_from_top_senders.split(",")
+
+        # for exim compatibility
+        if '' in exclude_list:
+            exclude_list.append('<>')
+
         for s in _senders_array:
             # hack to force between find one contain
             _senders_count = _sm.between(s['mail_from'], s['mail_from']+" ", index = 'mail_from')
             _senders_count = await _process_filters(1, r_q=r_q, query=_senders_count, frm=frm)
             _senders_count = await  _senders_count.count().run(conn, array_limit=settings.rethink_arr_limit)
 
-            sender['mail_from'] = s['mail_from']
-            sender['count'] = _senders_count
-
-            senders_array.append(dict(sender))
+            # exclude from array based on settings excludes
+            if s['mail_from'] not in exclude_list:
+                sender['mail_from'] = s['mail_from']
+                sender['count'] = _senders_count
+                senders_array.append(dict(sender))
 
         # sort array reverse and limit by 10    
         senders_array = sorted(senders_array, key=lambda d: d['count'], reverse=True)[:10]
@@ -390,6 +408,15 @@ async def api_stats():
         del frm['top_recipients']
         if 'log_lines' in frm:
             del frm['log_lines']
+            
+        exclude_list = []
+
+        if 'filtered_top_recipients_excluded' in frm:
+            exclude_list = json.loads(frm['filtered_top_recipients_excluded'])
+            del frm['filtered_top_recipients_excluded']
+
+        if 'equal' in frm:
+            equal = str(frm['equal'])
 
         _recipients_array = await _process_filters(0, r_q=r_q, query=_sm, frm=frm)
         _recipients_array = _recipients_array.pluck("mail_to").distinct()
@@ -398,16 +425,23 @@ async def api_stats():
         recipients_array = []
         recipient = {}
 
+        if settings.exclude_from_top_recipients != '':
+            exclude_list = exclude_list + settings.exclude_from_top_recipients.split(",")
+
+        # for exim compatibility
+        if '' in exclude_list:
+            exclude_list.append('<>')
+
         for s in _recipients_array:
             # hack to force between find one contain
             _recipients_count = _sm.between(s['mail_to'], s['mail_to']+" ", index = 'mail_to')
             _recipients_count = await _process_filters(1, r_q=r_q, query=_recipients_count, frm=frm)
             _recipients_count = await  _recipients_count.count().run(conn, array_limit=settings.rethink_arr_limit)
-
-            recipient['mail_to'] = s['mail_to']
-            recipient['count'] = _recipients_count
-
-            recipients_array.append(dict(recipient))
+            # exclude from array based on settings excludes
+            if s['mail_to'] not in exclude_list:
+                recipient['mail_to'] = s['mail_to']
+                recipient['count'] = _recipients_count
+                recipients_array.append(dict(recipient))
 
         # sort array reverse and limit by 10    
         recipients_array = sorted(recipients_array, key=lambda d: d['count'], reverse=True)[:10]
@@ -469,8 +503,9 @@ async def api_emails():
     frm = dict(request.args)
     order_by = str(frm.pop('order', 'last_attempt')).lower()
     order_dir = str(frm.pop('order_dir', 'desc')).lower()
-    #print(request)
-    
+
+    if 'equal' in frm:
+        equal = str(frm['equal'])
 
     _sm = r.table('sent_mail')
     
@@ -486,8 +521,10 @@ async def api_emails():
             recipient_match = "^to="
 
         # TODO testing add rethink_arr_limit to all queries
-        found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).filter(lambda m: m['message'].match(recipient_match)).run(conn, array_limit=settings.rethink_arr_limit)
-        
+        if equal == 'true':
+            found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).filter(lambda m: m['message'].match(recipient_match)).run(conn, array_limit=settings.rethink_arr_limit)
+        else:
+            found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: ~(m['message'].match(search_string))).filter(lambda m: m['message'].match(recipient_match)).run(conn, array_limit=settings.rethink_arr_limit)
         ids = []
         async for f in found_strings:
             ids.append(f['queue_id'])
@@ -499,15 +536,21 @@ async def api_emails():
 
     # check log lines
     if 'log_lines' in frm:
+        
         search_string = str(frm.pop('log_lines'))#.lower()
-        found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).run(conn, array_limit=settings.rethink_arr_limit)
+
+        if equal == 'true':
+            found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).run(conn, array_limit=settings.rethink_arr_limit)
+        else:
+            found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: ~(m['message'].match(search_string))).run(conn, array_limit=settings.rethink_arr_limit)
         ids = []
         async for f in found_strings:
             ids.append(f['queue_id'])
         #_sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
         # new much more effective query method
         _sm = _sm.get_all(r_q.args(ids), index='id').distinct()
-        
+    
+
     # Handle appending .filter() to `_sm` for each filter key in `frm`
     _sm = await _process_filters(1, r_q=r_q, query=_sm, frm=frm)
     try:
@@ -578,6 +621,7 @@ async def _process_filters(mode, r_q, query: QueryOrTable, frm: Mapping, skip_ke
     skip_keys = ['limit', 'offset', 'page'] if not skip_keys else skip_keys
     fval_gt = ''
     fval_lt = ''
+    #print(frm.items())
     if mode == 0:
         for fkey, fval in frm.items():
             if fkey in skip_keys:
@@ -615,18 +659,28 @@ async def _process_filters(mode, r_q, query: QueryOrTable, frm: Mapping, skip_ke
                 fval = moment.date(fval,settings.datetime_format).date
                 fval = fval.replace(tzinfo=timezone.utc)
                 query = query.filter(lambda m: m[fkey] >= fval)
+    
+    equal = 'true'
 
     # check for other filters and append them to query
     for fkey, fval in frm.items():
         if fkey in skip_keys:
             continue
+
+        if fkey == 'equal':
+            if fval == 'false':
+                equal = fval
+                continue
+            else:
+                continue
+
         if '__gt' not in fkey and '__lt' not in fkey:
-            query = await _filter_form_key(fkey=fkey, fval=fval, query=query)
-    
+            query = await _filter_form_key(equal=equal, fkey=fkey, fval=fval, query=query)
+        
     #print("query: ",query)
     return query
 
-async def _filter_form_key(fkey: str, fval: str, query: QueryOrTable) -> QueryOrTable:
+async def _filter_form_key(equal: bool, fkey: str, fval: str, query: QueryOrTable) -> QueryOrTable:
     if '.' in fkey:
         k1, k2 = fkey.split('.')
         return query.filter(lambda m: m[k1][k2] == fval)
@@ -640,13 +694,17 @@ async def _filter_form_key(fkey: str, fval: str, query: QueryOrTable) -> QueryOr
         fval = moment.date(fval,settings.datetime_format).date
         fval = fval.replace(tzinfo=timezone.utc)
         return query.filter(lambda m: m[fkey] >= fval)'''
-
+    
     # full wildcard to key value (i.e. *find string*)
     rval = fval.replace('*', '')  # fval but without asterisks
-    query = query.filter(lambda m: m[fkey].match(rval))
+
+    if equal == 'false':
+        query = query.filter(lambda m: (~m[fkey].match(rval)))
+    else:
+        query = query.filter(lambda m: m[fkey].match(rval))
     return query
 
-    return query.filter(lambda m: m[fkey] == fval)
+    #return query.filter(lambda m: m[fkey] == fval)
 
 async def _process_notie():
     NOTIE_MESSAGE = ""
@@ -716,16 +774,10 @@ async def ldap_auth(u,p,mode):
     else:
         print("User not found in LDAP! Check filters and other LDAP quering settings!")
         return 3
-    
-        
-
-
-    
 
 # check user and password
 async def check_user_pass(u,p,mode):
     #print("Checking user "+u+" with password "+p)
-    
     
 
     r, conn, r_q = await get_rethink()

@@ -6,9 +6,30 @@ Unreleased VER.
 - remove python privex helpers code (?)
 - save settings into cookies (for firefox private window mainly) + accept cookies modal (?)
 - fix dropdown update if use fomantic ui div based dropdown
-- add not (!) to text filters
 - fix sort icon to the same shevrons as main menu gui show/hide buttons  
 - upgrade procedure from GUI (?) if decided to do so use [this manual](https://stackoverflow.com/questions/32163955/how-to-run-shell-script-on-host-from-docker-container/63719458#63719458)
+- optimize and fix mail_to and log_lines queries with not(!)
+- BUG: fix process of '...and more' in stats
+- [fix of non-dockerizeed deploy issue](https://github.com/drlight17/mta-log-parser/issues/10)
+
+
+VER. 1.6
+- ~~use more then one CPU core when parsing (moment timestamp convert of related logs is variable)~~
+- ~~add ability to exclude some addresses from the TOP charts (frontend gui cookies + backend permanent using settings)~~
+- ~~add stats cached text background for better readability~~
+- ~~show all currently excluded in gui (backend in tips, frontend in gui)~~
+- ~~BUG: currently excluded unknown list fix~~
+- ~~BUG: fix currently excluded context menu (right click) doesn't appear in mobile view~~
+- ~~clear all currently excluded from cookies button~~
+- ~~BUG: exclude unknown~~
+- ~~add not (!) to text filters~~
+- ~~BUG: fix not(!) appearance in mobile mode~~
+- ~~BUGs with all stats after not(!) were added~~
+- ~~process sharelink, save and restore not (!) parameter value and from link~~
+- ~~BUG: stats_app is not defined~~
+- ~~fix "invalid data" in cached stats after cookie clear (replace with error text or copy last date to browser localstorage to use it in this case)~~
+- ~~[security fix](https://github.com/drlight17/mta-log-parser/security/dependabot/1)~~
+- ~~closed graphs and settings/tips by default~~
 
 VER. 1.5.5
 - ~~BUG: auto turn on "save filters" on every link come even without paramaters~~

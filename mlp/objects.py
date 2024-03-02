@@ -10,6 +10,9 @@ from privex.helpers import Dictable, is_false
 from mlp.settings import log_timezone
 from mlp import settings, api
 
+import logging
+log = logging.getLogger(__name__)
+
 @dataclass
 class PostfixLog(Dictable):
     timestamp: datetime
@@ -32,14 +35,19 @@ class PostfixLog(Dictable):
 
     def clean_dict(self, convert_time=str) -> dict:
         data = dict(self)
-        # log lines timestamp convert before append
-        data['timestamp'] = moment.date(str(self.timestamp)).format(settings.datetime_format)
+        # log lines timestamp convert before append (for message related log view)
+        # this data conversion uses only one thread and takes too long so do it according to mail_log_timestamp_convert variable value
+        # log.info('Converting date and time %s using moment library according to settings',  data['timestamp'])
+        if settings.mail_log_timestamp_convert:
+            data['timestamp'] = moment.date(str(self.timestamp)).format(settings.datetime_format)
+        else:
         #print(data)
 
-        '''if is_false(convert_time):
-            data['timestamp'] = self.timestamp
-        else:
-            data['timestamp'] = convert_time(self.timestamp)'''
+            if is_false(convert_time):
+                data['timestamp'] = self.timestamp
+            else:
+                data['timestamp'] = convert_time(self.timestamp)
+
         return data
 
 

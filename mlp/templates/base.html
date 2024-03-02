@@ -30,13 +30,8 @@
     <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/@eflexsystems/colresizable@1.6.0-4/colResizable.min.js" crossorigin="anonymous"></script>
 
     <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/underscore@1.13.6/underscore-min.min.js"></script>
-    <!--  add export-from-json -->
-    <!--<script src="https://cdn.jsdelivr.net/npm/export-from-json@1.7.3/dist/umd/index.min.js"></script>-->
-    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-    <!-- add chartist
-	<script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/chartist@1.3.0/dist/index.umd.min.js"></script>
-    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/chartist-plugin-tooltips-updated@1.0.0/dist/chartist-plugin-tooltip.min.js"></script>-->
+    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <!-- add chart.js -->
     <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -46,8 +41,6 @@
     {% else %}
             <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js" crossorigin="anonymous"></script>
     {% endif %}
-    <!-- marquee helper
-    <script src="{{ settings.path_prefix+url_for('static', filename='js/jquery.marquee.js') }}"></script>-->
 
     <script src="{{ url_for('static', filename='js/main_app.js') }}" path_prefix="{{ settings.path_prefix }}" datetime_format="{{ settings.datetime_format }}" lang_files="{{ settings.lang_files }}" housekeeping_days="{{ settings.housekeeping_days }}" args = "{{ ARGS }}" notie_message="{{ NOTIE_MESSAGE }}" login="{{ LOGIN }}" mail_domain="{{ settings.mail_domain }}" parser_version="{{ VERSION }}"></script>
     <script src="{{ url_for('static', filename='js/pager.js') }}"></script>

@@ -2,6 +2,8 @@
 FROM python:3.8-alpine
 RUN apk update
 RUN apk add bash ncurses musl-dev gcc flock openldap-dev
+# upgrade pip
+RUN pip install --upgrade pip
 RUN pip3 install -U pipenv
 WORKDIR /app
 COPY . /app/

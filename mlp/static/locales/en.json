@@ -11,6 +11,10 @@
   "no_data": "No data",
   "force_refresh_stats": "Force refresh this chart",
   "cached": "cached at",
+  "exclude": "Hide",
+  "excluded": "Hidden:",
+  "remove_excluded": "Remove from hidden",
+  "remove_all_excluded": "Remove all hidden",
   "notie": {
     "one": "Forbidden special character(s) in text search input: <b>«",
     "two": "User settings are saved successfully",
@@ -153,7 +157,9 @@
     "thirteen": "There are all created accounts in the table below",
     "fourteen": "To call edit or delele account dialogue click the desired account's row",
     "fifteen": "To create new account press <i class=\"plus icon\"></i>",
-    "sixteen": "Use <i class=\"search icon\"></i> button to apply text filter and reload email list"
+    "sixteen": "Use <i class=\"search icon\"></i> button to apply text filter and reload email list",
+    "seventeen": "Permanently hidden from top 10 senders addresses ",
+    "eighteen": "Permanently hidden from top 10 recipients addresses "
   },
   "filters": {
     "filter_link_tip": "Click to apply text filter",
@@ -179,7 +185,8 @@
     "date_filter__lt_placeholder": "End date",
     "reset_button_tip": "Click to reset all filters",
     "reset_button": "Reset",
-    "share_button_tip": "Click to share current page"
+    "share_button_tip": "Click to share current page",
+    "filter_equal": "Select text filter condition"
   },
   "pager": {
     "first": "First Page",

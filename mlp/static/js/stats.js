@@ -24,21 +24,32 @@
             </div>
 
             <div class="ten wide column">
-                <h3><i class="chart bar icon"></i><span v-if="$parent.localeData.filtered_top_senders" v-html="$parent.localeData.filtered_top_senders"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_top_senders"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="filtered_top_senders stats_refresh sync icon"></i></h3>
+                <h3>
+                <i class="chart bar icon"></i><span v-if="$parent.localeData.filtered_top_senders" v-html="$parent.localeData.filtered_top_senders"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_top_senders"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="filtered_top_senders stats_refresh sync icon"></i>
+                </h3>
                 <div class="ui form">
-                    <canvas v-if="!loading_filtered_top_senders" id="filtered_top_senders"></canvas>
+                    <canvas v-if="!loading_filtered_top_senders" id="filtered_top_senders">
+                    </canvas>
                     <div v-else class="ui active huge indeterminate text loader">
                         <span v-if="$parent.localeData.loading" v-html="$parent.localeData.loading"></span>
                         <span v-else v-html="$parent.fallbackLocaleData.loading"></span>
                     </div>
+                    <ul class="contextMenu" id="contextMenu_filtered_top_senders" style="display:none;">
+
+                    </ul>
                 </div>
-                <h3><i class="chart bar outline icon"></i><span v-if="$parent.localeData.filtered_top_recipients" v-html="$parent.localeData.filtered_top_recipients"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_top_recipients"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="filtered_top_recipients stats_refresh sync icon"></i></h3>
+                <h3>
+                <i class="chart bar outline icon"></i><span v-if="$parent.localeData.filtered_top_recipients" v-html="$parent.localeData.filtered_top_recipients"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_top_recipients"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="filtered_top_recipients stats_refresh sync icon"></i>
+                </h3>
                 <div class="ui form">
-                    <canvas v-if="!loading_filtered_top_recipients" id="filtered_top_recipients"></canvas>
+                    <canvas v-if="!loading_filtered_top_recipients" id="filtered_top_recipients">
+                    </canvas>
                     <div v-else class="ui active huge indeterminate text loader">
                         <span v-if="$parent.localeData.loading" v-html="$parent.localeData.loading"></span>
                         <span v-else v-html="$parent.fallbackLocaleData.loading"></span>
                     </div>
+                    <ul class="contextMenu" id="contextMenu_filtered_top_recipients" style="display:none;">
+                    </ul>
                 </div>
             </div>
 
@@ -100,27 +111,44 @@
 
 	                  ctx.stroke();
 	                } else {
+                        text_width = ctx.measureText(stats_app.$parent.localeData.cached + " " + timestamp).width;
+
                         // add watermarked current timestamp
                         if (chart.config._config.type == 'doughnut') {
                             fontSize = (chart.height / 400).toFixed(2);
                             ch_height = chart.height/1.3
-                            ch_width = chart.width / 2
-                            ctx.textAlign = 'center';
+                            //ch_width = chart.width / 2
+                            ch_width = chart.width / 2 - text_width / 2
+                            //ctx.textAlign = 'center';
                         } else {
                             fontSize = (chart.height / 200).toFixed(2);
                             ch_height = chart.height / 2
-                            ch_width = chart.width / 1.5
-                            ctx.textAlign = 'left';
+                            //ch_width = chart.width / 1.5
+                            ch_width = chart.width / 1.5 - text_width / 2
+                            //ctx.textAlign = 'left';
                         }
-                        ctx.globalAlpha = .4;
-                        ctx.textBaseline = 'bottom';
+                        ctx.globalAlpha = .7;
+                        ctx.textBaseline = 'top';
                         ctx.font = fontSize + "rem Arial";
-                        ctx.fillStyle = text_color;
+                        
 
-                       timestamp = stats_app.$parent.format_date(stats_app.$parent.getCookie(chart.canvas.id+"_created"),datetime_format,false);
+                        // check cookie ..._created existence
+                        if (typeof(stats_app.$parent.getCookie(chart.canvas.id+"_created")) !== 'undefined') {
+                            timestamp = stats_app.$parent.format_date(stats_app.$parent.getCookie(chart.canvas.id+"_created"),datetime_format,false);
+                            // background color
+                            ctx.fillStyle = bg_color;
+                            ctx.fillRect(ch_width, ch_height, text_width, parseInt(ctx.font, 10));
+                            ctx.fillStyle = text_color;
+                            ctx.fillText(stats_app.$parent.localeData.cached + " " + timestamp, ch_width, ch_height);
+                            //ctx.restore();
+                        } else {
+                            // force refresh graph
+                            stats_app.force_refresh(chart.canvas.id);
+                            //ctx.fillText("No cookie!", ch_width, ch_height);
+                        }
                         //console.log(stats_app.$parent.getCookie(chart.canvas.id+"_created"));
                         //timestamp = stats_app.$parent.format_date(stats_app.watermark_timestamp,datetime_format,false);
-                        ctx.fillText(stats_app.$parent.localeData.cached + " " + timestamp, ch_width, ch_height);
+                        
                         ctx.closePath();
                         ctx.globalAlpha = 1;
                     }
@@ -154,6 +182,9 @@
                                     radiusDecrease: 20
                                 },
                                 legend: {
+                                    onHover: (e, element) => {
+                                        e.native.target.style.cursor = element[0] ? 'pointer' : 'default'
+                                    },
                                     labels: {
                                         filter: (legendItem, data) => (
                                             data.datasets[0].data[legendItem.index] != 0 && typeof data.datasets[0].data[legendItem.index] !== 'undefined'
@@ -206,7 +237,94 @@
                     let chart = new Chart(ctx, {
                         type: 'bar',
                         data: view_data,
-                        plugins: [stats_app.noData_plugin],
+                        plugins: [
+                            stats_app.noData_plugin,
+                            {
+                                afterInit: (chart) =>
+                                {
+                                    var menu = document.getElementById("contextMenu"+"_"+chart_type);
+
+                                    chart.ctx.canvas.addEventListener('contextmenu', handleContextMenu, false);
+                                    chart.ctx.canvas.addEventListener('mousedown', handleMouseDown, false);
+                                    // for mobile view touch context menu
+                                    chart.ctx.canvas.addEventListener('touchend', handleMouseDown, false);
+                                    chart.ctx.canvas.addEventListener('touchcancel', handleMouseDown, false);
+
+
+                                    function handleContextMenu(e){
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        
+
+                                        if (typeof chart.hoveredItem !== 'undefined' ) {
+                                            var excluded = stats_app.get_excluded(chart_type);
+
+                                            menu.style.left = e.layerX + "px";
+                                            menu.style.top = e.layerY + "px";
+                                            menu.style.display = "block";
+                                            selected = chart.hoveredItem;
+
+                                            let li = document.createElement('li');
+                                            let li2 = document.createElement('li');
+                                            li.classList.add("menu-item");
+                                            li2.classList.add("menu-item");
+                                            li.textContent = stats_app.$parent.localeData.exclude + ' ' + selected.data;
+                                            li2.innerHTML = '<u>'+stats_app.$parent.localeData.excluded+'</u>';
+
+                                            $(menu).empty().prepend(li);
+                                            if (typeof excluded !== 'undefined' && excluded.length > 0) {
+                                                $(menu).append('<hr />');
+
+                                                let icon_remove = document.createElement('i');
+                                                icon_remove.classList.add("eye");
+                                                icon_remove.classList.add("slash");
+                                                icon_remove.classList.add("icon");
+                                                icon_remove.setAttribute('title',stats_app.$parent.localeData.remove_all_excluded);
+                                                li2.append(icon_remove);
+                                                $(menu).append(li2);
+                                                
+                                                icon_remove.addEventListener('click', () => {
+                                                        stats_app.remove_all_excluded(chart_type);
+                                                        menu.style.display = "none";
+                                                    }, { once: true });
+
+                                                for (const element of excluded) {
+                                                        let li3 = document.createElement('li');
+                                                        let icon = document.createElement('i');
+                                                        icon.classList.add("times");
+                                                        icon.classList.add("icon");
+                                                        li3.classList.add("menu-item");
+                                                        
+                                                        li3.setAttribute('title',stats_app.$parent.localeData.remove_excluded);
+                                                        if ((element == '') || (element == '<>')) {
+                                                            li3.textContent += stats_app.$parent.localeData.filters.status_filter_unknown;
+                                                        } else {
+                                                            li3.textContent += element;
+                                                        }
+                                                        
+                                                        li3.prepend(icon);
+                                                        $(menu).append(li3);
+                                                        // add event listener on every element
+                                                        li3.addEventListener('click', () => {
+                                                            stats_app.remove_from_excluded(element,chart_type);
+                                                            menu.style.display = "none";
+                                                        }, { once: true });
+                                                }
+                                            }
+                                            menu.firstElementChild.addEventListener('click', () => {
+                                                stats_app.exclude_selected(selected,chart_type);
+                                                menu.style.display = "none";
+                                            }, { once: true });
+                                            return(false);
+                                        }
+                                    }
+
+                                    function handleMouseDown(e){
+                                        menu.style.display = "none";
+                                    }
+                                },
+                            }
+                        ],
                         options: {
                             indexAxis: 'y',
                             plugins: {
@@ -243,16 +361,22 @@
                                     }
                                  }
                             },
+                            //events: ["click", "mousemove"],
                             responsive: true,
                             maintainAspectRatio: false,
-                            onHover: (event, chartElement) => {
-                                event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'
+                            onHover: (e, element) => {
+                                delete chart.hoveredItem;
+                                e.native.target.style.cursor = element[0] ? 'pointer' : 'default';
+                                const elements = chart.getElementsAtEventForMode(e, 'index', { intersect: true }, true);
+                                if (elements.length) {
+                                    chart.hoveredItem = { 'index': elements[0].index, 'data': chart.data.labels[elements[0].index] };
+                                }
                             },
                             onClick: (e, element) => {
                               const elements = chart.getElementsAtEventForMode(e, 'index', { intersect: true }, true);
                               if (elements.length) {
                                 if (chart.ctx.canvas.id == "filtered_top_senders") {
-                                    if (chart.data.labels[elements[0].index] != "unknown") {
+                                    if (chart.data.labels[elements[0].index] != stats_app.$parent.localeData.filters.status_filter_unknown) {
                                         this.$parent.search_by = 'mail_from';
                                         this.$parent.search = chart.data.labels[elements[0].index]
                                     }
@@ -262,7 +386,7 @@
                                     })
                                 }
                                 if (chart.ctx.canvas.id == "filtered_top_recipients") {
-                                    if (chart.data.labels[elements[0].index] != "unknown") {
+                                    if (chart.data.labels[elements[0].index] != stats_app.$parent.localeData.filters.status_filter_unknown) {
                                         this.$parent.search_by = 'mail_to';
                                         this.$parent.search = chart.data.labels[elements[0].index]
                                     }
@@ -345,7 +469,6 @@
 
                 var dataset = []
                 var labels = []
-                stats_app = this
 
                 if (chart_type == 'filtered_top_senders') {
                     if (data !== 'error') {
@@ -354,7 +477,8 @@
                               if ((item['mail_from'] !== '')&&(item['mail_from'] !== '<>')) {
                                 labels.push(item['mail_from'])
                               } else {
-                                labels.push('unknown')
+
+                                labels.push(stats_app.$parent.localeData.filters.status_filter_unknown)
                               }
                         })
                     } else {
@@ -364,7 +488,7 @@
     	                      if ((item['mail_from'] !== '')&&(item['mail_from'] !== '<>')) {
                                 labels.push(item['mail_from'])
                               } else {
-                                labels.push('unknown')
+                                labels.push(stats_app.$parent.localeData.filters.status_filter_unknown)
                               }
     	                    })
     	                }
@@ -378,7 +502,7 @@
                               if (item['mail_to'] !== '') {
                                 labels.push(item['mail_to'])
                               } else {
-                                labels.push('unknown')
+                                labels.push(stats_app.$parent.localeData.filters.status_filter_unknown)
                               }
                         })
                     } else {
@@ -388,7 +512,7 @@
     	                      if (item['mail_to'] !== '') {
                                 labels.push(item['mail_to'])
                               } else {
-                                labels.push('unknown')
+                                labels.push(stats_app.$parent.localeData.filters.status_filter_unknown)
                               }
     	                    })
     	                }
@@ -471,7 +595,6 @@
                     bgd_color = "#2b2b2b"
                 }
 
-                stats_app = this
                 if (data !== 'error') {
                     var dataset = [data['sent'], data['deferred'], data['reject'], data['bounced'], data['unknown'], data['multiple']]
                 } else {
@@ -568,6 +691,12 @@
                     url += '?';
                     var element_status = '';
 
+                    // add filter equal flag
+                    if (this.$parent.search.length > 0) {
+                        url += `equal=${this.$parent.isEqual}&`;
+                        queries += 1;
+                    }
+
                     for (var f in this.$parent.email_filter) {
                         if (f != 'status.code') {
                             url += `${f}=${this.$parent.email_filter[f]}&`;
@@ -617,10 +746,21 @@
                 } else if (chart_type == 'filtered_top_senders'){
                     var url = base_url3, queries = 0;
                     url += '?top_senders&';
+
+                    // add filter equal flag
+                    if (this.$parent.search.length > 0) {
+                        url += `equal=${this.$parent.isEqual}&`;
+                        queries += 1;
+                    }
+
                     for (var f in this.$parent.email_filter) {
                         url += `${f}=${this.$parent.email_filter[f]}&`;
                         queries += 1;
                     }
+                    if (typeof(stats_app.$parent.getCookie(chart_type+"_excluded")) !== 'undefined') {
+                        url += `&`+chart_type+`_excluded=`+stats_app.$parent.getCookie(chart_type+"_excluded");
+                    }
+
                     url_upd = url;
                     response = await this.fetch_stats_data(url_upd,chart_type,0);
                     // store to cookie with expiration after hour
@@ -638,9 +778,20 @@
                 } else if (chart_type == 'filtered_top_recipients'){
                     var url = base_url3, queries = 0;
                     url += '?top_recipients&';
+
+                    // add filter equal flag
+                    if (this.$parent.search.length > 0) {
+                        url += `equal=${this.$parent.isEqual}&`;
+                        queries += 1;
+                    }
+                    
                     for (var f in this.$parent.email_filter) {
                         url += `${f}=${this.$parent.email_filter[f]}&`;
                         queries += 1;
+                    }
+
+                    if (typeof(stats_app.$parent.getCookie(chart_type+"_excluded")) !== 'undefined') {
+                        url += `&`+chart_type+`_excluded=`+stats_app.$parent.getCookie(chart_type+"_excluded");
                     }
                     url_upd = url;
                     response = await this.fetch_stats_data(url_upd,chart_type,0);
@@ -690,6 +841,7 @@
             force_refresh: function (event) {
                 if (event.target) {
                     chart_type = event.target.classList[0];
+
                      // show rotation animation
                     $('.'+chart_type).addClass('rotate');
                     setTimeout(() =>  $('.'+chart_type).removeClass('rotate'), 1000);
@@ -744,11 +896,74 @@
                         this.$parent.filters_changed = false;
                     });
                 }
+            },
+            exclude_selected(selected, chart_type) {
+                chart = Chart.getChart(chart_type);
+
+                // if unknown replace selected.data with the following
+                if (selected.data == stats_app.$parent.localeData.filters.status_filter_unknown) {
+                    selected.data = '';
+                }
+
+                if (typeof(stats_app.$parent.getCookie(chart_type+"_excluded")) !== 'undefined') {
+
+                    //var cookie = stats_app.$parent.getCookie(chart_type+"_excluded").replace(/["']/g, "");
+                    var cookie = JSON.parse(stats_app.$parent.getCookie(chart_type+"_excluded"));
+                    //cookie = cookie + "," + JSON.stringify(selected.data).replace(/["']/g, "");
+                    cookie.push(selected.data);
+                    document.cookie = chart_type+"_excluded="+JSON.stringify(cookie);
+                } else {
+                    //document.cookie = chart_type+"_excluded="+JSON.stringify(selected.data).replace(/["']/g, "");
+                    var cookie = new Array;
+                    cookie.push(selected.data);
+                    document.cookie = chart_type+"_excluded="+JSON.stringify(cookie);
+                }
+                this.force_refresh(chart_type);
+            },
+            get_excluded(chart_type) {
+                if (typeof(stats_app.$parent.getCookie(chart_type+"_excluded")) !== 'undefined') {
+                    //var cookie = stats_app.$parent.getCookie(chart_type+"_excluded").replace(/["']/g, "");
+                    var cookie = JSON.parse(stats_app.$parent.getCookie(chart_type+"_excluded"));
+                    //console.log(cookie)
+                    //var excluded = cookie.split(',');
+                    //var excluded = cookie
+                    //console.log(excluded);
+                    return cookie;
+                }
+            },
+            remove_from_excluded(element,chart_type) {
+                var arr = this.get_excluded(chart_type);
+
+                var filteredArray = arr.filter(function(e) { return e !== element });
+
+                if ((filteredArray.length < 1) || (typeof (filteredArray) == 'undefined')) {
+                    this.remove_all_excluded(chart_type);
+                } else {
+                    document.cookie = chart_type+"_excluded="+JSON.stringify(filteredArray);
+                }
+                // check saved excludes
+                this.force_refresh(chart_type);
+            },
+            remove_all_excluded(chart_type) {
+                this.$parent.clear_cookies(chart_type+"_excluded");
+                this.force_refresh(chart_type);
             }
         },
         mounted() {
+            // save stats_app for further usage
+            stats_app = this;
+            // set stats hidden by default if not saved
+            if (localStorage.getItem("hidden_stats") === null) {
+                $('#charts-wrapper').hide();
+                this.$parent.hidden_stats = true;
+                this.stop_draws('overall_pie');
+                this.stop_draws('filtered_pie');
+                this.stop_draws('filtered_top_senders');
+                this.stop_draws('filtered_top_recipients');
+            }
 
-            if ((localStorage.getItem("hidden_stats") === null) || (localStorage.getItem("hidden_stats") === 'false'))  {
+            //if ((localStorage.getItem("hidden_stats") === null) || (localStorage.getItem("hidden_stats") === 'false'))  {
+            if (localStorage.getItem("hidden_stats") === 'false')  {
                 $('#charts-wrapper').show();
                 this.$parent.hidden_stats = false;
                 this.run_draws('overall_pie');

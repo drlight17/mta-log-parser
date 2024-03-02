@@ -73,8 +73,17 @@ housekeeping_days = env_int('HOUSEKEEPING_DAYS', '')
 # add datetime_format var from env
 datetime_format = env('DATETIME_FORMAT', 'HH:mm:ss, DD.MM.YYYY')
 
+# add mail_log_timestamp_convert var from env
+mail_log_timestamp_convert = env_bool('MAIL_LOG_TIMESTAMP_CONVERT', False)
+
 # add mta var from env
 mta = env('MTA', '')
+
+# add exclude from top senders
+exclude_from_top_senders = env('EXCLUDE_FROM_TOP_SENDERS', '')
+
+# add exclude from top recipients
+exclude_from_top_recipients = env('EXCLUDE_FROM_TOP_RECIPIENTS', '')
 
 log_timezone = pytz.timezone(env('LOG_TIMEZONE', 'UTC'))
 """

@@ -22,7 +22,6 @@
 	  {% else %}
 	  <a :title="localeData.user_settings.acc_ctrl_disabled_title" class="item disabled"><i class="address card icon"></i>&nbsp;<span v-if="localeData.user_settings.acc_ctrl_disabled" v-html="localeData.user_settings.acc_ctrl_disabled"></span><span v-else v-html="fallbackLocaleData.user_settings.acc_ctrl_disabled"></span></a>
 	  {% endif %}
-	  <!--<a @click="exportDataFromJSON(emails)" class="item"><i class="file excel icon"></i><span v-if="localeData.user_settings.export_to_xls" v-html="localeData.user_settings.export_to_xls"></span><span v-else v-html="fallbackLocaleData.user_settings.export_to_xls"></span></a>-->
 	  <a :title="localeData.user_settings.export_to_xls_title" @click="ExportToExcel('xlsx')" class="item"><i class="file excel icon"></i>&nbsp;<span v-if="localeData.user_settings.export_to_xls" v-html="localeData.user_settings.export_to_xls"></span><span v-else v-html="fallbackLocaleData.user_settings.export_to_xls"></span></a>
 	  <div class="right menu">
 	    <a :title="localeData.user_settings.log_out_title" @click="logout()" class="item"><i class="sign out alternate icon"></i>&nbsp;<span v-if="localeData.user_settings.log_out" v-html="localeData.user_settings.log_out"></span><span v-else v-html="fallbackLocaleData.user_settings.log_out"></span></a>
@@ -101,6 +100,25 @@
                          <strong> {{ settings.datetime_format }}</strong>
                     </li>
                     {% endif %}
+
+                    {% if settings.exclude_from_top_senders %}
+                    <li>
+                         <span v-if="localeData.tips.seventeen" v-html="localeData.tips.seventeen"></span>
+                         <span v-else v-html="fallbackLocaleData.tips.seventeen"></span>
+                         <details>: <summary>[...]</summary>
+                            <strong> {{ settings.exclude_from_top_senders }}</strong>
+                        </details>
+                    </li>
+                    {% endif %}
+                    {% if settings.exclude_from_top_recipients %}
+                    <li>
+                         <span v-if="localeData.tips.eighteen" v-html="localeData.tips.eighteen"></span>
+                         <span v-else v-html="fallbackLocaleData.tips.eighteen"></span>
+                         <details>: <summary>[...]</summary>
+                            <strong> {{ settings.exclude_from_top_recipients }}</strong>
+                         </details>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -112,7 +130,13 @@
         <div class="seven wide column">
             <h3><span v-if="localeData.filters.search" v-html="localeData.filters.search"></span><span v-else v-html="fallbackLocaleData.filters.search"></span></h3>
             <div class="ui form">
-                <div class="three fields">
+                <div class="four fields">
+                    <span v-if="!loading" id="equal">
+                        <i v-if="localeData.filters.filter_equal" :title="localeData.filters.filter_equal" @click="isEqual = !isEqual"
+                        :class="[isEqual ? 'equals icon' : 'not equal icon']"></i>
+                        <i v-else :title="fallbackLocaleData.filters.filter_equal" @click="isEqual = !isEqual"
+                        :class="[isEqual ? 'equals icon' : 'not equal icon']"></i>
+                    </span>
                     <div class="eight wide field">
                         <div class="ui input left icon">
                             <input v-on:keyup.enter="check_button()" id="text_search" v-if="localeData.filters.search_placeholder" v-model="search" type="text" class="ui input" :placeholder="localeData.filters.search_placeholder">
