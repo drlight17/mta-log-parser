@@ -50,13 +50,14 @@ class PostfixLog(Dictable):
 
         return data
 
-
 @dataclass
 class PostfixMessage(Dictable):
     timestamp: datetime
     queue_id: str
     lines: List[PostfixLog] = field(default_factory=list)
     mail_to: str = ""
+    mail_to_alias: dict = field(default_factory=dict)
+    #mail_to_alias: str = ""
     #mail_to: dict = field(default_factory=dict)
     mail_from: str = ""
     subject: str = ""

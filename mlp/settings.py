@@ -41,7 +41,7 @@ rethink_db = env('RETHINK_DB', 'maildata')
 rethink_arr_limit = int(env('RETHINK_ARR_LIMIT', 100000))
 
 rethink_tables = [
-    ('sent_mail', 'auth', ['status_code', 'mail_from', 'mail_to', 'timestamp', 'first_attempt', 'last_attempt']),
+    ('sent_mail', 'auth', ['status_code', 'mail_from', 'mail_to', 'mail_to_alias', 'timestamp', 'first_attempt', 'last_attempt']),
 ]
 
 # add ldap vars from env

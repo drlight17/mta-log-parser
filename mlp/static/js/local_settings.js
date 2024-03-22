@@ -1,7 +1,11 @@
     app.component('local-settings', {
         template: `
         <div id="user-settings-wrapper" class="ui segment">
-            <h3><i class="user icon"/><span v-if="!$parent.loading" v-html="$parent.localeData.user_settings.user_settings_title"></span></h3>
+            <h3><i class="big icons">
+                <i class="user icon"/>
+                <i class="bottom right corner tools icon"/>
+                </i>
+            <span v-if="!$parent.loading" v-html="$parent.localeData.user_settings.user_settings_title"></span></h3>
 
             <div class="ui form grid">
                 <div class="ui column wide">
@@ -101,14 +105,22 @@
                         sorted: 'rgb(255 255 255 / 30%)'
                     },
                     status_icon: {
-                        deferred: "<i class='hourglass half icon'></i>",
-                        sent: "<i class='check icon'></i>",
-                        reject: "<i class='times icon'></i>",
-                        bounced: "<i class='reply icon'></i>",
-                        multiple: "<i class='tasks icon'></i>",
-                        unknown: "<i class='question icon'></i>",
-                        tls: "<i class='lock icon'></i>",
-                        no_tls: "<i class='lock open icon'></i>"
+                        //deferred: "<i class='hourglass half icon'></i>",
+                        deferred: 'hourglass half',
+                        //sent: "<i class='check icon'></i>",
+                        sent: 'check',
+                        //reject: "<i class='times icon'></i>",
+                        reject: 'times',
+                        //bounced: "<i class='reply icon'></i>",
+                        bounced: 'reply',
+                        //multiple: "<i class='tasks icon'></i>",
+                        multiple: 'tasks',
+                        //unknown: "<i class='question icon'></i>",
+                        unknown: 'question',
+                        //tls: "<i class='lock icon'></i>",
+                        tls: 'lock',
+                        //no_tls: "<i class='lock open icon'></i>"
+                        no_tls: 'lock open'
                     }
                 },
             };

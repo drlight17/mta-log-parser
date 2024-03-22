@@ -23,6 +23,7 @@ import rethinkdb.query
 import logging
 
 from rethinkdb.net import DefaultConnection
+
 from mlp.main import VERSION
 from mlp import settings, api
 
@@ -416,14 +417,18 @@ async def api_stats():
             del frm['filtered_top_recipients_excluded']
 
         if 'equal' in frm:
-            equal = str(frm['equal'])
+            equal = str(frm['equal'])     
 
-        _recipients_array = await _process_filters(0, r_q=r_q, query=_sm, frm=frm)
-        _recipients_array = _recipients_array.pluck("mail_to").distinct()
-        _recipients_array = await _recipients_array.run(conn, array_limit=settings.rethink_arr_limit)
+        _recipients_dict = await _process_filters(0, r_q=r_q, query=_sm, frm=frm)
+        _recipients_dict = _recipients_dict.pluck("mail_to")#.distinct()
+        _recipients_dict = await _recipients_dict.run(conn, array_limit=settings.rethink_arr_limit)
 
         recipients_array = []
         recipient = {}
+        recipients_array_reformed = []
+        to_add_from_multiples = []
+        temp_arr = []
+
 
         if settings.exclude_from_top_recipients != '':
             exclude_list = exclude_list + settings.exclude_from_top_recipients.split(",")
@@ -432,16 +437,66 @@ async def api_stats():
         if '' in exclude_list:
             exclude_list.append('<>')
 
-        for s in _recipients_array:
+        async for s in _recipients_dict:
+            
+            # check if multiple recipients
+
+            try:
+                s['mail_to'] = json.loads(s['mail_to'])
+
+            except ValueError as e:
+                # convert string to list
+                s['mail_to'] = s['mail_to'].lstrip('[').rstrip(']').split(',')
+     
+            # old check
+            #if type(s['mail_to']) is list:
+
+
+            for m in s['mail_to']:
+
+                if type(m) is dict:
+                    #print(m['mail_to'])
+                    #print(m['mail_to_alias'])
+                    j = m['mail_to']
+                    k = m['mail_to_alias']
+                    if j not in recipients_array_reformed:
+                        recipients_array_reformed.append(j)
+                    #if len(s['mail_to']) > 1:
+                    to_add_from_multiples.append(j)
+
+                    if k not in recipients_array_reformed:
+                        recipients_array_reformed.append(k)
+                    #if len(s['mail_to']) > 1:
+                    to_add_from_multiples.append(k)
+                else:
+                    m = m.lstrip(' ').strip("\"")
+                    if m not in recipients_array_reformed:
+                        recipients_array_reformed.append(m)
+                    if len(s['mail_to']) > 1:
+                        to_add_from_multiples.append(m)
+
+        # create dict with recipients from messages with multiple recipients and counted number of deliveries with every recipient
+        to_add_from_multiples_dict = {i:to_add_from_multiples.count(i) for i in to_add_from_multiples}
+        #print(recipients_array_reformed)
+        #print(to_add_from_multiples)
+        #print(to_add_from_multiples_dict)
+        
+
+        for s in recipients_array_reformed:
             # hack to force between find one contain
-            _recipients_count = _sm.between(s['mail_to'], s['mail_to']+" ", index = 'mail_to')
+            _recipients_count = _sm.between(s, s+" ", index = 'mail_to')
             _recipients_count = await _process_filters(1, r_q=r_q, query=_recipients_count, frm=frm)
             _recipients_count = await  _recipients_count.count().run(conn, array_limit=settings.rethink_arr_limit)
             # exclude from array based on settings excludes
-            if s['mail_to'] not in exclude_list:
-                recipient['mail_to'] = s['mail_to']
+            if s not in exclude_list:
+                # increment count for every recipient from to_add_from_multiples_dict
+                for i, v in to_add_from_multiples_dict.items():
+                    if s == i:
+                        _recipients_count += v
+                recipient['mail_to'] = s
                 recipient['count'] = _recipients_count
                 recipients_array.append(dict(recipient))
+
 
         # sort array reverse and limit by 10    
         recipients_array = sorted(recipients_array, key=lambda d: d['count'], reverse=True)[:10]
@@ -510,17 +565,14 @@ async def api_emails():
     _sm = r.table('sent_mail')
     
     # check mail_to in log lines
-    if 'mail_to' in frm:
+    '''if 'mail_to' in frm:
         search_string = str(frm.pop('mail_to'))#.lower()
         recipient_match = ''
         if settings.mta == 'exim':
             recipient_match = "\*\* |-> |=> |== |>> "
-            #recipient_match = "-> |=> |== |>> "
-            #recipient_match = "->|=>|==|>> "
         if settings.mta == 'sendmail' or settings.mta == 'postfix':
             recipient_match = "^to="
 
-        # TODO testing add rethink_arr_limit to all queries
         if equal == 'true':
             found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).filter(lambda m: m['message'].match(recipient_match)).run(conn, array_limit=settings.rethink_arr_limit)
         else:
@@ -530,9 +582,7 @@ async def api_emails():
             ids.append(f['queue_id'])
         #_sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
         # new much more effective query method
-        _sm = _sm.get_all(r_q.args(ids), index='id').distinct()
-
-        
+        _sm = _sm.get_all(r_q.args(ids), index='id').distinct()'''
 
     # check log lines
     if 'log_lines' in frm:

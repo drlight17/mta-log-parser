@@ -13,116 +13,38 @@
         </div>
     </div>
 
-	<div v-if="!loading" :class="{ icon: vertical_menu, vertical: vertical_menu, inverted: settings.dark }" class="ui menu">
-	  <a :title="localeData.user_settings.current_user_title" class="item"><i class="user icon"></i>&nbsp;<span v-if="localeData.user_settings.current_user" v-html="localeData.user_settings.current_user"></span>
-	  <span v-else v-html="fallbackLocaleData.user_settings.current_user"></span>&nbsp;
-	    	<b><u><span v-html="login"></span></u></b></a>
-	  {% if not settings.ldap_connect %}
-	  <a :title="localeData.user_settings.acc_ctrl_title" @click="auth()" class="item"><i class="user lock icon"></i>&nbsp;&nbsp;<span v-if="localeData.user_settings.acc_ctrl" v-html="localeData.user_settings.acc_ctrl"></span><span v-else v-html="fallbackLocaleData.user_settings.acc_ctrl"></span></a>
-	  {% else %}
-	  <a :title="localeData.user_settings.acc_ctrl_disabled_title" class="item disabled"><i class="address card icon"></i>&nbsp;<span v-if="localeData.user_settings.acc_ctrl_disabled" v-html="localeData.user_settings.acc_ctrl_disabled"></span><span v-else v-html="fallbackLocaleData.user_settings.acc_ctrl_disabled"></span></a>
-	  {% endif %}
-	  <a :title="localeData.user_settings.export_to_xls_title" @click="ExportToExcel('xlsx')" class="item"><i class="file excel icon"></i>&nbsp;<span v-if="localeData.user_settings.export_to_xls" v-html="localeData.user_settings.export_to_xls"></span><span v-else v-html="fallbackLocaleData.user_settings.export_to_xls"></span></a>
-	  <div class="right menu">
-	    <a :title="localeData.user_settings.log_out_title" @click="logout()" class="item"><i class="sign out alternate icon"></i>&nbsp;<span v-if="localeData.user_settings.log_out" v-html="localeData.user_settings.log_out"></span><span v-else v-html="fallbackLocaleData.user_settings.log_out"></span></a>
-	    <a :title="localeData.hide_charts_title" @click="toggleHide('#charts-wrapper')" class="item">
-			<i class ="chartline icon"></i>&nbsp;
-			<i class ="chevron icon" :class="{ up: !hidden_stats, down: hidden_stats }"></i>
-	    </a>
-	    <a :title="localeData.hide_set_tips_title" @click="toggleHide('.settips')" class="item togglesettips">
-	    	<i class="user icon"></i><i class="bookmark icon"></i>&nbsp;
-			<i class ="chevron icon" :class="{ up: !hidden_settips, down: hidden_settips }"></i>
-	    </a>
+	<div v-if="!loading" :class="{ borderless: is_mobile, centered: is_mobile, icon: is_mobile, vertical: is_mobile, inverted: settings.dark }" class="ui menu">
+      <div class="left menu" :class="{ inverted: settings.dark, ui: is_mobile }">
+        <a :title="localeData.user_settings.current_user_title" class="item"><i class="user icon"></i>&nbsp;<span v-if="localeData.user_settings.current_user" v-html="localeData.user_settings.current_user"></span>
+        <span v-else v-html="fallbackLocaleData.user_settings.current_user"></span>&nbsp;
+        	<b><u><span v-html="login"></span></u></b></a>
+        {% if not settings.ldap_connect %}
+        <a :title="localeData.user_settings.acc_ctrl_title" @click="auth()" class="item"><i class="user lock icon"></i>&nbsp;&nbsp;<span v-if="localeData.user_settings.acc_ctrl" v-html="localeData.user_settings.acc_ctrl"></span><span v-else v-html="fallbackLocaleData.user_settings.acc_ctrl"></span></a>
+        {% else %}
+        <a :title="localeData.user_settings.acc_ctrl_disabled_title" class="item disabled"><i class="address card icon"></i>&nbsp;<span v-if="localeData.user_settings.acc_ctrl_disabled" v-html="localeData.user_settings.acc_ctrl_disabled"></span><span v-else v-html="fallbackLocaleData.user_settings.acc_ctrl_disabled"></span></a>
+        {% endif %}
+        <a :title="localeData.user_settings.export_to_xls_title" @click="ExportToExcel('xlsx')" class="item"><i class="file excel icon"></i>&nbsp;<span v-if="localeData.user_settings.export_to_xls" v-html="localeData.user_settings.export_to_xls"></span><span v-else v-html="fallbackLocaleData.user_settings.export_to_xls"></span></a>
+      </div>
+	  <div class="right menu" :class="{ inverted: settings.dark, ui: is_mobile }">
+        <a :title="localeData.settings_title" @click="showSettings()" class="item"><i class="tools icon"></i>&nbsp;<span v-if="localeData.settings_menu" v-html="localeData.settings_menu"></span><span v-else v-html="fallbackLocaleData.settings_menu"></span></a>
+        <a :title="localeData.tips_title" @click="showTips()" class="item"><i class="bookmark icon"></i>&nbsp;<span v-if="localeData.tips_menu" v-html="localeData.tips_menu"></span><span v-else v-html="fallbackLocaleData.tips_menu"></span></a>
+
+        <a :title="localeData.hide_charts_title" @click="toggleHide('#charts-wrapper')" class="item">
+        	<i class ="chartline icon"></i>&nbsp;<span v-if="localeData.charts_menu" v-html="localeData.charts_menu"></span><span v-else v-html="fallbackLocaleData.charts_menu"></span>
+        	<i class ="chevron icon" :class="{ up: !hidden_stats, down: hidden_stats }"></i>
+        </a>
+        <a :title="localeData.user_settings.log_out_title" @click="logout()" class="item"><i class="sign out alternate icon"></i>&nbsp;<span v-if="localeData.user_settings.log_out" v-html="localeData.user_settings.log_out"></span><span v-else v-html="fallbackLocaleData.user_settings.log_out"></span></a>
+        <!--<a :title="localeData.hide_set_tips_title" @click="toggleHide('.settips')" class="item togglesettips">
+        	<i class="user icon"></i><i class="bookmark icon"></i>&nbsp;
+        	<i class ="chevron icon" :class="{ up: !hidden_settips, down: hidden_settips }"></i>
+        </a>-->
 	  </div>
 	</div>
-    <div class="ui stackable two column grid settips" style="align-items: stretch;">
+    <!--<div class="ui stackable two column grid settips" style="align-items: stretch;">
         <div id="user-settings" class="six wide column">
             <local-settings ref="localSettings" @settings-loaded="settings_loaded" @settings-saved="settings_saved"></local-settings>
         </div>
-        <div id="tips" v-if="!loading" class="ten wide column">
-            <div class="ui segment">
-                <h3><i class="bookmark icon"></i><span v-if="localeData.tips.title" v-html="localeData.tips.title"></span><span v-else v-html="fallbackLocaleData.tips.title"></span></h3>
-                <ul>
-                    <li v-if="localeData.tips.one" v-html="localeData.tips.one">
-                    <li v-else v-html="fallbackLocaleData.tips.one">
-                    </li>
-                    <li v-if="localeData.tips.two" v-html="localeData.tips.two">
-                    <li v-else v-html="fallbackLocaleData.tips.two">
-                    </li>
-                    <li v-if="localeData.tips.twelve" v-html="localeData.tips.twelve">
-                    <li v-else v-html="fallbackLocaleData.tips.twelve">
-                    </li>
-                    <li v-if="localeData.tips.sixteen" v-html="localeData.tips.sixteen">
-                    <li v-else v-html="fallbackLocaleData.tips.sixteen">
-                    </li>
-                    <li v-if="localeData.tips.three" v-html="localeData.tips.three">
-                    <li v-else v-html="fallbackLocaleData.tips.three">
-                    </li>
-                    <li v-if="localeData.tips.four" v-html="localeData.tips.four">
-                    <li v-else v-html="fallbackLocaleData.tips.four">
-                    </li>
-                    <li v-if="localeData.tips.five" v-html="localeData.tips.five">
-                    <li v-else v-html="fallbackLocaleData.tips.five">
-                    </li>
-                    <li v-if="localeData.tips.eleven" v-html="localeData.tips.eleven">
-                    <li v-else v-html="fallbackLocaleData.tips.eleven">
-                    </li>
-                    <li>
-                    {% if settings.mta %}
-                        <span v-if="localeData.tips.six" v-html="localeData.tips.six"></span>
-                        <span v-else v-html="fallbackLocaleData.tips.six"></span><strong style="text-transform:uppercase"> {{ settings.mta }}</strong>
-                    {% else %}
-                        <span v-if="localeData.tips.six_default" v-html="localeData.tips.six_default"></span>
-                        <span v-else v-html="fallbackLocaleData.tips.six_default"></span>
-                    {% endif %}
-                    </li>
-                    <li>
-                        <span v-if="localeData.tips.seven" v-html="localeData.tips.seven"></span>
-                        <span v-else v-html="fallbackLocaleData.tips.seven"></span>
-                        <strong> {{ settings.default_limit }}</strong>
-                    </li>
-                    <li>
-                        <span v-if="localeData.tips.eight" v-html="localeData.tips.eight"></span>
-                        <span v-else v-html="fallbackLocaleData.tips.eight"></span>
-                        <strong> {{ settings.max_limit }}</strong>
-                    </li>
-                    {% if settings.housekeeping_days %}
-                    <li>
-                        <span v-if="localeData.tips.nine" v-html="localeData.tips.nine"></span>
-                        <span v-else v-html="fallbackLocaleData.tips.nine"></span>
-                        <strong> {{ settings.housekeeping_days }}</strong>
-                    </li>
-                    {% endif %}
-                    {% if settings.datetime_format %}
-                    <li>
-                         <span v-if="localeData.tips.ten" v-html="localeData.tips.ten"></span>
-                         <span v-else v-html="fallbackLocaleData.tips.ten"></span>
-                         <strong> {{ settings.datetime_format }}</strong>
-                    </li>
-                    {% endif %}
-
-                    {% if settings.exclude_from_top_senders %}
-                    <li>
-                         <span v-if="localeData.tips.seventeen" v-html="localeData.tips.seventeen"></span>
-                         <span v-else v-html="fallbackLocaleData.tips.seventeen"></span>
-                         <details>: <summary>[...]</summary>
-                            <strong> {{ settings.exclude_from_top_senders }}</strong>
-                        </details>
-                    </li>
-                    {% endif %}
-                    {% if settings.exclude_from_top_recipients %}
-                    <li>
-                         <span v-if="localeData.tips.eighteen" v-html="localeData.tips.eighteen"></span>
-                         <span v-else v-html="fallbackLocaleData.tips.eighteen"></span>
-                         <details>: <summary>[...]</summary>
-                            <strong> {{ settings.exclude_from_top_recipients }}</strong>
-                         </details>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </div>
+    </div>-->
 
 	<stats v-if="!loading" ref="statsRef"></stats>
 
@@ -131,8 +53,8 @@
             <h3><span v-if="localeData.filters.search" v-html="localeData.filters.search"></span><span v-else v-html="fallbackLocaleData.filters.search"></span></h3>
             <div class="ui form">
                 <div class="four fields">
-                    <span v-if="!loading" id="equal">
-                        <i v-if="localeData.filters.filter_equal" :title="localeData.filters.filter_equal" @click="isEqual = !isEqual"
+                    <span id="equal">
+                        <i v-if="!loading && localeData.filters.filter_equal" :title="localeData.filters.filter_equal" @click="isEqual = !isEqual"
                         :class="[isEqual ? 'equals icon' : 'not equal icon']"></i>
                         <i v-else :title="fallbackLocaleData.filters.filter_equal" @click="isEqual = !isEqual"
                         :class="[isEqual ? 'equals icon' : 'not equal icon']"></i>
@@ -257,11 +179,11 @@
             </tr>
         </thead>
         <tbody>
-            <tr @click="show_modal(emails,counter_index)" v-for="(m, counter_index) in emails">
+            <tr @click="show_modal(emails,counter_index,'','fade')" v-for="(m, counter_index) in emails">
             	<!--<td><span>[[ counter_index ]]</span></td>-->
                 <td><span>[[ m.timestamp ]]</span></td>
                 <td><span>[[ m.id ]]</span></td>
-                <td><span>[[ m.status.code ]]</span></td>
+                <td><i class="icon" :class="getStatusIcon(emails,counter_index)"></i><span>[[ m.status.code ]]</span></td>
                 <td><span>[[ m.mail_from ]]</span></td>
                 <td><span>[[ m.mail_to ]]</span></td>
                 <td><span>[[ m.subject ]]</span></td>
@@ -277,16 +199,26 @@
 
     <div class="ui modal" id="mail-modal" :class="{ inverted: settings.dark }">
         <i class="close icon"></i>
-            <div tabindex="0" @keyup.right="show_modal(emails,index+1,'right')" @click="show_modal(emails,index+1)" :class="{disabled: index >= msg_length-1 }" class="next_email">
-                <i class="arrow right icon"></i>
+            <div tabindex="0" @click="show_modal(emails,index+1,'right','fade left')" @keyup.end="show_modal(emails,msg_length-1,'end','fade left')" @keyup.right="show_modal(emails,index+1,'right','fade left')" :class="{disabled: index >= msg_length-1 }" class="next_email">
+                <i v-if="!loading && localeData.next" :title="localeData.next" class="angle right icon"></i>
+                <i v-else :title="fallbackLocaleData.next" class="angle right icon"></i>
+                <i v-if="!loading && localeData.last" :title="localeData.last" @click.stop.prevent="show_modal(emails,msg_length-1,'end','fade left')" class="angle double right icon"></i>
+                <i v-else :title="fallbackLocaleData.last" @click.stop.prevent="show_modal(emails,msg_length-1,'end','fade left')" class="angle double right icon"></i>
             </div>
-            <div tabindex="0" @keyup.left="show_modal(emails,index-1,'left')" @click="show_modal(emails,index-1)" :class="{disabled: index <= 0 }" class="prev_email">
-                <i class="arrow left icon"></i>
+            <div tabindex="0" @click="show_modal(emails,index-1,'left','fade right')" @keyup.home="show_modal(emails,0,'home','fade right')" @keyup.left="show_modal(emails,index-1,'left','fade right')" :class="{disabled: index <= 0 }" class="prev_email">
+                <i v-if="!loading && localeData.first" :title="localeData.first" @click.stop.prevent="show_modal(emails,0,'home','fade right')" class="angle double left icon"></i>
+                <i v-else :title="fallbackLocaleData.first" @click.stop.prevent="show_modal(emails,0,'home','fade right')" class="angle double left icon"></i>
+                <i v-if="!loading && localeData.previous" :title="localeData.previous" class="angle left icon"></i>
+                <i v-else :title="fallbackLocaleData.previous" class="angle left icon"></i>
             </div>
         <div class="header" style="background-color: inherit" v-if="msg.id">
+            <!--<i class="big icons">-->
+                <i class="big icon" :class="getStatusIcon(emails,index)"></i>
+                <!--<i :title="getTLSIcon(emails,index)[0]" class="bottom left corner icon" :class="getTLSIcon(emails,index)[1]"></i>-->
+            </i>
             <span v-if="localeData.emails_list.email">[[ localeData.emails_list.email ]]</span><span v-else>[[ fallbackLocaleData.emails_list.email ]]</span> [[ msg.id ]]
         </div>
-        <div class="content" v-if="msg.id">
+        <div class="scrolling content" v-if="msg.id">
             <h3><i class="envelope open icon"></i><span v-if="localeData.emails_list.email_pars">[[ localeData.emails_list.email_pars ]]</span><span v-else>[[ fallbackLocaleData.emails_list.email_pars ]]</span></h3>
             <table class="ui definition table" id="email-metadata" :class="{ inverted: settings.dark }">
                 <tbody>
@@ -306,6 +238,10 @@
                         <td>[[ msg.message_id ]]</td>
                     </tr>
                     <tr>
+                        <td v-if="!loading"><i :class="getTLSIcon(emails,index)[1]" class="icon"></i> [[ localeData.emails_list.status_tls_title ]]</td>
+                        <td>[[ getTLSIcon(emails,index)[0] ]]</td>
+                    </tr>
+                    <tr>
                         <td v-if="localeData.emails_list.mail_from"><i class="address card icon"></i> [[ localeData.emails_list.mail_from ]]</td>
                         <td v-else><i class="address card icon"></i> [[ fallbackLocaleData.emails_list.mail_from ]]</td>
                         <td>[[ msg.mail_from ]]</td>
@@ -313,7 +249,7 @@
                     <tr>
                         <td v-if="localeData.emails_list.mail_to"><i class="address card outline icon"></i> [[ localeData.emails_list.mail_to ]]</td>
                         <td v-else><i class="address card outline icon"></i> [[ fallbackLocaleData.emails_list.mail_to ]]</td>
-                        <td>[[ msg.mail_to ]]</td>
+                        <td id="mail_to_details">[[ msg.mail_to ]]</td>
                     </tr>
                     <tr>
                         <td v-if="localeData.emails_list.subject"><i class="terminal icon"></i> [[ localeData.emails_list.subject ]]</td>
@@ -355,13 +291,107 @@
             <h3 v-if="localeData.emails_list.log_lines"><i class="code icon"></i> [[ localeData.emails_list.log_lines ]]</h3>
             <h3 v-else><i class="code icon"></i> [[ fallbackLocaleData.emails_list.log_lines ]]</h3>
 
-            <ul>
-                <li v-for="l in msg.lines">[[ l.timestamp ]] [[ l.queue_id ]] [[ l.message ]]</li>
+            <ul class="log_lines">
+                <li class="log_lines" v-for="l in msg.lines">[[ l.timestamp ]] [[ l.queue_id ]] [[ l.message ]]</li>
             </ul>
 
         </div>
     </div>
-</div>
+
+    <div class="ui modal" id="settings-modal" :class="{ inverted: settings.dark }">
+            <i class="close icon"></i>
+        <local-settings ref="localSettings" @settings-loaded="settings_loaded" @settings-saved="settings_saved"></local-settings>
+    </div>
+
+    <div class="ui modal" id="tips-modal" :class="{ inverted: settings.dark }">
+        <i class="close icon"></i>
+        <div id="tips" v-if="!loading">
+            <div class="ui segment">
+                <h3><i class="big bookmark icon"></i><span v-if="localeData.tips.title" v-html="localeData.tips.title"></span><span v-else v-html="fallbackLocaleData.tips.title"></span></h3>
+                <ul>
+                    <li v-if="localeData.tips.one" v-html="localeData.tips.one">
+                    <li v-else v-html="fallbackLocaleData.tips.one">
+                    </li>
+                    <li v-if="localeData.tips.two" v-html="localeData.tips.two">
+                    <li v-else v-html="fallbackLocaleData.tips.two">
+                    </li>
+                    <li v-if="localeData.tips.twelve" v-html="localeData.tips.twelve">
+                    <li v-else v-html="fallbackLocaleData.tips.twelve">
+                    </li>
+                    <li v-if="localeData.tips.sixteen" v-html="localeData.tips.sixteen">
+                    <li v-else v-html="fallbackLocaleData.tips.sixteen">
+                    </li>
+                    <li v-if="localeData.tips.three" v-html="localeData.tips.three">
+                    <li v-else v-html="fallbackLocaleData.tips.three">
+                    </li>
+                    <li v-if="localeData.tips.four" v-html="localeData.tips.four">
+                    <li v-else v-html="fallbackLocaleData.tips.four">
+                    </li>
+                    <li v-if="localeData.tips.five" v-html="localeData.tips.five">
+                    <li v-else v-html="fallbackLocaleData.tips.five">
+                    </li>
+                    <li v-if="localeData.tips.eleven" v-html="localeData.tips.eleven">
+                    <li v-else v-html="fallbackLocaleData.tips.eleven">
+                    </li>
+                    <li v-if="localeData.tips.nineteen" v-html="localeData.tips.nineteen">
+                    <li v-else v-html="fallbackLocaleData.tips.nineteen">
+                    </li>
+                    <li>
+                    {% if settings.mta %}
+                        <span v-if="localeData.tips.six" v-html="localeData.tips.six"></span>
+                        <span v-else v-html="fallbackLocaleData.tips.six"></span><strong style="text-transform:uppercase"> {{ settings.mta }}</strong>
+                    {% else %}
+                        <span v-if="localeData.tips.six_default" v-html="localeData.tips.six_default"></span>
+                        <span v-else v-html="fallbackLocaleData.tips.six_default"></span>
+                    {% endif %}
+                    </li>
+                    <li>
+                        <span v-if="localeData.tips.seven" v-html="localeData.tips.seven"></span>
+                        <span v-else v-html="fallbackLocaleData.tips.seven"></span>
+                        <strong> {{ settings.default_limit }}</strong>
+                    </li>
+                    <li>
+                        <span v-if="localeData.tips.eight" v-html="localeData.tips.eight"></span>
+                        <span v-else v-html="fallbackLocaleData.tips.eight"></span>
+                        <strong> {{ settings.max_limit }}</strong>
+                    </li>
+                    {% if settings.housekeeping_days %}
+                    <li>
+                        <span v-if="localeData.tips.nine" v-html="localeData.tips.nine"></span>
+                        <span v-else v-html="fallbackLocaleData.tips.nine"></span>
+                        <strong> {{ settings.housekeeping_days }}</strong>
+                    </li>
+                    {% endif %}
+                    {% if settings.datetime_format %}
+                    <li>
+                         <span v-if="localeData.tips.ten" v-html="localeData.tips.ten"></span>
+                         <span v-else v-html="fallbackLocaleData.tips.ten"></span>
+                         <strong> {{ settings.datetime_format }}</strong>
+                    </li>
+                    {% endif %}
+
+                    {% if settings.exclude_from_top_senders %}
+                    <li>
+                         <span v-if="localeData.tips.seventeen" v-html="localeData.tips.seventeen"></span>
+                         <span v-else v-html="fallbackLocaleData.tips.seventeen"></span>
+                         <details>: <summary>[...]</summary>
+                            <strong> {{ settings.exclude_from_top_senders }}</strong>
+                        </details>
+                    </li>
+                    {% endif %}
+                    {% if settings.exclude_from_top_recipients %}
+                    <li>
+                         <span v-if="localeData.tips.eighteen" v-html="localeData.tips.eighteen"></span>
+                         <span v-else v-html="fallbackLocaleData.tips.eighteen"></span>
+                         <details>: <summary>[...]</summary>
+                            <strong> {{ settings.exclude_from_top_recipients }}</strong>
+                         </details>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
 

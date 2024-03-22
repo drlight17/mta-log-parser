@@ -85,11 +85,12 @@ async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:
         idxs = await db.table(t).index_list().run(conn, array_limit=settings.rethink_arr_limit)
         for index in indexes:
             if index not in idxs:
-
                 log.debug('Index %s on table %s did not exist. Creating.', index, t)
                 if index == 'status_code':
                     # TODO need to test index creation
                     await db.table(t).index_create(index,r.row['status']['code'], multi=True).run(conn, array_limit=settings.rethink_arr_limit)
+                #if index == 'lines':
+                #    await db.table(t).index_create(index, lambda row: row['lines'].map(lambda line: [line['message']]).reduce(lambda left, right: left.set_union(right)), multi=True).run(conn, array_limit=settings.rethink_arr_limit)
                 else:
                     await db.table(t).index_create(index).run(conn, array_limit=settings.rethink_arr_limit)
 

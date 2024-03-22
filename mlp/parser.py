@@ -21,7 +21,10 @@ import logging
 log = logging.getLogger(__name__)
 
 # postfix regexp
-postf_to = re.compile(r'.*to=<([a-zA-Z0-9-+_.=]+@[a-zA-Z0-9-+_.]+)>')
+#OLD!!! postf_to = re.compile(r'.*to=<([a-zA-Z0-9-+_.=]+@[a-zA-Z0-9-+_.]+)>')
+#postf_to = re.compile(r'^.*to=<([^>]*)>,.*orig_to=<[^>]*>') <---- this is only for orig_to
+#postf_to = re.compile(r'^.*to=<([^>]*)>,.*orig_to=<[^>]*>|^.*to=<([^>]*)>')
+postf_to = re.compile(r'^.*to=<([^>]*)>,.*orig_to=<([^>]*)>|^.*to=<([^>]*)>')
 postf_from = re.compile(r'.*from=<([a-zA-Z0-9-+_.=]+@[a-zA-Z0-9-+_.]+)>')
 postf_subject = re.compile(r'.*header\sSubject:\s(.*)\sfrom\s')
 postf_size = re.compile(r'.*size=([0-9]{1,}),.*')
@@ -111,6 +114,8 @@ else:
 
 async def parse_line(mline) -> dict:
     lm = {}
+    #aliases = []
+    aliases = {}
 
     _to = find_to.match(mline)
     #print(mline)
@@ -121,9 +126,22 @@ async def parse_line(mline) -> dict:
     _relay = find_relay.match(mline)
     _status = find_status.match(mline)
     
+    
     if _to is not None:
         if settings.mta == 'exchange':
             lm['mail_to'] = _to.group(1)[:-1]
+        if settings.mta == 'postfix':
+            if _to.group(2) is not None:
+                aliases = {_to.group(1):_to.group(2)}
+                #aliases.append(_to.group(2))
+                lm['mail_to_alias'] = aliases
+
+            if _to.group(1) is not None:
+                lm['mail_to'] = _to.group(1)
+                #if _to.group(2) is not None:
+                #    lm['mail_to'] +=' ('+_to.group(2)+')'
+            else:
+                lm['mail_to'] = _to.group(3)
         else:
             lm['mail_to'] = _to.group(1)
     if _subject is not None:
@@ -189,17 +207,17 @@ async def parse_line(mline) -> dict:
         if _client is not None: lm['client'] = dict(host=_client.group(1)[:-1], ip=_client.group(2)[:-1])
         if _status is not None:
             if _status.group(1) is not None:
-            	if _status.group(1)[:-1].lower() == 'deliver' or  _status.group(1)[:-1].lower()  == 'duplicatedeliver' or  _status.group(1)[:-1].lower()  == 'process' or  _status.group(1)[:-1].lower()  == 'receive' or  _status.group(1)[:-1].lower()  == 'redirect' or  _status.group(1)[:-1].lower()  == 'send' or  _status.group(1)[:-1].lower()  == 'submit':
-            		lm['status'] = lm['status'] = dict(code='sent', message="")
-            	elif _status.group(1)[:-1].lower() == 'fail' or  _status.group(1)[:-1].lower()  == 'hadiscard' or  _status.group(1)[:-1].lower()  == 'moderatorreject' or  _status.group(1)[:-1].lower()  == 'resubmitfail'  or  _status.group(1)[:-1].lower()  == 'submitfail'  or  _status.group(1)[:-1].lower()  == 'suppressed' or _status.group(1)[:-1].lower() == 'drop' or _status.group(1)[:-1].lower() == 'deliverfail':
-            		lm['status'] = lm['status'] = dict(code='reject', message="")
-            	elif _status.group(1)[:-1].lower() == 'dsn' or  _status.group(1)[:-1].lower()  == 'haredirect':
-            		lm['status'] = lm['status'] = dict(code='bounced', message="")
-            	elif _status.group(1)[:-1].lower() == 'defer' or _status.group(1)[:-1].lower() == 'resubmitdefer' or _status.group(1)[:-1].lower() == 'submitdefer':
-            		lm['status'] = lm['status'] = dict(code='deferred', message="")
-
-            if _status.group(2) is not None: 
-            	lm['status']['message'] = _status.group(2)[:-1]
+                if 'deliver' in _status.group(1)[:-1].lower() or  _status.group(1)[:-1].lower()  == 'process' or  _status.group(1)[:-1].lower()  == 'receive' or  _status.group(1)[:-1].lower()  == 'redirect' or  _status.group(1)[:-1].lower()  == 'send' or  _status.group(1)[:-1].lower()  == 'submit':
+                    lm['status'] = lm['status'] = dict(code='sent', message="")
+                elif 'fail' in _status.group(1)[:-1].lower() or 'discard' in _status.group(1)[:-1].lower() or 'reject' in _status.group(1)[:-1].lower()  or  _status.group(1)[:-1].lower()  == 'suppressed' or _status.group(1)[:-1].lower() == 'drop':
+                    lm['status'] = lm['status'] = dict(code='reject', message="")
+                elif 'redirect' in _status.group(1)[:-1].lower() or _status.group(1)[:-1].lower() == 'dsn':
+                    lm['status'] = lm['status'] = dict(code='bounced', message="")
+                elif 'defer' in _status.group(1)[:-1].lower():
+                    lm['status'] = lm['status'] = dict(code='deferred', message="")
+            if _status.group(2) is not None:
+                if _status.group(2)[:-1] != "":
+                    lm['status']['message'] = _status.group(2)[:-1]
 
     elif settings.mta == 'postfix':
         if _relay is not None: lm['relay'] = dict(host=_relay.group(1), ip=_relay.group(2), port=_relay.group(3))

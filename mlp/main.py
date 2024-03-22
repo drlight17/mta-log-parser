@@ -28,8 +28,12 @@ from mlp.parser import parse_line
 import email
 import base64
 import quopri
+import json
+
 from datetime import datetime, timedelta, timezone
 from quart import jsonify
+
+from collections import defaultdict
 
 import moment
 import datefinder
@@ -38,7 +42,7 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.6"
+VERSION ="1.7"
 
 # postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
 #postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
@@ -156,7 +160,9 @@ async def housekeeping(housekeeping_days):
 async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
     log.info('Opening log file %s', logfile)
     messages = {}
-    multiple_recipients = []
+    multiple_recipients_qids = []
+    multiple_recipients = defaultdict(list)
+    
     counter = 0
     same_qid = ''
     # avoid utf-8 codec error
@@ -217,8 +223,36 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             messages[qid].merge(await parse_line(msg))
             #print(messages[qid])
             #print(msg)
+
+            checking_mailto_alias = {}
+
+            if settings.mta == 'postfix':
+                if messages[qid].get('mail_to_alias') is not None:  
+                    if messages[qid].get('mail_to_alias') != {}:
+                        #print(messages[qid].get('mail_to'))
+                        #print(messages[qid].get('mail_to_alias'))
+                        #checking_mailto_alias_dict = messages[qid]['mail_to_alias']
+                        try:
+                            subdict = {}
+                            subdict['mail_to'] = messages[qid]['mail_to']
+                            subdict['mail_to_alias'] = messages[qid]['mail_to_alias'][messages[qid].get('mail_to')]
+
+                            checking_mailto_alias[qid] = subdict
+                            #print(checking_mailto_alias)
+                        except KeyError:
+                            continue
+
+            '''if checking_mailto_alias is not None and checking_mailto_alias != {}:
+                checking_mailto = checking_mailto_alias[qid]['mail_to']
+            else:
+                checking_mailto = messages[qid]['mail_to']'''
+
             checking_mailto = messages[qid]['mail_to']
-            if qid not in set(multiple_recipients):
+            # remove commas for ms exchange log
+            if settings.mta == 'exchange':
+                messages[qid]['mail_to'] = messages[qid]['mail_to'].replace(",", "")
+            
+            if qid not in set(multiple_recipients_qids):
                 if qid == same_qid or same_qid == '':
                     if messages[qid]['status'].get('code') is not None:
                         # check if there are already recipients in message and there are recipients parsed
@@ -227,22 +261,37 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
                             if checking_mailto in msg:
                                 same_qid = qid
                                 counter += 1
+                                # don't add email duplicates
+                                if checking_mailto not in multiple_recipients[same_qid]:
+                                    # add alias dict if any
+                                    if checking_mailto_alias is not None and checking_mailto_alias != {}:
+                                        checking_mailto = checking_mailto_alias[qid]
+                                    multiple_recipients[same_qid].append(checking_mailto)
                 else:
                     #print("New message ID: ", qid)
                     #print("There are", counter,"recipients in message id",same_qid)
                     if counter > 1:
-                        multiple_recipients.append(same_qid)
+                        multiple_recipients_qids.append(same_qid)
                     counter = 0
                     same_qid = ''
 
             #print(await parse_line(msg[1]))
             messages[qid].lines.append(PostfixLog(timestamp=dtime, queue_id=qid, message=msg))
+        # fix for the last log line if multiple
+        if counter > 1:
+            multiple_recipients_qids.append(same_qid)
             
+    # clear multiple_recipients from the qids with < 2 recipients
+    for k in list(multiple_recipients):
+        if k not in multiple_recipients_qids:    
+            del multiple_recipients[k]
+
     #print(multiple_recipients)
     #print(messages)
     log.info('Finished parsing log file %s', logfile)
     output = dict();
     output['messages'] = messages
+    output['multiple_recipients_qids'] = multiple_recipients_qids
     output['multiple_recipients'] = multiple_recipients
     return output
 
@@ -306,6 +355,7 @@ async def main():
     log.info('Importing %s log file', settings.mta)
     import_output = await import_log(settings.mail_log)
     log.info('Converting %s log data into list',settings.mta)
+    multiple_recipients_qids = import_output['multiple_recipients_qids']
     multiple_recipients = import_output['multiple_recipients']
     msgs = import_output['messages']
     msg_list = [{"id": qid, **msg.clean_dict(convert_time=r_q.expr)} for qid, msg in msgs.items()]
@@ -355,8 +405,11 @@ async def main():
                 continue
             # check if there are many recipients
             if m.get('id') in set(multiple_recipients):
-                #print("There multiple recipients in ",m.get('id'))
-                m['mail_to'] += " and more (check log lines)"
+                #print("There are",len(multiple_recipients[m.get('id')]),"recipients in ",m.get('id'))
+                #print(multiple_recipients[m.get('id')])
+                #m['mail_to'] += " and more (check log lines)"
+                m['mail_to'] = json.dumps(multiple_recipients[m.get('id')])
+                #m['mail_to'] = multiple_recipients[m.get('id')]
                 m['status']['code'] = 'multiple'
                 m['status']['message'] = 'multiple, see log lines below'
 

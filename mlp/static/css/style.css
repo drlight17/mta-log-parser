@@ -19,15 +19,17 @@
 }
 
 
-.eye.slash.icon {
-    position: absolute;
+.trash.alternate.icon {
+    /*position: absolute;*/
     right: 1vh;
     cursor: pointer;
     opacity: .7 !important;
     text-decoration: none;
 }
 
-.stats_refresh:hover, .eye.slash.icon:hover {
+
+
+.stats_refresh:hover, .trash.alternate.icon:hover {
     opacity: 1!important;
 }
 
@@ -40,6 +42,12 @@
     cursor: pointer;
     font-size: x-large!important;
     background: radial-gradient(circle, rgba(255,255,255,1) 50%, rgba(0,0,0,0) 100%);;
+}
+
+@media only screen and (max-width: 388px) {
+    .stats_refresh {
+        opacity: 1!important;
+    }
 }
 
 #app.dark .stats_refresh {
@@ -67,6 +75,18 @@
   50% {
     opacity: 0;
   }
+}
+
+#charts-wrapper div.ui.looping   {
+    cursor: pointer;
+    width: fit-content;
+}
+
+#charts-wrapper h3.top {
+    display: inline-flex;
+}
+.tiny.red.link.asterisk.blinking.icon {
+    position: absolute;
 }
 
 .hide_settings_tips_container {
@@ -115,16 +135,12 @@
     background-color: inherit!important;
 }
 
-#app.dark .filter_linked span {
-    padding-bottom: 3px;
-    --bg-h: 1px;
+#app.dark .filter_linked span/*:not(.multiple)*/{
     background: linear-gradient(0deg, white, white) no-repeat left bottom / 6px var(--bg-h);
-    transition: background-size .2s;
-
 }
-#app.dark .filter_linked span:where(:hover, :focus-visible) {
+
+#app.dark .filter_linked span/*:not(.multiple)*/:where(:hover, :focus-visible) {
     background-size: 100% var(--bg-h);
-    background-position-x: left;
 }
 
 /* fix of calendar arrow*/
@@ -135,6 +151,7 @@
 /* for tips details tag */
 details {
     display: inline!important;
+    text-indent: 5px;
 }
 
 details[open] {
@@ -162,6 +179,13 @@ summary {
     padding: 1em!important;
     font-size: inherit!important;
     color: inherit!important;
+}
+
+@media only screen and (max-width: 767px) {
+    .ui.vertical.menu .menu .item {
+        display: flex;
+        flex-direction: column;
+    }
 }
 
 .ui.vertical.inverted.menu .menu .item, .ui.vertical.inverted.menu .menu .item a:not(.ui) {
@@ -311,7 +335,7 @@ summary {
     width: 8%;
 }
 .emails-list:not(.resizable) #status, .emails-list:not(.resizable) #size {
-    width: 7%;
+    width: 9%;
 }
 .emails-list:not(.resizable) #subject {
     width: 25%;
@@ -341,21 +365,35 @@ summary {
     cursor: pointer!important;
 }
 
-.emails-list th.asc {
+/*.emails-list th.asc {
     background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7)!important;
-    /*background-position: bottom 7px center!important;*/
     background-position: center right!important;
     background-repeat: no-repeat!important;
-    /*background-color: #e1dcdc!important;*/
+
 }
 
 .emails-list th.desc {
     background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7)!important;
-    /*background-position: bottom 7px center!important;*/
     background-position: center right!important;
     background-repeat: no-repeat!important;
-    /*background-color: #e1dcdc!important;*/
+}*/
+
+.emails-list th.desc::after {
+    font-family: icons;
+    content: "\f078";
+    margin-left: 7px
+    /*display: flex;
+    justify-content: center;*/
 }
+
+.emails-list th.asc::after {
+    font-family: icons;
+    content: "\f077";
+    margin-left: 7px
+    /*display: flex;
+    justify-content: center;*/
+}
+
 /*.sorted_column {
     background-color: #e1dcdc!important;
 }*/
@@ -534,6 +572,21 @@ button:not(.navi), #footer {
     table-layout: fixed
 }*/
 
+/*fix of modal height*/
+.ui.modal>.scrolling.content {
+    max-height: calc(85vh)!important;
+}
+
+/* fix of popups over modal */
+.ui.top.center.popup {
+    z-index: 99999!important;
+}
+
+/*fix of modal email details scroll right move*/
+#app > div.ui.dimmer.modals.page.transition.visible.active {
+    overflow-x: hidden;
+}
+
 #email-metadata td {     
     /*white-space: break-spaces;*/
     overflow: hidden;
@@ -550,17 +603,70 @@ button:not(.navi), #footer {
     overflow: auto;
 }
 
-.filter_linked span {
+@media only screen and (max-width: 767px) {
+    .filter_linked span {
+        display: flex;
+        flex-direction: column;
+        max-width: fit-content;
+    }
+    /*.filter_linked span span {
+        padding-bottom: 3px;
+        --bg-h: 1px;
+        background: linear-gradient(0deg, black, black) no-repeat left bottom / 6px var(--bg-h);
+        transition: background-size .2s;
+    }
+    .filter_linked span span:where(:hover, :focus-visible) {
+        background-size: 100% var(--bg-h);
+        background-position-x: left;
+    }*/
+
+
+
+}
+
+.filter_linked span/*:not(.multiple)*/{
   padding-bottom: 3px;
   --bg-h: 1px;
     background: linear-gradient(0deg, black, black) no-repeat left bottom / 6px var(--bg-h);
   transition: background-size .2s;
 }
 
-.filter_linked span:where(:hover, :focus-visible) {
+.filter_linked span/*:not(.multiple)*/:where(:hover, :focus-visible) {
     background-size: 100% var(--bg-h);
     background-position-x: left;
 }
+/*multiple mail_to table list styling
+.filter_linked span.multiple {
+    display: flex;
+    max-width: fit-content;
+}*/
+.multiple_with_aliases {
+    display: inline-flex;
+}
+
+.multiple_with_aliases span{
+    margin-right: 5px;
+}
+#emails-list td.filter_linked.multiple_with_aliases {
+    display: flex !important;
+    align-items: baseline;
+    flex-direction: column;
+}
+
+#mail_to_details {
+    display: flex!important;
+    flex-direction: column;
+    max-width: 100%!important;
+}
+
+.filter_linked span.multiple span, .ui.top:not(.calendar) span/*, .filter_linked span.multiple*/ {
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    max-width: fit-content;
+}
+
 
 /*.filter_linked span:hover {
     cursor: pointer;
@@ -575,14 +681,12 @@ button:not(.navi), #footer {
     display: flex;
     position: absolute;
     height: 100%;
-    /* top: 0%; */
     color: white;
     width: 100px;
     justify-content: space-evenly;
     align-items: flex-start;
     cursor: pointer;
     transition: all 0.15s ease-in-out;
-    /* background-color: rgba(0,0,0, 0.2); */
     outline: none;
 }
 
@@ -616,11 +720,11 @@ button:not(.navi), #footer {
 @media only screen and (max-width: 1000px){
     .next_email {
         right: 0;
-        width: 40px;
+        width: 70px;
     }
     .prev_email {
         left: 0;
-        width: 40px;
+        width: 70px;
     }
     .next_email i, .prev_email i { 
         filter: invert(1);
@@ -666,7 +770,7 @@ input.disabled {
     right: -2.5rem !important;
 }
 
-i.close.icon::before {
+i:not(.link).close.icon::before {
     cursor: pointer;
     position: absolute;
     font-size: 25px;
@@ -674,6 +778,21 @@ i.close.icon::before {
     left: -30px;
     top: 45px;
     text-shadow: none;
+    z-index: 1002;
+}
+
+i.close.icon {
+    cursor: pointer;
+}
+
+i.close.large.icon.link {
+    /*position: absolute;
+    right:0;
+    top:1vh;*/
+    width: 100%;
+    display: inline-flex;
+    justify-content: flex-end;
+    padding: 5px;
 }
 
 /* remove left and right paddings on range sliders*/
@@ -688,25 +807,55 @@ i.close.icon::before {
     position: relative;
     z-index: 1;
 }
-
+/*charts for mobile view*/
+@media only screen and (max-width: 767px){
+    canvas {
+        min-height: 40vh;
+    }
+}
 
 /*canvas context menu style*/
 #app.dark .contextMenu {
-    border:1px solid #dedede!important;
-    background-color:rgba(0,0,0,.9);
+    /*border:1px solid #dedede;*/
+    border: 1px solid rgb(255 255 255 / 22%)!important;
+    /*background-color:rgba(0,0,0,.9);*/
+}
+
+#app.dark .contextMenu hr {
+    border: 1px solid rgb(255 255 255 / 22%);
+}
+
+.contextMenu hr {
+    width:100%;
+}
+
+div.ui.menu.item.contextMenu.animate {
+  visibility: visible!important;
+  opacity: 1!important; 
 }
 
 .contextMenu{
-  position: absolute;
-  border:1px solid black;
-  background:white;
-  list-style:none;
-  border-radius: 0 6px 6px;
-  padding: 0 2px;
-  width: fit-content;
-  z-index:99999;
-
+    transition: opacity 0.15s ease-in-out;
+    display: flex;
+    justify-content: flex-start!important;
+    flex-direction: column;
+    align-items: flex-start;
+    position: absolute;
+    border:1px solid black;
+    opacity: 0;
+    visibility: hidden;
+    /*background:white;*/
+    list-style:none;
+    border-radius: 0 6px 6px;
+    padding: 0 2px;
+    /*width: fit-content;*/
+    z-index:5;
+    max-width: fit-content;
+    max-height: 30vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
+
 .menu-item {
     font-size: 14px;
     line-height: 24px;
@@ -718,4 +867,44 @@ i.close.icon::before {
   /*background: #dddddd;*/
   text-decoration: underline;
   cursor: pointer;
+}
+
+.menu-item-nonhover {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.menu-item-nonhover > u {
+    padding: 4px 10px;
+}
+
+#user-settings-wrapper {
+    border:none;
+    margin-top:0;
+}
+
+.ui.vertical.inverted.menu a.item {
+    border: 1px solid rgb(255 255 255 / 15%)
+}
+.ui.vertical.menu a.item {
+    border: 1px solid rgb(0 0 0 / 15%)
+}
+
+/*fix of dark theme sub icon tools*/
+#user-settings-wrapper .bottom.right.corner.tools.icon {
+    color: initial;
+
+}
+#app.dark #mail-modal .bottom.left.corner.icon {
+    color: initial;
+    left: -6px;
+    bottom: -9px;
+}
+#mail-modal .bottom.left.corner.icon {
+    left: -6px;
+    bottom: -9px;
+}
+
+#user-settings-wrapper div.ui.toggle.checkbox {
+    margin-right: 2em;
 }

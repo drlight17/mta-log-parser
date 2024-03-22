@@ -1,17 +1,57 @@
 Unreleased VER.
-- add multiple simultanious text filters
-- minify
 - replace momentjs wih day.js or luxone(?)
 - make mailcow PR to integrate into
 - remove python privex helpers code (?)
 - save settings into cookies (for firefox private window mainly) + accept cookies modal (?)
 - fix dropdown update if use fomantic ui div based dropdown
-- fix sort icon to the same shevrons as main menu gui show/hide buttons  
 - upgrade procedure from GUI (?) if decided to do so use [this manual](https://stackoverflow.com/questions/32163955/how-to-run-shell-script-on-host-from-docker-container/63719458#63719458)
-- optimize and fix mail_to and log_lines queries with not(!)
-- BUG: fix process of '...and more' in stats
+- minify
+- add multiple simultanious text filters
+- MS Exchange multiple mail_to processing
 - [fix of non-dockerizeed deploy issue](https://github.com/drlight17/mta-log-parser/issues/10)
 
+VER. 1.7
+
+- ~~click arrows for modal view to get first and last message correspondly~~
+- ~~BUG: loading on top sometimes~~
+- ~~home and end key bindings for modal view to get first and last message respectively~~
+- ~~sort icon to the same shevrons as main menu gui show/hide buttons~~
+- ~~BUG: vertical scroll of modals by arrow keys~~
+- ~~TLS + status in the email details~~
+- ~~bigger bars and fonts for top charts~~
+- ~~main menu buttons border~~
+- ~~turn off blur by default for mobile devices (use is_mobile var)~~
+- ~~move settings and tips to modal menus~~
+- ~~change "Hide" to cross (times icon), cross (times icon) to eye icon, add Hide title, change clear exclude slash eye icon to trash alternate icon (or group two icons like [this](https://fomantic-ui.com/elements/icon.html#icons))~~
+- ~~multiple mail_to save as array~~
+- ~~remake multiple filtered stats~~
+- ~~remake multiple filtered emails and details view (TEST in different MTA!!!)~~
+- ~~remake addFilterLink for multiple (TEST in different MTA!!!)~~
+- ~~BUG: unknown with all recipients in exchange top 10 recipients stats~~
+- ~~BUG: trim comma in exchange recipients~~
+- ~~BUG: swipes pass 6 email instead of 1~~
+- ~~BUG: context menu is on the left (Macbook)~~
+- ~~BUG: multiple with no aliases link on the parent TD~~
+- ~~optimize and fix mail_to querie with and without not(!)~~
+- ~~show stats context menu with no data~~
+- ~~BUG: use stats context menu in mobile view~~
+- ~~make stats bars more thick in mobile view~~
+- ~~add tips about stats context menu (long press and right click)~~
+- ~~BUG: vertical scroll mobile view jump to top (modal details)~~
+- ~~BUG: change multiple li to span to fix overflow and hover effects~~
+- ~~add postfix orig_to (alias) to multiple mail_to li list (in brackets after to)~~
+- ~~BUG: email list and detail alias appearance (details look awful)~~
+- ~~BUG: fix stats top mail_to_alias appearance~~
+- ~~stats context menu max height with scroll for many hiddens + place context menu to the left from cursor~~
+- ~~mobile multiple view aliases in one row (hover effect must be fixed)~~
+- ~~BUG: emails list multiple overflow view~~
+- ~~BUG: prevent vertical scrolling when swiping left and right (modal details)~~
+- ~~BUG: prevent swipe when swiping log_lines in (modal details)~~
+- ~~BUG: fix postfix mail_to multiple regex (with orig_to)~~
+- ~~hidden addresses stats indicator~~
+- ~~show slow log_lines queries attention after choosing this filter (notie)~~
+- ~~BUG: emails list width is wider then other gui blocks with editable column width turned on~~  
+- ~~BUG: fix stat cached over hover details~~
 
 VER. 1.6
 - ~~use more then one CPU core when parsing (moment timestamp convert of related logs is variable)~~

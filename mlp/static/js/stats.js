@@ -24,8 +24,18 @@
             </div>
 
             <div class="ten wide column">
-                <h3>
-                <i class="chart bar icon"></i><span v-if="$parent.localeData.filtered_top_senders" v-html="$parent.localeData.filtered_top_senders"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_top_senders"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="filtered_top_senders stats_refresh sync icon"></i>
+                <h3 class="top">
+                    <div v-if="hidden_indicator_filtered_top_senders" class="ui looping pulsating" :class="{ transition: hidden_indicator_filtered_top_senders }" v-bind:data-tooltip="$parent.localeData.hidden_indicator" data-position="top left" :data-inverted="$parent.settings.dark ? true : null">
+                        <i class="chart bar icon"></i>
+                        <span v-if="$parent.localeData.filtered_top_senders" v-html="$parent.localeData.filtered_top_senders"></span>
+                        <span v-else v-html="$parent.fallbackLocaleData.filtered_top_senders"></span>
+                    </div>
+                    <div v-else>
+                        <i class="chart bar icon"></i>
+                        <span v-if="$parent.localeData.filtered_top_senders" v-html="$parent.localeData.filtered_top_senders"></span>
+                        <span v-else v-html="$parent.fallbackLocaleData.filtered_top_senders"></span>
+                    </div>
+                    <i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="filtered_top_senders stats_refresh sync icon"></i>
                 </h3>
                 <div class="ui form">
                     <canvas v-if="!loading_filtered_top_senders" id="filtered_top_senders">
@@ -34,12 +44,21 @@
                         <span v-if="$parent.localeData.loading" v-html="$parent.localeData.loading"></span>
                         <span v-else v-html="$parent.fallbackLocaleData.loading"></span>
                     </div>
-                    <ul class="contextMenu" id="contextMenu_filtered_top_senders" style="display:none;">
-
-                    </ul>
+                    <div class="ui menu item contextMenu" :class="{ inverted: $parent.settings.dark }" id="contextMenu_filtered_top_senders" >
+                    </div>
                 </div>
-                <h3>
-                <i class="chart bar outline icon"></i><span v-if="$parent.localeData.filtered_top_recipients" v-html="$parent.localeData.filtered_top_recipients"></span><span v-else v-html="$parent.fallbackLocaleData.filtered_top_recipients"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="filtered_top_recipients stats_refresh sync icon"></i>
+                <h3 class="top">
+                    <div v-if="hidden_indicator_filtered_top_recipients" class="ui looping pulsating" :class="{ transition: hidden_indicator_filtered_top_recipients }" v-bind:data-tooltip="$parent.localeData.hidden_indicator" data-position="top left" :data-inverted="$parent.settings.dark ? true : null">
+                        <i class="chart bar icon"></i>
+                        <span v-if="$parent.localeData.filtered_top_recipients" v-html="$parent.localeData.filtered_top_recipients"></span>
+                        <span v-else v-html="$parent.fallbackLocaleData.filtered_top_recipients"></span>
+                    </div>
+                    <div v-else>
+                        <i class="chart bar icon"></i>
+                        <span v-if="$parent.localeData.filtered_top_recipients" v-html="$parent.localeData.filtered_top_recipients"></span>
+                        <span v-else v-html="$parent.fallbackLocaleData.filtered_top_recipients"></span>
+                    </div>
+                    <i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="filtered_top_recipients stats_refresh sync icon"></i>
                 </h3>
                 <div class="ui form">
                     <canvas v-if="!loading_filtered_top_recipients" id="filtered_top_recipients">
@@ -48,8 +67,9 @@
                         <span v-if="$parent.localeData.loading" v-html="$parent.localeData.loading"></span>
                         <span v-else v-html="$parent.fallbackLocaleData.loading"></span>
                     </div>
-                    <ul class="contextMenu" id="contextMenu_filtered_top_recipients" style="display:none;">
-                    </ul>
+                    <div class="ui menu item contextMenu" :class="{ inverted: $parent.settings.dark }" id="contextMenu_filtered_top_recipients" >
+                    </div>
+                    
                 </div>
             </div>
 
@@ -65,10 +85,12 @@
                 loading_filtered_pie: false,
                 loading_filtered_top_senders: false,
                 loading_filtered_top_recipients: false,
+                hidden_indicator_filtered_top_recipients: false,
+                hidden_indicator_filtered_top_senders: false,
                 //loading_filtered_throughoutput: false,
                 noData_plugin: {
                   id: 'noData',
-                  afterDraw(chart, args, options) {
+                  afterDatasetsDraw(chart, args, options) {
 	                const {datasets} = chart.data;
 	                const {color, text_color, bg_color, width, radiusDecrease} = options;
 	                let hasData = false;
@@ -112,25 +134,26 @@
 	                  ctx.stroke();
 	                } else {
                         text_width = ctx.measureText(stats_app.$parent.localeData.cached + " " + timestamp).width;
-
                         // add watermarked current timestamp
+
                         if (chart.config._config.type == 'doughnut') {
-                            fontSize = (chart.height / 400).toFixed(2);
+                            stats_app.$parent.is_mobile ? fontSize = (chart.height / 300).toFixed(2) : fontSize = (chart.height / 400).toFixed(2);
                             ch_height = chart.height/1.3
                             //ch_width = chart.width / 2
                             ch_width = chart.width / 2 - text_width / 2
                             //ctx.textAlign = 'center';
                         } else {
-                            fontSize = (chart.height / 200).toFixed(2);
-                            ch_height = chart.height / 2
-                            //ch_width = chart.width / 1.5
+
+                            stats_app.$parent.is_mobile ? fontSize = (chart.height / 300).toFixed(2) : fontSize = (chart.height / 200).toFixed(2)
+
+                            ch_height = chart.height / 2.5
                             ch_width = chart.width / 1.5 - text_width / 2
                             //ctx.textAlign = 'left';
                         }
                         ctx.globalAlpha = .7;
                         ctx.textBaseline = 'top';
                         ctx.font = fontSize + "rem Arial";
-                        
+
 
                         // check cookie ..._created existence
                         if (typeof(stats_app.$parent.getCookie(chart.canvas.id+"_created")) !== 'undefined') {
@@ -140,17 +163,12 @@
                             ctx.fillRect(ch_width, ch_height, text_width, parseInt(ctx.font, 10));
                             ctx.fillStyle = text_color;
                             ctx.fillText(stats_app.$parent.localeData.cached + " " + timestamp, ch_width, ch_height);
-                            //ctx.restore();
+                            ctx.closePath();
+                            ctx.globalAlpha = 1;
                         } else {
                             // force refresh graph
-                            stats_app.force_refresh(chart.canvas.id);
-                            //ctx.fillText("No cookie!", ch_width, ch_height);
+                             stats_app.force_refresh(chart.canvas.id);
                         }
-                        //console.log(stats_app.$parent.getCookie(chart.canvas.id+"_created"));
-                        //timestamp = stats_app.$parent.format_date(stats_app.watermark_timestamp,datetime_format,false);
-                        
-                        ctx.closePath();
-                        ctx.globalAlpha = 1;
                     }
               	  },
                 }
@@ -164,6 +182,11 @@
         },
         methods: {
         	create_donut (chart_type, view_data, bgd_color, text_color) {
+                /*if (window.matchMedia('(max-device-width: 767px)').matches) {
+                    is_mobile = true;
+                } else {
+                    is_mobile = false;
+                }*/
                 this.$nextTick(function () {
         			const ctx = document.getElementById(chart_type);
                     // try to destroy before create
@@ -212,7 +235,8 @@
                                 },
                             },
                             responsive: true,
-                            maintainAspectRatio: false,
+                            maintainAspectRatio: this.$parent.is_mobile,
+                            //maintainAspectRatio: false,
                             onHover: (event, chartElement) => {
                                 event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'
                             },
@@ -230,6 +254,11 @@
             },
 
             create_chart(chart_type, view_data, bgd_color, text_color) {
+                /*if (window.matchMedia('(max-device-width: 767px)').matches) {
+                    is_mobile = true;
+                } else {
+                    is_mobile = false;
+                }*/
 
                 this.$nextTick(function () {
     				const ctx = document.getElementById(chart_type);
@@ -239,7 +268,11 @@
                         data: view_data,
                         plugins: [
                             stats_app.noData_plugin,
-                            {
+                            {   
+                                afterRender: (chart) =>
+                                {
+                                    stats_app.add_hidden_indicator(chart_type);
+                                },
                                 afterInit: (chart) =>
                                 {
                                     var menu = document.getElementById("contextMenu"+"_"+chart_type);
@@ -247,85 +280,136 @@
                                     chart.ctx.canvas.addEventListener('contextmenu', handleContextMenu, false);
                                     chart.ctx.canvas.addEventListener('mousedown', handleMouseDown, false);
                                     // for mobile view touch context menu
-                                    chart.ctx.canvas.addEventListener('touchend', handleMouseDown, false);
-                                    chart.ctx.canvas.addEventListener('touchcancel', handleMouseDown, false);
+                                    chart.ctx.canvas.addEventListener('touchstart', handleMouseDown, false);
+                                    //chart.ctx.canvas.addEventListener('touchcancel', handleMouseDown, false);
 
 
                                     function handleContextMenu(e){
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        
 
-                                        if (typeof chart.hoveredItem !== 'undefined' ) {
-                                            var excluded = stats_app.get_excluded(chart_type);
+                                        var excluded = stats_app.get_excluded(chart_type);
+                                        //offset = e.target.width - e.layerX
+                                        offset = e.target.scrollWidth - e.layerX
+                                        //menu.style.left = e.layerX + "px";
+                                        //menu.style.right = 0 + "px";
+                                        //menu.style.right = 0
 
-                                            menu.style.left = e.layerX + "px";
-                                            menu.style.top = e.layerY + "px";
-                                            menu.style.display = "block";
-                                            selected = chart.hoveredItem;
+                                        //!(window.matchMedia('(max-device-width: 900px)').matches) ? menu.style.right = offset + "px" : menu.style.right = 0;
 
-                                            let li = document.createElement('li');
-                                            let li2 = document.createElement('li');
-                                            li.classList.add("menu-item");
-                                            li2.classList.add("menu-item");
-                                            li.textContent = stats_app.$parent.localeData.exclude + ' ' + selected.data;
+                                        menu.style.right = offset + "px"
+                                        menu.style.top = e.layerY + "px";
+
+                                        if (typeof excluded !== 'undefined' && excluded.length > 0) {
+                                            //menu.style.display = "flex";
+                                            $(menu).addClass('animate');
+
+
+                                            let li2 = document.createElement('span');
+                                            li2.classList.add("menu-item-nonhover");
                                             li2.innerHTML = '<u>'+stats_app.$parent.localeData.excluded+'</u>';
 
-                                            $(menu).empty().prepend(li);
-                                            if (typeof excluded !== 'undefined' && excluded.length > 0) {
-                                                $(menu).append('<hr />');
+                                            let icon_remove = document.createElement('i');
+                                            icon_remove.classList.add("trash");
+                                            icon_remove.classList.add("alternate");
+                                            icon_remove.classList.add("icon");
+                                            icon_remove.setAttribute('title',stats_app.$parent.localeData.remove_all_excluded);
+                                            li2.append(icon_remove);
+                                            $(menu).append(li2);
+                                            
+                                            icon_remove.addEventListener('click', () => {
+                                                    stats_app.remove_all_excluded(chart_type);
+                                                    $(menu).removeClass('animate');
+                                                    //menu.style.display = "none";
+                                                }, { once: true });
 
-                                                let icon_remove = document.createElement('i');
-                                                icon_remove.classList.add("eye");
-                                                icon_remove.classList.add("slash");
-                                                icon_remove.classList.add("icon");
-                                                icon_remove.setAttribute('title',stats_app.$parent.localeData.remove_all_excluded);
-                                                li2.append(icon_remove);
-                                                $(menu).append(li2);
+                                            for (const element of excluded) {
+                                                let li3 = document.createElement('span');
+                                                let icon = document.createElement('i');
+                                                icon.classList.add("eye");
+                                                icon.classList.add("icon");
+                                                li3.classList.add("menu-item");
                                                 
-                                                icon_remove.addEventListener('click', () => {
-                                                        stats_app.remove_all_excluded(chart_type);
-                                                        menu.style.display = "none";
-                                                    }, { once: true });
-
-                                                for (const element of excluded) {
-                                                        let li3 = document.createElement('li');
-                                                        let icon = document.createElement('i');
-                                                        icon.classList.add("times");
-                                                        icon.classList.add("icon");
-                                                        li3.classList.add("menu-item");
-                                                        
-                                                        li3.setAttribute('title',stats_app.$parent.localeData.remove_excluded);
-                                                        if ((element == '') || (element == '<>')) {
-                                                            li3.textContent += stats_app.$parent.localeData.filters.status_filter_unknown;
-                                                        } else {
-                                                            li3.textContent += element;
-                                                        }
-                                                        
-                                                        li3.prepend(icon);
-                                                        $(menu).append(li3);
-                                                        // add event listener on every element
-                                                        li3.addEventListener('click', () => {
-                                                            stats_app.remove_from_excluded(element,chart_type);
-                                                            menu.style.display = "none";
-                                                        }, { once: true });
+                                                li3.setAttribute('title',stats_app.$parent.localeData.remove_excluded);
+                                                if ((element == '') || (element == '<>')) {
+                                                    li3.textContent += stats_app.$parent.localeData.filters.status_filter_unknown;
+                                                } else {
+                                                    li3.textContent += element;
                                                 }
+                                                
+                                                li3.prepend(icon);
+                                                $(menu).append(li3);
+
+                                                // add event listener on every element
+                                                li3.addEventListener('click', () => {
+                                                    stats_app.remove_from_excluded(element,chart_type);
+                                                    //menu.style.display = "none";
+                                                    $(menu).removeClass('animate');
+                                                }, { once: true });
                                             }
+                                            
+                                            if (typeof chart.hoveredItem !== 'undefined' ) {
+                                                let line= document.createElement('hr');
+                                                $(menu).prepend(line);
+                                            }
+
+
+                                        }
+
+                                        if (typeof chart.hoveredItem !== 'undefined' ) {
+                                            //menu.style.display = "flex";
+                                            $(menu).addClass('animate');
+                                            selected = chart.hoveredItem;
+                                            let li = document.createElement('span');
+                                            
+                                            li.classList.add("menu-item");
+                                            
+
+                                            let icon_hide = document.createElement('i');
+                                            icon_hide.classList.add("eye");
+                                            icon_hide.classList.add("slash");
+                                            icon_hide.classList.add("icon");
+
+                                            li.setAttribute('title',stats_app.$parent.localeData.exclude);
+                                            li.textContent += ' '+selected.data;
+                                            li.prepend(icon_hide);
+
+                                            $(menu).prepend(li);
+                                            
                                             menu.firstElementChild.addEventListener('click', () => {
                                                 stats_app.exclude_selected(selected,chart_type);
-                                                menu.style.display = "none";
+                                                //menu.style.display = "none";
+                                                $(menu).removeClass('animate');
                                             }, { once: true });
-                                            return(false);
+
+                                            //return(false);
                                         }
+
+                                        let icon_close = document.createElement('i');
+                                        $(icon_close).addClass("close large icon link");
+
+                                        icon_close.addEventListener('click', () => {
+                                            //stats_app.remove_all_excluded(chart_type);
+                                            //menu.style.display = "none";
+                                            $(menu).removeClass('animate');
+                                            $(menu).empty();
+                                        }, { once: true });
+
+                                        $(menu).prepend(icon_close)
+
+                                        return(false);
                                     }
 
                                     function handleMouseDown(e){
-                                        menu.style.display = "none";
+                                        //menu.style.display = "none";
+                                        $(menu).removeClass('animate');
+                                        $(menu).empty();
                                     }
                                 },
                             }
                         ],
                         options: {
+                            //barPercentage: 2,
                             indexAxis: 'y',
                             plugins: {
                             	noData: {
@@ -342,13 +426,14 @@
                             scales: {
                                 x: {
                                  ticks: {
+                                    stepSize: 1,
                                     fontColor: text_color,
                                     backdropColor: text_color,
                                     color: text_color,
                                     font: {
                                             size: 15
                                         }
-                                    }
+                                    },
                                 },
                                 y: {
                                  ticks: {
@@ -363,6 +448,8 @@
                             },
                             //events: ["click", "mousemove"],
                             responsive: true,
+                            // true for mobile view
+                            //maintainAspectRatio: this.$parent.is_mobile,
                             maintainAspectRatio: false,
                             onHover: (e, element) => {
                                 delete chart.hoveredItem;
@@ -522,6 +609,11 @@
                 var view_data = {
                   labels: labels,
                   datasets: [{
+                    //barThickness: 50,
+                    //borderSkipped: false,
+                    //borderRadius: 10,
+                    categoryPercentage: 1,
+                    //barPercentage: 0.1,
                     indexAxis: 'y',
                     data: dataset,
                     fill: false,
@@ -839,9 +931,11 @@
                 });
             },
             force_refresh: function (event) {
-                if (event.target) {
-                    chart_type = event.target.classList[0];
 
+                if (event.target) {
+
+                    chart_type = event.target.classList[0];
+                    
                      // show rotation animation
                     $('.'+chart_type).addClass('rotate');
                     setTimeout(() =>  $('.'+chart_type).removeClass('rotate'), 1000);
@@ -849,10 +943,10 @@
                 } else {
                     chart_type = event
                 }
-
                 this.$parent.clear_cookies(chart_type);
                 this.$parent.clear_cookies(chart_type+"_created");
-                this.stop_draws(chart_type);
+                // stop_draws causes errors when cookies removed and chart must be refreshed
+                //this.stop_draws(chart_type);
                 this.run_draws(chart_type);
             },
             run_draws(chart_type) {
@@ -883,7 +977,13 @@
 				if (Chart.getChart(chart_type) != undefined) {
 				  Chart.getChart(chart_type).destroy();
 				}
-
+            },
+            add_hidden_indicator(chart_type) {
+                if (stats_app.get_excluded(chart_type)) {
+                    stats_app['hidden_indicator_'+chart_type] = true;
+                } else {
+                    stats_app['hidden_indicator_'+chart_type] = false;
+                }
             },
             check_filters_changes(chart_type){
                 if (this.$parent.filters_changed) {
