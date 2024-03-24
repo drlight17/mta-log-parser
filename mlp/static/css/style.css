@@ -186,6 +186,11 @@ summary {
         display: flex;
         flex-direction: column;
     }
+    .ui.vertical.menu .menu .item span {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        max-width: 4em
+    }
 }
 
 .ui.vertical.inverted.menu .menu .item, .ui.vertical.inverted.menu .menu .item a:not(.ui) {
@@ -659,6 +664,38 @@ button:not(.navi), #footer {
     max-width: 100%!important;
 }
 
+/*@media only screen and (max-width: 767px)
+    td.mail_to {
+        border-top: 1px rgba(0, 0, 0, .1) solid !important;
+        border-bottom: 1px rgba(0, 0, 0, .1) solid !important;
+    }
+}*/
+
+td.multiple_mailtos, #mail_to_details {
+    max-height: 30vh;
+    display: block;
+    /*display: list-item;*/
+    overflow-y: auto!important;
+
+}
+
+#emails-list td.multiple_with_aliases.multiple_mailtos {
+    border-top: 1px rgba(0, 0, 0, .1) solid !important;
+    border-bottom: 1px rgba(0, 0, 0, .1) solid !important;
+}
+
+
+/*div.multiple_with_aliases, td.mail_to > span.multiple {
+    margin-left: 2em;
+    counter-increment: div;
+    display: list-item;
+}
+
+div.multiple_with_aliases::marker, td.mail_to > span.multiple::marker {
+    display: list-item!important;
+    content: counter(div) ". ";
+}*/
+
 .filter_linked span.multiple span, .ui.top:not(.calendar) span/*, .filter_linked span.multiple*/ {
     cursor: pointer;
     overflow: hidden;
@@ -666,6 +703,7 @@ button:not(.navi), #footer {
     display: flex;
     max-width: fit-content;
 }
+
 
 
 /*.filter_linked span:hover {

@@ -42,7 +42,7 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.7"
+VERSION ="1.7.1"
 
 # postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
 #postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
@@ -252,34 +252,41 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             if settings.mta == 'exchange':
                 messages[qid]['mail_to'] = messages[qid]['mail_to'].replace(",", "")
             
-            if qid not in set(multiple_recipients_qids):
-                if qid == same_qid or same_qid == '':
-                    if messages[qid]['status'].get('code') is not None:
-                        # check if there are already recipients in message and there are recipients parsed
-                        #print("Looking for ",checking_mailto," in message \"",msg, "\" related to qid ", qid)
-                        if checking_mailto != '':
-                            if checking_mailto in msg:
-                                same_qid = qid
-                                counter += 1
-                                # don't add email duplicates
-                                if checking_mailto not in multiple_recipients[same_qid]:
-                                    # add alias dict if any
-                                    if checking_mailto_alias is not None and checking_mailto_alias != {}:
-                                        checking_mailto = checking_mailto_alias[qid]
-                                    multiple_recipients[same_qid].append(checking_mailto)
-                else:
-                    #print("New message ID: ", qid)
-                    #print("There are", counter,"recipients in message id",same_qid)
-                    if counter > 1:
-                        multiple_recipients_qids.append(same_qid)
-                    counter = 0
-                    same_qid = ''
+            # TODO maybe comment only for exim???
+            # *************************************************************
+            #if qid not in set(multiple_recipients_qids):
+            #if qid == '1rnZID-00DxLS-G1':
+            #    print(checking_mailto)
+            if qid == same_qid or same_qid == '':
+                if messages[qid]['status'].get('code') is not None:
+                    # check if there are already recipients in message and there are recipients parsed
+                    #print("Looking for ",checking_mailto," in message \"",msg, "\" related to qid ", qid)
+                    if checking_mailto != '':
+                        if checking_mailto in msg:
+                            same_qid = qid
+                            counter += 1
+                            # don't add email duplicates
+                            if checking_mailto not in multiple_recipients[same_qid]:
+                                # add alias dict if any
+                                if checking_mailto_alias is not None and checking_mailto_alias != {}:
+                                    checking_mailto = checking_mailto_alias[qid]
+                                multiple_recipients[same_qid].append(checking_mailto)
+            else:
+                #print("New message ID: ", qid)
+                #print("There are", counter,"recipients in message id",same_qid)
+                if counter > 1:
+                    multiple_recipients_qids.append(same_qid)
+                counter = 0
+                same_qid = ''
+
+            # *************************************************************
 
             #print(await parse_line(msg[1]))
             messages[qid].lines.append(PostfixLog(timestamp=dtime, queue_id=qid, message=msg))
         # fix for the last log line if multiple
         if counter > 1:
             multiple_recipients_qids.append(same_qid)
+
             
     # clear multiple_recipients from the qids with < 2 recipients
     for k in list(multiple_recipients):

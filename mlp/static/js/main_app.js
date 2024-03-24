@@ -486,7 +486,7 @@ const app = Vue.createApp({
         showTips(a,index,type) {
             $('#tips-modal').modal({
                 onHidden: function () {
-                    $('body').removeClass('scrolling');
+                    //$('body').removeClass('scrolling');
                 },
                     closable: true,
                     inverted: false,
@@ -496,7 +496,7 @@ const app = Vue.createApp({
         showSettings(a,index,type) {
             $('#settings-modal').modal({
                 onHidden: function () {
-                    $('body').removeClass('scrolling');
+                    //$('body').removeClass('scrolling');
                 },
                     closable: true,
                     inverted: false,
@@ -634,12 +634,14 @@ const app = Vue.createApp({
             if ($(parent).prop('nodeName') == 'TD') {
                 $(parent).empty();
                 object = parent;
+
             } else {
                 $(object).contents().filter(function(){ return this.nodeType != 1; }).remove();
                 
             }
-
+            var counter = 1;
             for (const element of array) {
+
 
                 if (typeof element === 'object' && element !== null) {
                     var txt = document.createTextNode(element['mail_to']);
@@ -651,6 +653,9 @@ const app = Vue.createApp({
                 let span = document.createElement('span');
                 
                 $(span).append(txt);
+                $(span).prepend(counter+". ")
+                counter ++;
+
 
                 // add indicator and onhover event
 
@@ -720,18 +725,31 @@ const app = Vue.createApp({
 
                     let container = document.createElement('div');
                     $(container).append(span);
-                    $(container).append(tooltip);
+
+                    if(typeof txt_alias !== "undefined") {
+                        $(container).append(tooltip);
+                    }
                     $(container).addClass("multiple_with_aliases");
                     $(object).addClass("multiple_with_aliases")
                     $(object).append(container);
                 }
             }
+            // fix of view of single or not long multiple recipients lists
+            if (counter > 8) {
+                object.addClass('multiple_mailtos')
+            }
             return object
         },
-        bindMailtoFilterClick (object) {
+        bindMailtoFilterClick (object,is_multiple) {
             $(object).on("click", function(e){
                 if (!($('#mail-modal').is(':visible'))) {
-                    multiple = window.app.returnAllowedString(e.target.innerText.replace(/[\[\]']+/g,'')).replace('*', '').trim()
+                    if (is_multiple) {
+                        multiple = window.app.returnAllowedString(e.target.innerText.replace(/[\[\]']+/g,'')).split(". ")[1].replace('*', '').trim();
+                    } else {
+                        multiple = window.app.returnAllowedString(e.target.innerText.replace(/[\[\]']+/g,'')).replace('*', '').trim()
+                    }
+
+                   // multiple = window.app.returnAllowedString(e.target.innerText.replace(/[\[\]']+/g,'')).replace('*', '').trim()
                     window.app.search = multiple;
                     window.app.search_by = 'mail_to';
                     e.stopPropagation();
@@ -783,7 +801,6 @@ const app = Vue.createApp({
 
                     // localize multiple mail_to
                     object = $(obj).find('span');
-
                     if (window.app.multiple_check(object) !== null) {
                         multiple_object = window.app.multiple_process_view(window.app.multiple_check(object), object,1)
                         multiple_object_span = multiple_object.find('.multiple_with_aliases span')
@@ -797,16 +814,16 @@ const app = Vue.createApp({
                         if ($(multiple_object_span).parent().prop('nodeName') == 'DIV') {
 
                             $(multiple_object_span).attr('title', text + " «" + $th.text().trim() + "»");
-                            window.app.bindMailtoFilterClick(multiple_object_span);
+                            window.app.bindMailtoFilterClick(multiple_object_span,true);
                         } else {
                             
                             $(multiple_object_span).attr('title', text + " «" + $th.text().trim() + "»");
-                            window.app.bindMailtoFilterClick($(multiple_object_span).find('span.multiple'));
+                            window.app.bindMailtoFilterClick($(multiple_object_span).find('span.multiple'),true);
                         }
 
                     } else {
                         object.attr('title', text + " «" + $th.text().trim() + "»");
-                        window.app.bindMailtoFilterClick(object);
+                        window.app.bindMailtoFilterClick(object,false);
                     }
                     
                 }
@@ -860,6 +877,7 @@ const app = Vue.createApp({
         },
         toggleLoading(state) {
             if (state) {
+                $('body').removeClass('scrolling');
                 this.loading = true;
                 $("#main-wrapper").hide();
                 var isDark = (window.localStorage['dark'] === 'true');
@@ -868,6 +886,7 @@ const app = Vue.createApp({
                 $('#loading-modal').modal('hide');
                 $("#main-wrapper").show()
                 this.loading = false;
+                //$('body').addClass('scrolling');
             }
         },
         check_nothing_found(count,table,error) {
@@ -1344,7 +1363,7 @@ const app = Vue.createApp({
 
             modal.modal({
                 onHidden: function () {
-                    $('body').removeClass('scrolling');
+                    //$('body').removeClass('scrolling');
                 },
                     closable: true,
                     inverted: false,
@@ -1419,6 +1438,7 @@ const app = Vue.createApp({
                 $('#mail-modal').addClass('scrolling');
                 // for no swipe dimmer blinking
                 $('body').removeClass('dimmed');
+                $('body').removeClass('scrolling');
             	window.app.arrowKeyBind($(this)[0]);
                 window.app.swipeBind($(this)[0]);
             },
@@ -1432,7 +1452,7 @@ const app = Vue.createApp({
             }).modal('show');
 
             // fix of fomantic ui scrolling appear on the many related log lines modals
-            $('body').addClass('scrolling');
+            //$('body').addClass('scrolling');
             // apply styling to modal
             this.$nextTick(function () {
 
