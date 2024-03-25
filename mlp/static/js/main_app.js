@@ -566,7 +566,7 @@ const app = Vue.createApp({
                     minWidth: 60,
                     disabledColumns: [8] // disable last column (button)
                 });
-            }, 1000);
+            }, 600);
             
 
             // to fix resizable handlers height

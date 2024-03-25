@@ -2,6 +2,11 @@
 #app {
     max-width: 100%;
 }*/
+
+#app {
+    margin-right: initial!important;
+}
+
 /*dark skin*/
 #app.dark , #app.dark #main-wrapper, #app.dark #navi  {
     background-color: dimgrey;
@@ -25,10 +30,6 @@
     cursor: pointer;
     opacity: .7 !important;
     text-decoration: none;
-}
-
-#app {
-    margin-right: initial!important;
 }
 
 .stats_refresh:hover, .trash.alternate.icon:hover {
