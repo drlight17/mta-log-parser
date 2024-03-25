@@ -1378,6 +1378,16 @@ const app = Vue.createApp({
             }
         },
         getTLSIcon(m,index) {
+            if (window.app.localeData.emails_list.status_tls == undefined) {
+                    text_tls = window.app.fallbackLocaleData.emails_list.status_tls
+                } else {
+                    text_tls = window.app.localeData.emails_list.status_tls
+            }
+            if (window.app.localeData.emails_list.status_notls == undefined) {
+                    text_no_tls = window.app.fallbackLocaleData.emails_list.status_notls
+                } else {
+                    text_no_tls = window.app.localeData.emails_list.status_notls
+            }
             if (m[index] !== undefined) {
                 mail_obj = JSON.parse(JSON.stringify(m[index]))
                 var found = false
@@ -1386,19 +1396,15 @@ const app = Vue.createApp({
                         found = true
                     }
                 });
-                if (this.localeData.emails_list.status_tls == undefined) {
-                        text_tls = this.fallbackLocaleData.emails_list.status_tls
-                    } else {
-                        text_tls = this.localeData.emails_list.status_tls
-                }
-                if (this.localeData.emails_list.status_notls == undefined) {
-                        text_no_tls = this.fallbackLocaleData.emails_list.status_notls
-                    } else {
-                        text_no_tls = this.localeData.emails_list.status_notls
-                }
-                return found ? [text_tls,this.settings.status_icon['tls']] : [text_no_tls,this.settings.status_icon['no_tls']]
+            } else {
+                console.log("Something went wrong with getTLS icon!");
             }
 
+            return found ? [text_tls,window.app.settings.status_icon['tls']] : [text_no_tls,window.app.settings.status_icon['no_tls']]
+            /*} else {
+                console.log("Something went wrong with getTLS icon!");
+                return [this.settings.status_icon['unknown'],'question']
+            }*/
         },
         show_modal(m,index,key,transition) {
 
