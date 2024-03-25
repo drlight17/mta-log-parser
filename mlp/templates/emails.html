@@ -238,6 +238,7 @@
                         <td>[[ msg.message_id ]]</td>
                     </tr>
                     <tr>
+                        <!-- TODO fix this [1] undefined! -->
                         <td v-if="!loading"><i :class="getTLSIcon(emails,index)[1]" class="icon"></i> [[ localeData.emails_list.status_tls_title ]]</td>
                         <td>[[ getTLSIcon(emails,index)[0] ]]</td>
                     </tr>
