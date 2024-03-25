@@ -27,7 +27,9 @@
     text-decoration: none;
 }
 
-
+#app {
+    margin-right: initial!important;
+}
 
 .stats_refresh:hover, .trash.alternate.icon:hover {
     opacity: 1!important;
