@@ -9,9 +9,9 @@ Unreleased VER.
 - add multiple simultanious text filters
 - MS Exchange multiple mail_to processing
 - [fix of non-dockerizeed deploy issue](https://github.com/drlight17/mta-log-parser/issues/10)
-- BUG: Unhandled error during execution of scheduler flush. This is likely a Vue internals bug
 
 VER. 1.7.1
+- ~~BUG: Unhandled error during execution of scheduler flush. This is likely a Vue internals bug~~
 - ~~BUG: exit button overflow in mobile view~~
 - ~~multiple mailto added index number~~
 - ~~BUG: not all recipients appear in mail_to column if big newsletter (exim example qid 1rnZID-00DxLS-G1) --- main.py:257 ??~~
