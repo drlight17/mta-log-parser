@@ -108,9 +108,9 @@ Install in your system (not recommended)
 ```
 
 apt update -y
-apt install -y python3.7 python3.7-dev python3-pip
+apt install -y python3 python3-dev python3-pip libsasl2-dev python-dev-is-python3 libldap2-dev libssl-dev
 
-python3.7 -m pip install -U pipenv
+python3 -m pip install -U pipenv
 
 adduser --gecos "" --disabled-password mailparser
 # To ensure that the parser is able to read the mail.log, add the user to the appropriate groups
