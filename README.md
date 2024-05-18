@@ -102,7 +102,7 @@ Install in your system (not recommended)
 
  - [RethinkDB](https://rethinkdb.com/) (for storing the queryable log data)
  - Python 3.7 MINIMUM (will not work on earlier versions)
- - Pipenv (`python3.7 -m pip install pipenv`) - for creating a virtualenv + installing dependencies
+ - Pipenv (`python3 -m pip install pipenv`) - for creating a virtualenv + installing dependencies
 
 
 ```
