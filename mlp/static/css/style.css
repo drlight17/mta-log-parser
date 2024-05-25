@@ -687,6 +687,10 @@ td.multiple_mailtos, #mail_to_details {
     border-bottom: 1px rgba(0, 0, 0, .1) solid !important;
 }
 
+#emails-list:not(.JPadding) td.subject {
+    white-space: nowrap;
+    overflow-y: auto !important;
+}
 
 /*div.multiple_with_aliases, td.mail_to > span.multiple {
     margin-left: 2em;
