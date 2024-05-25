@@ -303,6 +303,7 @@ const app = Vue.createApp({
 			        default: return; // exit this handler for other keys
 			    }
 				e.preventDefault(); // prevent the default action (scroll / move caret)
+
 			};
 		},
 		// bind swipe moves for modal left and right actions
@@ -1447,6 +1448,8 @@ const app = Vue.createApp({
                 $('body').removeClass('scrolling');
             	window.app.arrowKeyBind($(this)[0]);
                 window.app.swipeBind($(this)[0]);
+                // move to the top of modal content
+                $('#mail-modal').find('.scrolling.content')[0].scrollTo({top: 0, behavior: 'smooth'});
             },
             closable: true,
             inverted: false,
