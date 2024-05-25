@@ -10,36 +10,36 @@
     <!-- custom.css -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/custom.css') }}"/>
     <!-- add semanticui with calendar support -->
-    <link onerror="window.js_load_error = true" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.css" crossorigin="anonymous">
+    <link onerror="window.js_load_error = true" rel="stylesheet" href="{{ url_for('static', filename='css/extra/semantic.min.css') }}" crossorigin="anonymous">
 	<!-- add notiejs-->
-    <link onerror="window.js_load_error = true" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notie@4.3.1/dist/notie.min.css" crossorigin="anonymous">
+    <link onerror="window.js_load_error = true" rel="stylesheet" href="{{ url_for('static', filename='css/extra/notie.min.css') }}" crossorigin="anonymous">
     <!-- add chartist-->
-    <link onerror="window.js_load_error = true" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chartist@1.3.0/dist/index.min.css">
+    <link onerror="window.js_load_error = true" rel="stylesheet" href="{{ url_for('static', filename='css/extra/index.min.css') }}">
 
     {% block head_scripts %}
-    <!-- all neccassary js modules are loaded from jsdelivr CDN below-->
-    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/notie@4.3.1/dist/notie.min.js" crossorigin="anonymous"></script>
-    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/gh/jquery/jquery@3.3.1/dist/jquery.min.js" crossorigin="anonymous"></script>
+
+    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/notie.min.js') }}" crossorigin="anonymous"></script>
+    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/jquery.min.js') }}" crossorigin="anonymous"></script>
      <!--add semanticui with calendar support-->
-    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.js" crossorigin="anonymous"></script>
+    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/semantic.min.js') }}" crossorigin="anonymous"></script>
     <!-- add moment for datetime client functions -->
-    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/moment.min.js') }}"></script>
     <!-- add back to top button-->
-    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js" crossorigin="anonymous"></script>
+    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/vanilla-back-to-top.min.js') }}" crossorigin="anonymous"></script>
     <!-- add colResizable -->
-    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/@eflexsystems/colresizable@1.6.0-4/colResizable.min.js" crossorigin="anonymous"></script>
+    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/colResizable.min.js') }}" crossorigin="anonymous"></script>
 
-    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/underscore@1.13.6/underscore-min.min.js"></script>
+    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/underscore-min.min.js') }}"></script>
 
-    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/xlsx.full.min.js') }}"></script>
 
     <!-- add chart.js -->
-    <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/chart.umd.min.js') }}"></script>
 
     {% if VUE_DEBUG %}
-        <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.js" crossorigin="anonymous"></script>
+        <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/vue.global.js') }}" crossorigin="anonymous"></script>
     {% else %}
-            <script onerror="window.js_load_error = true" src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js" crossorigin="anonymous"></script>
+            <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/vue.global.min.js') }}" crossorigin="anonymous"></script>
     {% endif %}
 
     <script src="{{ url_for('static', filename='js/main_app.js') }}" path_prefix="{{ settings.path_prefix }}" datetime_format="{{ settings.datetime_format }}" lang_files="{{ settings.lang_files }}" housekeeping_days="{{ settings.housekeeping_days }}" args = "{{ ARGS }}" notie_message="{{ NOTIE_MESSAGE }}" login="{{ LOGIN }}" mail_domain="{{ settings.mail_domain }}" parser_version="{{ VERSION }}"></script>

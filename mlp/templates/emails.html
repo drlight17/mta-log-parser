@@ -186,7 +186,7 @@
                 <td><i class="icon" :class="getStatusIcon(emails,counter_index)"></i><span>[[ m.status.code ]]</span></td>
                 <td><span>[[ m.mail_from ]]</span></td>
                 <td><span>[[ m.mail_to ]]</span></td>
-                <td><span>[[ m.subject ]]</span></td>
+                <td class="subject"><span>[[ m.subject ]]</span></td>
                 <td><span>[[ m.size ]]</span></td>
                 <td><span>[[ m.first_attempt ]]</span></td>
                 <td><span>[[ m.last_attempt ]]</span></td>
@@ -284,7 +284,7 @@
                         <td v-else><i class="server icon"></i> [[ fallbackLocaleData.emails_list.relay ]]</td>
                         <td>
                             <strong v-if="localeData.emails_list.host">[[ localeData.emails_list.host ]]:</strong><strong v-else>[[ fallbackLocaleData.emails_list.host ]]:</strong> [[ msg.relay.host ]] <br/>
-                            <strong v-if="localeData.emails_list.ip">[[ localeData.emails_list.ip ]]:</strong><strong v-else>[[ fallbackLocaleData.emails_list.ip ]]:</strong> [[ msg.relay.ip ]] (port [[ msg.relay.port ]])
+                            <strong v-if="localeData.emails_list.ip">[[ localeData.emails_list.ip ]]:</strong><strong v-else>[[ fallbackLocaleData.emails_list.ip ]]:</strong> [[msg.relay.ip]]<span v-if="msg.relay.port">:[[ msg.relay.port ]]</span>
                         </td>
                     </tr>
                 </tbody>
