@@ -31,18 +31,29 @@ postf_size = re.compile(r'.*size=([0-9]{1,}),.*')
 postf_message_id = re.compile(r'.*message-id=<(.*)>')
 postf_status = re.compile(r'.*status=([a-zA-Z0-9-_.]+) (.*)?|.*(reject):\s.*:\s([0-9].*);\s')
 postf_relay = re.compile(r'.*relay=([a-zA-Z0-9-._]+)\[(.*)\]:([0-9]+)')
-postf_client = re.compile(r'.*client=([a-zA-Z0-9-._]+)\[(.*)\]')
+#postf_client = re.compile(r'.*client=([a-zA-Z0-9-._]+)\[(.*)\]')
+postf_client = re.compile(r'.*client.([a-zA-Z0-9-._]+)?\[(.*)\]')
+
 
 # exim regexp
-exim_to = re.compile(r'.*>.(.*).R=')
-exim_from = re.compile(r'.*<=.(.*).[U|H]=|.*F=<(.*)>')
-#exim_from = re.compile(r'.*<=.(.*).H=|.*F=<(.*)>')
-#exim_from = re.compile(r'.*<=.(.*).H=|.*F=<(.*)>|.*\*\*.(.*).R=')
-exim_subject = re.compile(r'.*Subject:\s(.*)')
-exim_size = re.compile(r'.*S=([0-9]{1,}).*')
-exim_message_id = re.compile(r'.*<=.*id=(.*)')
-exim_client = re.compile(r'.*<=.*H=([a-zA-Z0-9-._]+).*\[([a-zA-Z0-9.:]+)')
-exim_relay = re.compile(r'.*=>.*T=(dovecot)|.*T=remote_smtp.*H=([a-zA-Z0-9-._]+).\[([a-zA-Z0-9.:]+)')
+#exim_to = re.compile(r'.*>.(.*).R=')
+#exim_to = re.compile(r'.*[>|\*].(.*).R=')
+#exim_to = re.compile(r'.*[>|\*].(.*).R=|.*DATA:.*for.([a-zA-Z0-9-+_.=]+@[a-zA-Z0-9-+_.]+)')
+exim_to = re.compile(r'.*[>|\*]\s?(.*)\s<?([a-zA-Z0-9-+_.=]+@[a-zA-Z0-9-+_.]+).*R=(?:dnslookup|localuser)|.*DATA:.*for.([a-zA-Z0-9-+_.=]+@[a-zA-Z0-9-+_.]+)')
+#exim_from = re.compile(r'.*<=.(.*).[U|H]=|.*F=<(.*)>')
+exim_from = re.compile(r'.*<=.(.*).[U|H]=|.*F=<?([a-zA-Z0-9-+_.=]+@[a-zA-Z0-9-+_.]+)>?')
+#exim_subject = re.compile(r'.*Subject:\s(.*)')
+exim_subject = re.compile(r'.*[T]="(.*)".from')
+#exim_size = re.compile(r'.*S=([0-9]{1,}).*')
+exim_size = re.compile(r'.*\sS=([0-9]{1,}).*')
+#exim_message_id = re.compile(r'.*<=.*id=(.*)')
+exim_message_id = re.compile(r'.*<=.*id=(.*)\s[T=]')
+#exim_client = re.compile(r'.*<=.*H=([a-zA-Z0-9-._]+).*\[([a-zA-Z0-9.:]+)')
+#exim_client = re.compile(r'.*<=.*H=([a-zA-Z0-9-._)(]+).*\[([a-zA-Z0-9.:]+)')
+#exim_client = re.compile(r'.*<=.*H=\(?\[?([a-zA-Z0-9-._]+)\)?\]?.*\[([a-zA-Z0-9.:]+)')
+exim_client = re.compile(r'.*<=.*H=\(?\[?([a-zA-Z0-9-._]+)\)?\]?.*\[([a-zA-Z0-9.:]+)\]?.([0-9]*)?')
+#exim_relay = re.compile(r'.*=>.*T=(dovecot)|.*T=remote_smtp.*H=([a-zA-Z0-9-._]+).\[([a-zA-Z0-9.:]+)')
+exim_relay = re.compile(r'.*=>.*T=(dovecot)|.*T=remote_smtp.*H=([a-zA-Z0-9-._]+).\[?([a-zA-Z0-9.:]+)\]?.([0-9]*)?')
 exim_status = re.compile(r'.*(rejected).(.*)|(.>{1}).*T=(.*)|.*(\*\*).(.*)|.*(==).*T.*:.(.*)')
 
 # sendmail regexp
@@ -135,7 +146,6 @@ async def parse_line(mline) -> dict:
                 aliases = {_to.group(1):_to.group(2)}
                 #aliases.append(_to.group(2))
                 lm['mail_to_alias'] = aliases
-
             if _to.group(1) is not None:
                 lm['mail_to'] = _to.group(1)
                 #if _to.group(2) is not None:
@@ -143,7 +153,30 @@ async def parse_line(mline) -> dict:
             else:
                 lm['mail_to'] = _to.group(3)
         else:
-            lm['mail_to'] = _to.group(1)
+            '''if _to.group(2) is not None:
+                lm['mail_to'] = _to.group(2)
+            else:
+                lm['mail_to'] = _to.group(1)'''
+            if _to.group(3) is not None:
+                lm['mail_to'] = _to.group(3)
+            else:
+                if _to.group(1):
+                    # check if it is true alias
+                    if '@' not in _to.group(1):
+                        to_check = _to.group(1)+'@'+_to.group(2).split('@')[1]
+                    else:
+                        to_check = _to.group(1)
+
+                    if _to.group(2) != to_check:
+                        #print(_to.group(1)+": "+_to.group(2))
+                        aliases = {to_check:_to.group(2)}
+                        lm['mail_to_alias'] = aliases
+                        lm['mail_to']  = to_check
+                    else:
+                        lm['mail_to'] = to_check
+                else:
+                    lm['mail_to'] = _to.group(2)
+    #print(lm)
     if _subject is not None:
         if settings.mta == 'exchange':
             lm['subject'] = _subject.group(1)[:-1]
@@ -164,10 +197,16 @@ async def parse_line(mline) -> dict:
     if settings.mta == 'exim':
         if _relay is not None:
             if _relay.group(1) is not None:
-                lm['relay'] = dict(host=_relay.group(1), ip="127.0.0.1")
+                lm['relay'] = dict(host=_relay.group(1), ip="127.0.0.1", port=25)
             else:
-                lm['relay'] = dict(host=_relay.group(2), ip=_relay.group(3))
-        if _client is not None: lm['client'] = dict(host=_client.group(1), ip=_client.group(2))
+                #lm['relay'] = dict(host=_relay.group(2), ip=_relay.group(3))
+                lm['relay'] = dict(host=_relay.group(2), ip=_relay.group(3), port=_relay.group(4))
+
+        if _client is not None:
+            if _client.group(3):
+                lm['client'] = dict(host=_client.group(1), ip=_client.group(2)+":"+_client.group(3))
+            else:
+                lm['client'] = dict(host=_client.group(1), ip=_client.group(2))
         if _from is not None:
             if _from.group(1) is not None:
                 lm['mail_from'] = _from.group(1)

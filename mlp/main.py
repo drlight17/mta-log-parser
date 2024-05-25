@@ -18,6 +18,7 @@ Copyright::
 import asyncio
 import logging
 import re
+import uuid
 import rethinkdb.query
 from enum import Enum
 from typing import Dict
@@ -42,7 +43,7 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.7.1"
+VERSION ="1.8"
 
 # postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
 #postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
@@ -203,6 +204,10 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             else:
             	#dtime, qid, msg  = m.groups()
                 qid, msg  = m.groups()
+            # process postfix NOQUEUE, generate new random qid
+            if settings.mta == 'postfix':
+                if qid == 'NOQUEUE':
+                    qid = str(uuid.uuid4().hex.upper()[0:11])
             #log.info(qid)
             #dtime, msg, qid  = m.groups()
 
@@ -225,20 +230,19 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             #print(msg)
 
             checking_mailto_alias = {}
-
-            if settings.mta == 'postfix':
+            if settings.mta == 'postfix' or settings.mta == 'exim':
                 if messages[qid].get('mail_to_alias') is not None:  
                     if messages[qid].get('mail_to_alias') != {}:
                         #print(messages[qid].get('mail_to'))
                         #print(messages[qid].get('mail_to_alias'))
                         #checking_mailto_alias_dict = messages[qid]['mail_to_alias']
+                        #print(messages[qid]['mail_to'])
                         try:
                             subdict = {}
                             subdict['mail_to'] = messages[qid]['mail_to']
                             subdict['mail_to_alias'] = messages[qid]['mail_to_alias'][messages[qid].get('mail_to')]
-
                             checking_mailto_alias[qid] = subdict
-                            #print(checking_mailto_alias)
+                            
                         except KeyError:
                             continue
 

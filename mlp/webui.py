@@ -344,8 +344,30 @@ async def api_stats():
         return {response: _sm}
     if 'top_senders' in frm:
         del frm['top_senders']
+        '''if 'log_lines' in frm:
+            del frm['log_lines']'''
+        if 'equal' in frm:
+            equal = str(frm['equal'])
+            #del frm['equal']
+
         if 'log_lines' in frm:
-            del frm['log_lines']
+            mode = 1
+            search_string = str(frm.pop('log_lines'))#.lower()
+
+            if equal == 'true':
+                found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).run(conn, array_limit=settings.rethink_arr_limit)
+            else:
+                found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: ~(m['message'].match(search_string))).run(conn, array_limit=settings.rethink_arr_limit)
+            
+            ids = []
+            async for f in found_strings:
+                ids.append(f['queue_id'])
+            #_sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
+            # new much more effective query method
+            _sm = _sm.get_all(r_q.args(ids), index='id').distinct()
+        else:
+            mode = 0
+
 
         exclude_list = []
 
@@ -353,17 +375,18 @@ async def api_stats():
             exclude_list = json.loads(frm['filtered_top_senders_excluded'])
             del frm['filtered_top_senders_excluded']
 
-        if 'equal' in frm:
-            equal = str(frm['equal'])
-            #del frm['equal']
 
-        _senders_array = await _process_filters(0, r_q=r_q, query=_sm, frm=frm)
+
+        _senders_array = await _process_filters(mode, r_q=r_q, query=_sm, frm=frm)
         _senders_array = _senders_array.pluck("mail_from").distinct()
         _senders_array = await _senders_array.run(conn, array_limit=settings.rethink_arr_limit)
 
         senders_array = []
         sender = {}
 
+        # don't forget to flush previous query!
+        _sm = r.table('sent_mail')
+        
         if settings.exclude_from_top_senders != '':
             exclude_list = exclude_list + settings.exclude_from_top_senders.split(",")
 
@@ -407,19 +430,38 @@ async def api_stats():
 
     if 'top_recipients' in frm:
         del frm['top_recipients']
-        if 'log_lines' in frm:
-            del frm['log_lines']
-            
-        exclude_list = []
-
-        if 'filtered_top_recipients_excluded' in frm:
-            exclude_list = json.loads(frm['filtered_top_recipients_excluded'])
-            del frm['filtered_top_recipients_excluded']
+        '''if 'log_lines' in frm:
+            del frm['log_lines']'''
 
         if 'equal' in frm:
             equal = str(frm['equal'])     
 
-        _recipients_dict = await _process_filters(0, r_q=r_q, query=_sm, frm=frm)
+        if 'log_lines' in frm:
+            mode = 1
+            search_string = str(frm.pop('log_lines'))#.lower()
+
+            if equal == 'true':
+                found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).run(conn, array_limit=settings.rethink_arr_limit)
+            else:
+                found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: ~(m['message'].match(search_string))).run(conn, array_limit=settings.rethink_arr_limit)
+            
+            ids = []
+            async for f in found_strings:
+                ids.append(f['queue_id'])
+            #_sm = _sm.filter(lambda doc: r_q.expr(ids).contains(doc['queue_id']))
+            # new much more effective query method
+            _sm = _sm.get_all(r_q.args(ids), index='id').distinct()
+        else:
+            mode = 0
+
+
+        exclude_list = []
+
+        if 'filtered_top_recipients_excluded' in frm:
+            exclude_list = json.loads(frm['filtered_top_recipients_excluded'])
+            del frm['filtered_top_recipients_excluded'] 
+
+        _recipients_dict = await _process_filters(mode, r_q=r_q, query=_sm, frm=frm)
         _recipients_dict = _recipients_dict.pluck("mail_to")#.distinct()
         _recipients_dict = await _recipients_dict.run(conn, array_limit=settings.rethink_arr_limit)
 
@@ -429,6 +471,8 @@ async def api_stats():
         to_add_from_multiples = []
         temp_arr = []
 
+        # don't forget to flush previous query!
+        _sm = r.table('sent_mail')
 
         if settings.exclude_from_top_recipients != '':
             exclude_list = exclude_list + settings.exclude_from_top_recipients.split(",")
@@ -437,10 +481,8 @@ async def api_stats():
         if '' in exclude_list:
             exclude_list.append('<>')
 
-        async for s in _recipients_dict:
-            
+        def proc_recipients_dict(s):
             # check if multiple recipients
-
             try:
                 s['mail_to'] = json.loads(s['mail_to'])
 
@@ -450,7 +492,6 @@ async def api_stats():
      
             # old check
             #if type(s['mail_to']) is list:
-
 
             for m in s['mail_to']:
 
@@ -475,6 +516,13 @@ async def api_stats():
                     if len(s['mail_to']) > 1:
                         to_add_from_multiples.append(m)
 
+        if mode == 1:
+            for s in _recipients_dict:
+                proc_recipients_dict(s)
+        else:
+            async for s in _recipients_dict:
+                proc_recipients_dict(s)
+        
         # create dict with recipients from messages with multiple recipients and counted number of deliveries with every recipient
         to_add_from_multiples_dict = {i:to_add_from_multiples.count(i) for i in to_add_from_multiples}
         #print(recipients_array_reformed)
