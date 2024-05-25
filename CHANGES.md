@@ -9,6 +9,20 @@ Unreleased VER.
 - add multiple simultanious text filters
 - MS Exchange multiple mail_to processing
 - [fix of non-dockerizeed deploy issue](https://github.com/drlight17/mta-log-parser/issues/10)
+- provide variables in .env for user defined parser regexps override
+- don't update rows in table while parsing is running (cause multiple recipients with wrong status) - block page update while parsing is running?
+
+VER. 1.8
+- ~~[SECURITY: werkzeug debugger vulnerable](https://github.com/drlight17/mta-log-parser/security/dependabot/3)~~  
+- ~~parse exim mail_to in milter reject case (rspamd for example), add prepare info to README~~
+- ~~aliases parsing for exim in multiple recipients emails~~
+- ~~BUG: stats for log_lines filter apply fix~~
+- ~~parse relay and client port in exim~~
+- ~~[BUG: postfix rejected lines with NOQUEUE become one db record with multiple status](https://github.com/drlight17/mta-log-parser/issues/13)~~
+- ~~BUG: exim parser for log_selector= +all~~
+- ~~replace CDN js libraries to local~~
+- ~~styling of long subject column~~
+- ~~auto scroll to the top on email details modal when swipe left/right~~
 
 VER. 1.7.1
 - ~~BUG: Unhandled error during execution of scheduler flush. This is likely a Vue internals bug~~

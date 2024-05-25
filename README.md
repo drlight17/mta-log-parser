@@ -2,7 +2,7 @@
 
 
 
-This is a small application designed to parse the log output of SMTP servers (postfix, exim, sendmail and Microsoft Exchange are supported for now), and convert it into easily queryable data inside of [RethinkDB](https://rethinkdb.com/).
+This is a small application designed to parse the log output of SMTP servers (postfix, exim (**since ver. 1.8 read info about on [this page](https://github.com/drlight17/mta-log-parser/wiki/Exim-and-correct-log-parsing)**), sendmail and Microsoft Exchange are supported for now), and convert it into easily queryable data inside of [RethinkDB](https://rethinkdb.com/).
 
 It includes a Web UI built with [Quart](https://github.com/pgjones/quart) and [VueJS](https://vuejs.org/) - allowing
 for easily navigating and filtering the log data straight from your browser.
