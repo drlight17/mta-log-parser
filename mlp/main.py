@@ -178,7 +178,6 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
                 m = match.search(line)
             else:
                 m = match.match(line)
-            #print(m)
 
             if not m: continue
             #print(m.group(0))
@@ -228,7 +227,8 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             messages[qid].merge(await parse_line(msg))
             #print(messages[qid])
             #print(msg)
-
+            #if qid == '1s9iCj-0068FU-RQ':
+            #    print(msg)
             checking_mailto_alias = {}
             if settings.mta == 'postfix' or settings.mta == 'exim':
                 if messages[qid].get('mail_to_alias') is not None:  
