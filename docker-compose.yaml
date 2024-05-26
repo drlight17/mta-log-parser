@@ -32,6 +32,8 @@ services:
 networks:
   internal:
     driver: bridge
+    config:  
+      - subnet: "172.20.0.0/16"
     driver_opts:
       com.docker.network.enable_ipv6: "false"
       com.docker.network.bridge.name: mlp_iface
