@@ -52,11 +52,13 @@ exim_message_id = re.compile(r'.*<=.*id=(.*)\s(?:T=)')
 #exim_client = re.compile(r'.*<=.*H=([a-zA-Z0-9-._]+).*\[([a-zA-Z0-9.:]+)')
 #exim_client = re.compile(r'.*<=.*H=([a-zA-Z0-9-._)(]+).*\[([a-zA-Z0-9.:]+)')
 #exim_client = re.compile(r'.*H=\(?\[?([a-zA-Z0-9-._]+)\]?\)?.\[?([a-zA-Z0-9.:]+)\]?.([0-9]{3,6}).[I=]')
-exim_client = re.compile(r'.*H=\(?\[?([a-zA-Z0-9-\s()._]+)\]?\)?\s\[?([a-zA-Z0-9.:]+)\]?.([0-9]{3,6}).[I=]')
+exim_client = re.compile(r'.*H=\[?([a-zA-Z0-9-\s()._]+)\]?\s\[?([a-zA-Z0-9.:]+)\]?.([0-9]{3,6}).[I=]')
 #exim_relay = re.compile(r'.*=>.*T=(dovecot)|.*T=remote_smtp.*H=([a-zA-Z0-9-._]+).\[([a-zA-Z0-9.:]+)')
 #exim_relay = re.compile(r'.*=>.*T=(dovecot)|.*T=remote_smtp.*H=([a-zA-Z0-9-._]+).\[?([a-zA-Z0-9.:]+)\]?.([0-9]*)?')
 exim_relay = re.compile(r'.*(?:T=remote_smtp)?\d+\s[?:H|I]=(\(?[a-zA-Z0-9-._]+\)?)?.\[?([a-zA-Z0-9.:]+)\]?.([0-9]{2,3})\s')
-exim_status = re.compile(r'.*(rejected).(.*)|(.>{1}).*T=(.*)|.*(\*\*).(.*)|.*(==).*T.*:.(.*)')
+#exim_status = re.compile(r'.*(rejected).(.*)|(.>{1}).*T=(.*)|.*(\*\*).(.*)|.*(==).*T.*:.(.*)')
+exim_status = re.compile(r'.*(rejected).(.*)|(.>{1}).*\s(?:T|C)="?(.*)(?:"|S)|.*(\*\*).(.*)|.*(==).*(?:T=).*:\s(.*)')
+
 
 # sendmail regexp
 sendm_to = re.compile(r'.*to=(.*), ctladdr')
