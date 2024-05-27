@@ -1481,14 +1481,18 @@ const app = Vue.createApp({
                     if (this.settings.dark) {
                         brightness = -40;
                     }
-                    $('#email-metadata td:contains("'+m[index].status.code+'")').css('background-color',this.shadeColor(this.settings.status_color[m[index].status.code],brightness));
-                    $('.ui.modal>.header').css('background-color',this.shadeColor(this.settings.status_color[m[index].status.code],brightness));
+                    //console.log(m[index].status.code)
+                    //console.log($('#email-metadata #status_code').parent())
+                    //$('#email-metadata td:contains("'+m[index].status.code+'")').css('background-color',this.shadeColor(this.settings.status_color[m[index].status.code],brightness));
+                    $('#email-metadata #status_code').parent().css('background-color',this.shadeColor(this.settings.status_color[m[index].status.code],brightness));
+                    $('#mail-modal .header').css('background-color',this.shadeColor(this.settings.status_color[m[index].status.code],brightness));
 
 
                 } else {
                     // change to inherit due to dark mode changes
-                    $('#email-metadata td:contains("'+m[index].status.code+'")').css('background-color','inherit');
-                    $('.ui.modal>.header').css('background-color','inherit');
+                    //$('#email-metadata td:contains("'+m[index].status.code+'")').css('background-color','inherit');
+                    $('#email-metadata #status_code').parent().css('background-color','inherit');
+                    $('#mail-modal .header').css('background-color','inherit');
                 }
 
                 // status localize
