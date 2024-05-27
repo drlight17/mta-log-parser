@@ -20,6 +20,7 @@ VER. 1.8.1
 - ~~BUG: version check comparision fix~~
 - ~~copyright year add~~
 - ~~add static versioning~~
+- ~~BUG: email details modal -> subject - sometimes colored as status~~
 
 VER. 1.8
 - ~~[SECURITY: werkzeug debugger vulnerable](https://github.com/drlight17/mta-log-parser/security/dependabot/3)~~  
