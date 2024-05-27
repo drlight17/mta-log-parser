@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, maximum-scale=1, user-scalable=no" />
         <!-- add favicon
     <link rel="shortcut icon" type="image/x-icon" href="/static/images/favicon.ico"/> -->
-    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}"/>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"/>
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico')|version }}"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css')|version }}"/>
     <!-- custom.css -->
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/custom.css') }}"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/custom.css')|version }}"/>
     <!-- add semanticui with calendar support -->
     <link onerror="window.js_load_error = true" rel="stylesheet" href="{{ url_for('static', filename='css/extra/semantic.min.css') }}" crossorigin="anonymous">
 	<!-- add notiejs-->
@@ -42,10 +42,10 @@
             <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/vue.global.min.js') }}" crossorigin="anonymous"></script>
     {% endif %}
 
-    <script src="{{ url_for('static', filename='js/main_app.js') }}" path_prefix="{{ settings.path_prefix }}" datetime_format="{{ settings.datetime_format }}" lang_files="{{ settings.lang_files }}" housekeeping_days="{{ settings.housekeeping_days }}" args = "{{ ARGS }}" notie_message="{{ NOTIE_MESSAGE }}" login="{{ LOGIN }}" mail_domain="{{ settings.mail_domain }}" parser_version="{{ VERSION }}"></script>
-    <script src="{{ url_for('static', filename='js/pager.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/local_settings.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main_app.js')|version }}" path_prefix="{{ settings.path_prefix }}" datetime_format="{{ settings.datetime_format }}" lang_files="{{ settings.lang_files }}" housekeeping_days="{{ settings.housekeeping_days }}" args = "{{ ARGS }}" notie_message="{{ NOTIE_MESSAGE }}" login="{{ LOGIN }}" mail_domain="{{ settings.mail_domain }}" parser_version="{{ VERSION }}"></script>
+    <script src="{{ url_for('static', filename='js/pager.js')|version }}"></script>
+    <script src="{{ url_for('static', filename='js/local_settings.js')|version }}"></script>
+    <script src="{{ url_for('static', filename='js/stats.js')|version }}"></script>
         <!-- for vue 3 -->
     <script>
         window.addEventListener('load', () => {
@@ -82,6 +82,9 @@
 			<div>
 				<span v-if="localeData.footer.two" v-html="localeData.footer.two"></span>
 				<span v-else v-html="fallbackLocaleData.footer.two"></span>
+                [[ new Date().getFullYear() ]]
+                <span v-if="localeData.footer.six" v-html="localeData.footer.six"></span>
+                <span v-else v-html="fallbackLocaleData.footer.six"></span>
 				{{ VERSION }}
 				<span v-if="localeData.footer.three" v-html="localeData.footer.three"></span>
 				<span v-else v-html="fallbackLocaleData.footer.three"></span>
@@ -90,7 +93,7 @@
 				<span style="opacity:.5;" v-else v-html="fallbackLocaleData.footer.one"></span>
 			</div>
             <a target="_blank" href="https://github.com/drlight17">
-				<img class="developed_by" src="{{ url_for('static', filename='images/developed_by_drlight.png') }}" />
+				<img class="developed_by" src="{{ url_for('static', filename='images/developed_by_drlight.png')|version }}" />
 			</a>
         </div>
     </div>

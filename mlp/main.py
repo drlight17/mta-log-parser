@@ -43,7 +43,7 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.8"
+VERSION ="1.8.1"
 
 # postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
 #postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
@@ -259,18 +259,26 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             # TODO maybe comment only for exim???
             # *************************************************************
             #if qid not in set(multiple_recipients_qids):
-            #if qid == '1rnZID-00DxLS-G1':
+            #if qid == '1sBTAv-0018OM-4k':
             #    print(checking_mailto)
             if qid == same_qid or same_qid == '':
                 if messages[qid]['status'].get('code') is not None:
                     # check if there are already recipients in message and there are recipients parsed
                     #print("Looking for ",checking_mailto," in message \"",msg, "\" related to qid ", qid)
                     if checking_mailto != '':
-                        if checking_mailto in msg:
+                        #if qid == '1sBTAv-0018OM-4k':
+                        #    print(checking_mailto)
+                        #    print(msg)
+                        # 27.05.2024 need tests added 'or' below to compare full email or only local part 
+                        if checking_mailto in msg or checking_mailto.split('@')[0] in msg:
                             same_qid = qid
                             counter += 1
                             # don't add email duplicates
+                            #if qid == '1sBTAv-0018OM-4k':
+                            #    print(checking_mailto)
+                            #    print(multiple_recipients[same_qid])
                             if checking_mailto not in multiple_recipients[same_qid]:
+
                                 # add alias dict if any
                                 if checking_mailto_alias is not None and checking_mailto_alias != {}:
                                     checking_mailto = checking_mailto_alias[qid]

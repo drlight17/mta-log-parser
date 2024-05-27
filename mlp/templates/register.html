@@ -5,7 +5,7 @@
         <h1 class="top_title" style="display: inherit; text-align: center;" v-if="localeData.app_title">[[ localeData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
         <h1 class="top_title" style="display: inherit; text-align: center;" v-else>[[ fallbackLocaleData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>
 
-        <div class="logo login"><img src="static/images/logo.png"></img></div>
+        <div class="logo login"><img src="{{ url_for('static', filename='images/logo.png')|version }}"></img></div>
         <div id="login-form-wrapper" v-if="!loading" class="ui segment form center aligned login">
             <form @submit.prevent="" action="./register" method="post">
                 <h3 v-if="localeData.register.message" v-html="localeData.register.message"></h3>

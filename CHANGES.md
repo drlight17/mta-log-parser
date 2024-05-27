@@ -6,11 +6,20 @@ Unreleased VER.
 - fix dropdown update if use fomantic ui div based dropdown
 - upgrade procedure from GUI (?) if decided to do so use [this manual](https://stackoverflow.com/questions/32163955/how-to-run-shell-script-on-host-from-docker-container/63719458#63719458)
 - minify
-- add multiple simultanious text filters
+- add multiple simultanious text filters (with and/or concatenator)
 - MS Exchange multiple mail_to processing
 - [fix of non-dockerizeed deploy issue](https://github.com/drlight17/mta-log-parser/issues/10)
 - provide variables in .env for user defined parser regexps override
-- don't update rows in table while parsing is running (cause multiple recipients with wrong status) - block page update while parsing is running?
+- don't update rows in table while parsing is running (cause multiple recipients with wrong status) - block page update while parsing is running?  
+- BUG: email details modal -> subject - sometimes colored as status:  
+    `Invitation to Submit Abstract for 20-Minute Oral Presentation`
+
+VER. 1.8.1
+- ~~BUG: exim multiple mail_to parsing fix~~
+- ~~add number of days to overall stats title (from housekeeping var)~~
+- ~~BUG: version check comparision fix~~
+- ~~copyright year add~~
+- ~~add static versioning~~
 
 VER. 1.8
 - ~~[SECURITY: werkzeug debugger vulnerable](https://github.com/drlight17/mta-log-parser/security/dependabot/3)~~  

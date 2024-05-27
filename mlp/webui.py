@@ -57,6 +57,12 @@ app.static_url_path = new_static_path
 '''for rule in app.url_map.iter_rules('static'):
     app.url_map._rules.remove(rule)  # There is probably only one.'''
 
+# version to static files
+@app.template_filter('version')
+def version_filter(filename):
+  newfilename = filename+"?v="+VERSION
+  return newfilename
+
 app.url_map._rules_by_endpoint['static'] = []
 
 app.add_url_rule(f'{new_static_path}/<path:filename>',
@@ -68,7 +74,6 @@ app.secret_key = settings.secret_key
 Table = rethinkdb.query.ast.Table
 RqlQuery = rethinkdb.query.ast.RqlQuery
 QueryOrTable = Union[Table, RqlQuery]
-
 
 
 @app.route(f'{PREFIX}/', methods=['GET'])

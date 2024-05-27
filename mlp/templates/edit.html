@@ -4,7 +4,7 @@
     <div class="top_title">
         <div class="logo">
             <div class="field wrapper">
-                <a href="#"><img width="60" src="{{ url_for('static', filename='images/logo.png') }}"></img></a>
+                <a href="#"><img width="60" src="{{ url_for('static', filename='images/logo.png')|version }}"></img></a>
             </div>
             <div class="field title">
                 <h1 v-if="localeData.app_title">[[ localeData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>

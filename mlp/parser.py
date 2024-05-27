@@ -156,7 +156,7 @@ async def parse_line(mline) -> dict:
                 #    lm['mail_to'] +=' ('+_to.group(2)+')'
             else:
                 lm['mail_to'] = _to.group(3)
-        else:
+        if settings.mta == 'exim':
             '''if _to.group(2) is not None:
                 lm['mail_to'] = _to.group(2)
             else:
@@ -180,6 +180,11 @@ async def parse_line(mline) -> dict:
                         lm['mail_to'] = to_check
                 else:
                     lm['mail_to'] = _to.group(2)
+        else:
+            if _to.group(2) is not None:
+                lm['mail_to'] = _to.group(2)
+            else:
+                lm['mail_to'] = _to.group(1)
     #print(lm)
     if _subject is not None:
         if settings.mta == 'exchange':

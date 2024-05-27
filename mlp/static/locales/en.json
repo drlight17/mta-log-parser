@@ -8,13 +8,16 @@
   "tips_menu": "Tips",
   "charts_menu": "Stats",
   "hide_charts_title": "Hide or show statistics and visuals",
-  "overall_pie": "Overall delivery stats (every hour refresh)",
+  "overall_pie": "Overall delivery stats",
+  "overall_pie_ally": "for the last",
+  "overall_pie_end": "days",
+  "overall_pie_title": "Every hour refresh",
   "filtered_pie": "Filtered delivery stats (check filters and <code>MAX_LIMIT</code>)",
   "filtered_top_senders": "Filtered top 10 senders",
   "filtered_top_recipients": "Filtered top 10 recipients",
   "no_data": "No data",
   "force_refresh_stats": "Force refresh this chart",
-  "hidden_indicator": "There are some hidden chart bars",
+  "hidden_indicator": "There are some hidden chart bars. Right click on the chart to call context menu.",
   "cached": "cached at",
   "exclude": "Hide",
   "excluded": "Hidden:",
@@ -215,10 +218,11 @@
   },
   "footer": {
     "one": "Postfix Log Parser original version 1.1.2 © 2019 by Privex Inc. under the GNU AGPL v3 | <a href=\"https://github.com/Privex/postfix-parser\" target=\"_BLANK\">Source on Github</a>",
-    "two": "MTA Log Parser © 2023 by drlight ver.",
+    "two": "MTA Log Parser © 2023 -",
     "three": "under the GNU AGPL v3 | <a href=\"https://github.com/drlight17/mta-log-parser\" target=\"_BLANK\">Source on Github</a>",
     "four": "The latest version",
-    "five": " is available!"
+    "five": " is available!",
+    "six": "by drlight ver."
   },
   "calendar": {
     "days": ["S", "M", "T", "W", "T", "F", "S"],
