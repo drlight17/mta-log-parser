@@ -2,7 +2,7 @@
         template: `
         <div id="charts-wrapper" class="ui segment stackable two column grid">
             <div class="three wide column">
-                <h3 style="max-width: 13vw;" id="overall_pie_title"><i class="calendar outline icon"></i><i class="chart pie icon"></i><span :title="$parent.localeData.overall_pie_title" v-if="$parent.localeData.overall_pie" v-html="$parent.localeData.overall_pie"></span><span v-else :title="$parent.localeData.overall_pie_title" v-html="$parent.fallbackLocaleData.overall_pie"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="overall_pie stats_refresh sync icon"></i></h3>
+                <h3 id="overall_pie_title"><i class="calendar outline icon"></i><i class="chart pie icon"></i><span :title="$parent.localeData.overall_pie_title" v-if="$parent.localeData.overall_pie" v-html="$parent.localeData.overall_pie"></span><span v-else :title="$parent.localeData.overall_pie_title" v-html="$parent.fallbackLocaleData.overall_pie"></span><i :title="$parent.localeData.force_refresh_stats" @click="force_refresh" class="overall_pie stats_refresh sync icon"></i></h3>
                 <div class="ui form">
                     <canvas v-if="!loading_overall_pie" id="overall_pie"></canvas>
                     <div v-else class="ui active huge indeterminate text loader">

@@ -35,7 +35,14 @@
 .stats_refresh:hover, .trash.alternate.icon:hover {
     opacity: 1!important;
 }
-
+/**disabled style override*/
+.disabled {
+    opacity: 0.7!important;
+    pointer-events: none!important;
+}
+/*.ui.inverted.table {
+    background: #2b2b2b !important;
+}*/
 .stats_refresh {
     transition: all 0.15s ease-in-out;
     opacity: .7!important;
@@ -95,6 +102,21 @@
 .hide_settings_tips_container {
     align-items: center!important;
     justify-content: flex-end!important;
+}
+
+@media only screen and (min-width: 768px) {
+    #overall_pie_title {
+        max-width: 13vw;
+    }
+}
+
+/*prevent long press text selection*/
+#filtered_top_recipients, #filtered_top_senders,#charts-wrapper span {
+     -webkit-touch-callout: none;
+        -webkit-user-select: none;    
+           -moz-user-select: none;
+            -ms-user-select: none;
+                user-select: none; 
 }
 
 /*.hidable.hide {
@@ -406,7 +428,7 @@ summary {
     background-color: #e1dcdc!important;
 }*/
 /*for sticky pager*/
-.ui.buttons {
+#navi {
     z-index: 5;
     position: sticky;
     bottom: 0;
@@ -599,7 +621,7 @@ button:not(.navi), #footer {
     /*white-space: break-spaces;*/
     overflow: hidden;
     text-overflow: ellipsis; 
-    max-width: 400px;
+    max-width: 87vw;
 }
 /*
 #email-metadata td:hover {
@@ -784,6 +806,7 @@ div.multiple_with_aliases::marker, td.mail_to > span.multiple::marker {
     opacity: .5!important;
     position: sticky;
     top:50%;
+    background: radial-gradient(circle, rgb(0 0 0) 0%, rgb(255 255 255 / 0%) 80%);
 }
 
 .next_email:hover i, .next_email:focus i, .prev_email:hover i, .prev_email:focus i {
@@ -906,6 +929,10 @@ div.ui.menu.item.contextMenu.animate {
     line-height: 24px;
     font-family: sans-serif;
     padding: 4px 10px;
+    max-width: 200px;
+    text-align: left;
+    /*overflow: hidden;*/
+    text-overflow: ellipsis;
 }
 
 .menu-item:hover {

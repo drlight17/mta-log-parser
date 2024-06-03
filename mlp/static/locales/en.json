@@ -54,7 +54,8 @@
     "twenty_three": "Share link is successfully copied to the clipboard.",
     "twenty_four": "\"Date from\" can't be set from shared link because \"Save filters\" is not turned on!",
     "twenty_five": "LDAP error. Check backend logs and LDAP settings!",
-    "twenty_six": "Warning! Fulltext LOG search is very time consuming and resource-intensive!"
+    "twenty_six": "Warning! Fulltext LOG search is very time consuming and resource-intensive!",
+    "twenty_seven": "Parsing is running. Updated data will be available after process completion. Wait..."
   },
   "login": {
     "message": "Please login to proceed.",

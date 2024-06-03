@@ -30,6 +30,7 @@ import email
 import base64
 import quopri
 import json
+import os
 
 from datetime import datetime, timedelta, timezone
 from quart import jsonify
@@ -43,8 +44,9 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.8.1"
+VERSION ="1.8.2"
 
+lockfile = "processing.lock"
 # postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
 #postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
 #postf_match += r'.*\:[ \t]([A-Z0-9]{1,15})\:[ \t]+?(.*)'
@@ -100,7 +102,6 @@ class OnConflict(Enum):
     QUIET = "quiet"
     EXCEPT = "except"
     UPDATE = "update"
-
 
 async def save_obj(table, data, primary=None, onconflict: OnConflict = OnConflict.EXCEPT):
     r, conn, _ = await get_rethink()
@@ -265,12 +266,14 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
                 if messages[qid]['status'].get('code') is not None:
                     # check if there are already recipients in message and there are recipients parsed
                     #print("Looking for ",checking_mailto," in message \"",msg, "\" related to qid ", qid)
-                    if checking_mailto != '':
+                    if checking_mailto != '' and checking_mailto is not None:
                         #if qid == '1sBTAv-0018OM-4k':
                         #    print(checking_mailto)
                         #    print(msg)
                         # 27.05.2024 need tests added 'or' below to compare full email or only local part 
-                        if checking_mailto in msg or checking_mailto.split('@')[0] in msg:
+                        if '@' in checking_mailto:
+                            checking_mailto = checking_mailto.split('@')[0]
+                        if checking_mailto in msg:
                             same_qid = qid
                             counter += 1
                             # don't add email duplicates
@@ -356,10 +359,16 @@ def decodev2(a):
 #    return _sm
 
 async def main():
+
     r, conn, r_q = await get_rethink()
     r_q: rethinkdb.query
-    """housekeeping from old logs"""
 
+    if settings.gui_refresh_block:
+        log.info('Blocking GUI updates while processing')
+        global lockfile
+        t = open(lockfile, "w")
+
+    """housekeeping from old logs"""
     housekeeping_days = settings.housekeeping_days
     if housekeeping_days != '':
         log.info('Start housekeeping')
@@ -412,8 +421,8 @@ async def main():
             else:
                 mfrom_dom = mfrom
             
-            if mto != '':
-                if '@' in mfrom:
+            if mto != '' and mto is not None:
+                if '@' in mto:
                     mto_dom = mto.split('@')[1]
                 else:
                     mto_dom = ''
@@ -438,6 +447,8 @@ async def main():
 
     log.info('Firing off asyncio.gather(save_list)...')
     await asyncio.gather(*save_list)
-
+    if settings.gui_refresh_block:
+        log.info('Unblocking GUI updates')
+        os.remove(lockfile)
     log.info('Finished!')
 

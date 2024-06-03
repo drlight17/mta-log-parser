@@ -76,6 +76,9 @@ datetime_format = env('DATETIME_FORMAT', 'HH:mm:ss, DD.MM.YYYY')
 # add mail_log_timestamp_convert var from env
 mail_log_timestamp_convert = env_bool('MAIL_LOG_TIMESTAMP_CONVERT', False)
 
+# add gui_refresh_block var from env
+gui_refresh_block = env_bool('GUI_REFRESH_BLOCK', True)
+
 # add mta var from env
 mta = env('MTA', '')
 

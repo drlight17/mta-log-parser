@@ -145,18 +145,15 @@ async def parse_line(mline) -> dict:
     if _to is not None:
         if settings.mta == 'exchange':
             lm['mail_to'] = _to.group(1)[:-1]
-        if settings.mta == 'postfix':
+        '''if settings.mta == 'postfix':
             if _to.group(2) is not None:
                 aliases = {_to.group(1):_to.group(2)}
-                #aliases.append(_to.group(2))
                 lm['mail_to_alias'] = aliases
             if _to.group(1) is not None:
                 lm['mail_to'] = _to.group(1)
-                #if _to.group(2) is not None:
-                #    lm['mail_to'] +=' ('+_to.group(2)+')'
             else:
-                lm['mail_to'] = _to.group(3)
-        if settings.mta == 'exim':
+                lm['mail_to'] = _to.group(3)'''
+        if settings.mta == 'exim' or settings.mta == 'postfix':
             '''if _to.group(2) is not None:
                 lm['mail_to'] = _to.group(2)
             else:

@@ -10,9 +10,13 @@ Unreleased VER.
 - MS Exchange multiple mail_to processing
 - [fix of non-dockerizeed deploy issue](https://github.com/drlight17/mta-log-parser/issues/10)
 - provide variables in .env for user defined parser regexps override
-- don't update rows in table while parsing is running (cause multiple recipients with wrong status) - block page update while parsing is running?  
-- BUG: email details modal -> subject - sometimes colored as status:  
-    `Invitation to Submit Abstract for 20-Minute Oral Presentation`
+- parse log file from the new lines since last parsing
+
+
+VER. 1.8.2
+- ~~some GUI styling fixes~~
+- ~~don't update rows in table while parsing is running (cause multiple recipients with wrong status) - block page update while parsing is running by env variable~~
+- ~~BUG: mailto splitting process issue~~
 
 VER. 1.8.1
 - ~~BUG: exim multiple mail_to parsing fix~~

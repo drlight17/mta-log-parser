@@ -16,6 +16,7 @@ Copyright::
 
 """
 import json
+import os.path
 from dataclasses import dataclass, field
 from typing import List, Union, Mapping, Tuple
 
@@ -24,9 +25,8 @@ import logging
 
 from rethinkdb.net import DefaultConnection
 
-from mlp.main import VERSION
+from mlp.main import VERSION, lockfile
 from mlp import settings, api
-
 
 from mlp.exceptions import APIException
 from mlp.core import get_rethink, __STORE
@@ -179,6 +179,7 @@ async def login():
 @app.route(f'{PREFIX}/emails', methods=['GET'])
 @app.route(f'{PREFIX}/emails/', methods=['GET'])
 async def emails_ui():
+
     # to save args from shared link
     ARGS = ''
     if 'admin' not in session:
@@ -203,6 +204,18 @@ async def emails_ui():
         return redirect(f'{PREFIX}/logout')
 
     return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, NOTIE_MESSAGE=NOTIE_MESSAGE, ARGS=ARGS, settings=settings, VERSION=VERSION, LOGIN=session['login'])
+
+
+@app.route(f'{PREFIX}/api/process_check', methods=['GET'])
+@app.route(f'{PREFIX}/api/process_check/', methods=['GET'])
+async def process_check():
+    if settings.gui_refresh_block:
+        if os.path.isfile(lockfile):
+            return {'processing': True }
+        else:
+            return {'processing': False }
+    else:
+        return {'processing': False }
 
 @app.route(f'{PREFIX}/auth', methods=['GET'])
 @app.route(f'{PREFIX}/auth/', methods=['GET'])

@@ -3,6 +3,7 @@ const path_prefix = document.currentScript.getAttribute('path_prefix');
 const base_url = path_prefix + '/api/emails';
 const base_url2 = path_prefix + '/api/auth';
 const base_url3 = path_prefix + '/api/stats';
+const base_url4 = path_prefix + '/api/process_check';
 // get datetime_format from .env
 var datetime_format = document.currentScript.getAttribute('datetime_format');
 if (datetime_format == '') {
@@ -11,10 +12,10 @@ if (datetime_format == '') {
 // get mail_domain from .env
 var mail_domain = document.currentScript.getAttribute('mail_domain');
 
-// get current mlp version from .env
+// get current mlp version
 var parser_version = document.currentScript.getAttribute('parser_version');
 
-// get current mlp version from .env
+// get current login
 const login = document.currentScript.getAttribute('login');
 
 // get HOUSEKEEPING_DAYS from .env
@@ -75,7 +76,8 @@ const app = Vue.createApp({
             filters_changed: false,
             isEqual: true,
             swiped: false,
-            is_mobile: false
+            is_mobile: false,
+            processing: false
         }
     },
     computed: {
@@ -1019,275 +1021,314 @@ const app = Vue.createApp({
                             })
                 }
         },
-        loadEmails(refresh) {
+        loadEmails(refresh,processing) {
 
-            this.check_date_lt();
-
-            // call to resresh countdown
-            this.setRefresh();
-
-            // check if search_error clear search text
-            if (this.search_error) {
-                this.search = "";
-                this.search_error = false;
-            }
-            // show loading modal on emails load
-            if (refresh) {
-                $('#main-wrapper').hide();
-                if (!(this.loading)) {
-                    this.toggleLoading(true);
-                }
-            }
-
-            var url = base_url, queries = 0;
-            var no_results = false;
-
-            // load saved sort
-            this.loadSort();
-
-            if (this.search.length > 0) {
-                // add filter equal flag
-                url += `?equal=${this.isEqual}`;
-                queries += 1;
-            }
-
-            for (var f in this.email_filter) {
-                url += (queries === 0) ? '?' : '&';
-                url += `${f}=${this.email_filter[f]}`;
-                queries += 1;
-            }
-
-
-            url += (queries === 0) ? '?' : '&';
-            url += `page=${this.page}&limit=${this.settings.page_limit}`;
-            // add sort string
-            url += `&order=${this.order}&order_dir=${this.order_dir}`;
-
-            if (this.path_page == 2) {
-                element = $('#emails-list')[0];
-
-                return fetch(url).then(function (response) {
-                    return response.json();
-                }).then((res) => {
-                        this.emails = res['result'];
-                        // get format from .env var
-                        for (let i = 0; i < this.emails.length; i++) {
-                            this.emails[i].timestamp = this.format_date(this.emails[i].timestamp,datetime_format,false);
-                            this.emails[i].first_attempt = this.format_date(this.emails[i].first_attempt,datetime_format,false);
-                            this.emails[i].last_attempt = this.format_date(this.emails[i].last_attempt,datetime_format,false);
+            fetch(base_url4).then(function (response) {
+                return response.json();
+            })
+            .then((res) => {
+                if (res['processing']) {
+                    //console.log("Processing is running. Dont't refresh!")
+                    if (!window.app.processing) {
+                        if (this.localeData.notie.twenty_seven == undefined) {
+                            text = this.fallbackLocaleData.notie.twenty_seven
+                        } else {
+                            text = this.localeData.notie.twenty_seven
                         }
+                        window.app.processing = true
+                        notie.alert({type: 'info', text: text/*, stay: true */});
 
-                        this.page_count = res['total_pages'];
-                        this.count = res['count'];
-
-                        this.toggleLoading(false);
-                        // check for updates
-                        this.updateCheck();
-
-                        // add advanced gui features
-                        this.$nextTick(function () {
-                            $found_table = $('.emails-list');
-                            thead = $found_table.find('thead');
-
-                            // if no results don't show table and show notification
-                            this.check_nothing_found(this.count,$found_table,false);
-
-                            if (refresh) {
-                                // scroll to the table top
-                                if ($found_table.find('td:first').length > 0) {
-                                    const element = $found_table.find('td:first')[0];
-                                    var yOffset = 0;
-                                    if (this.settings.resizable) {
-                                        if (window.screen.width >= 768) {
-                                            // desktop
-                                            yOffset = -90; 
-                                        } else {
-                                            //mobile
-                                            yOffset = -130; 
-                                        }
-                                    } else {
-                                        if (window.screen.width >= 768) {
-                                            // desktop
-                                            yOffset = -thead.height();
-                                        } else {
-                                            //mobile
-                                            yOffset = -thead.height()+130;
-                                        }
-                                        
-                                    }
-                                    const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                                    // scrolling offset by hide-sticky-header-button height
-                                    window.scrollTo({top: y, behavior: 'smooth'});
-                                    // to force stats update by timestamp_gt
-                                    window.app.setDuration();
-                                }
-                            } else {
-                                // set timestamp_gt if saving filters is off and refresh is false
-                                window.app.setDuration();
-                            }
-                            // style selected column for sort
-                            $found_table.find('#'+this.order).removeClass().addClass(this.order_dir);
-                            // if no results don't process empty table
-                            if (this.count != 0) {
-                                // add on row click title
-                                if (this.localeData.tips.five == undefined) {
-                                    text = this.fallbackLocaleData.tips.five
-                                } else {
-                                    text = this.localeData.tips.five
-                                }
-                                $found_table.find('tbody tr').attr('title', text);
-
-                                // bind sort to table headers
-                                $('.emails-list th:not(#refresh-button)').one('click',function(){
-                                    window.app.callSort(this);
-                                });
-                                
-                                // add sticky table header
-                                if (this.settings.sticky) {
-                                    thead.first().css({'top': 0, 'position':'sticky', 'z-index': 1, 'background':'inherit' })/*.addClass('sticky-visible')*/;
-                                    // add show/hide sticky header button 
-                                    //if (window.matchMedia('(max-width: 767px)').matches)
-                                    if (window.app.is_mobile)
-                                    {
-                                        window.app.checkButtonArrow(thead);
-
-                                        // check visibility state
-                                        if (window.localStorage['sticky_header_visible'] !== "true") {
-                                            window.app.ToggleStickyHeader(thead);
-                                        }
-                                    }
-                                }
-
-                                if (this.settings.resizable) {
-                                    // add class resizable
-                                    $found_table.addClass('resizable');
-                                    this.callResizableTableColumns($found_table);
-
-                                    if (this.localeData.user_settings.resizable_title_tip == undefined) {
-                                        text = this.fallbackLocaleData.user_settings.resizable_title_tip
-                                    } else {
-                                        text = this.localeData.user_settings.resizable_title_tip
-                                    }
-                                    thead.find('th').attr('title',text)
-                                    // reset colResizable() widths states
-                                    thead.find('th:not(#refresh-button)').one( "contextmenu", function() {
-                                        window.localStorage.removeItem($found_table.attr('id'));
-                                        window.app.loadEmails(true);
-                                        return false;
-                                    });
-                                } else {
-                                    // cleanup if colResizable() was called earlier
-                                    $('.JCLRgrips').hide();
-                                    $found_table.removeClass('resizable');
-                                }
-                            }
-
-                            // styling of statuses and status filter dropdown
-                            if (!$found_table.find('td:nth-child(3)').hasClass('styled')) {
-                                $found_table.find('td:nth-child(3):contains("deferred")').addClass('styled')/*.prepend(this.settings.status_icon['deferred'])*/;
-                                $found_table.find('td:nth-child(3):contains("sent")').addClass('styled')/*.prepend(this.settings.status_icon['sent'])*/;
-                                $found_table.find('td:nth-child(3):contains("reject")').addClass('styled')/*.prepend(this.settings.status_icon['reject'])*/;
-                                $found_table.find('td:nth-child(3):contains("bounced")').addClass('styled')/*.prepend(this.settings.status_icon['bounced'])*/;
-                                $found_table.find('td:nth-child(3):contains("multiple")').addClass('styled')/*.prepend(this.settings.status_icon['multiple'])*/;
-                                $found_table.find('td:nth-child(3):contains("unknown")').addClass('styled')/*.prepend(this.settings.status_icon['unknown'])*/;
-                            }
-
-                            if (this.settings.colored) {
-                                var filter_email = $('#filter-email');
-
-                                for (let x in this.settings.status_color) {
-                                    var color = this.settings.status_color[x];
-                                    var text_color = "black";
-
-                                    // coloring based on dark mode
-                                    if (this.settings.dark) {
-                                        if (x != 'NOFILTER') {
-                                            color = this.shadeColor(color,-40);
-                                        } else {
-                                            color = this.settings.status_color.NOFILTER_dark;
-                                        }
-                                        text_color = "white";
-                                    }
-
-                                    $found_table.find('td:nth-child(3):contains("'+x+'")').closest('tr').css('background-color',color);
-
-                                    $('#filter-email option[value="'+x+'"]').css({'background-color':color, 'color': text_color});
-                                } 
-
-                                // coloring current selected option
-
-                                filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
-                                filter_email.one('change', function () {
-                                    filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
-                                });
-
-                            }
-                            // styling sorted column
-                            var sort_column = thead.find('th.asc, th.desc');
-                            sort_column.css('background-color', window.app.settings.status_color['sorted']);
-                            $('.emails-list tr:nth-child(n) td:nth-child('+(sort_column.index()+1)+')').each(function(i, obj) {
-                                $(obj).css('background-color',window.app.settings.status_color['sorted']);
-                            });
-
-                            // add filter links to table cells
-                            this.addFilterLink($found_table);
-
-                            // set min date based on housekeeping_days
-                            var min_date=new Date();
-                            if (housekeeping_days != 0) {
-                                min_date.setDate(min_date.getDate()-housekeeping_days);
-                            } else {
-                                min_date = undefined;
-                            }
-
-                            // samoilov add calendar date picker fields
-                            $('#rangestart').calendar({
-                              onChange: function(date, text, mode) {
-                                  // fomat date to iso8601
-                                  window.app.date_filter__gt = text;
-                              },
-                              text: this.localeData.calendar,
-                              endCalendar: $('#rangeend'),
-                              monthFirst: false,
-                              minDate: min_date,
-                              maxDate: new Date(Date.now()),
-                              formatter: {
-                                cellTime: 'H:mm',
-                                datetime: datetime_format
-                              }
-                            });
-                            $('#rangeend').calendar({
-                              onChange: function(date, text, mode) {
-                                  // fomat date to iso8601
-                                  window.app.date_filter__lt = text;
-                              },
-                              text: this.localeData.calendar,
-                              startCalendar: $('#rangestart'),
-                              monthFirst: false,
-                              minDate: min_date,
-                              maxDate: new Date(Date.now()),
-                              formatter: {
-                                cellTime: 'H:mm',
-                                datetime: datetime_format
-                              }
-                            });
-                            // set dark mode
-                            this.setDark($found_table);
-                            this.filters_changed = false;
-                        });
-                    this.updateCheck();
-                }).catch((res) => {
-                    console.error('Error:', res);
-                    if (this.path_page == 2) {
-                        this.toggleLoading(false);
-                        this.filters_changed = false;
-                        this.waitForElm('#emails-list').then((elm) => {
-                            window.app.additional_styling(elm);
-                            window.app.check_nothing_found(this.count,$(elm),true);
-                        })
                     }
-                });
-            }
+                    setTimeout(() => window.app.loadEmails(true,window.app.processing), 1000);
+                    // disable loadEmails call gui elements
+                    // prevent span links click 
+                    $('#emails-list td.filter_linked span').addClass('disabled');
+                } else {
+                    if (window.app.processing) {
+                        notie.hideAlerts();
+                        window.app.processing = false
+                        // enable loadEmails call gui elements
+                        // prevent span links click
+                        $('#emails-list td.filter_linked span').removeClass('disabled');
+                        if ($('#mail-modal').modal('is active')) {
+                            $('#mail-modal').modal('hide all');
+                            setTimeout(() => {
+                                window.app.email_modal_appearance('fade');
+                            }, 1000);
+                        }
+                    }
+                    this.check_date_lt();
+
+                    // call to resresh countdown
+                    this.setRefresh();
+
+                    // check if search_error clear search text
+                    if (this.search_error) {
+                        this.search = "";
+                        this.search_error = false;
+                    }
+
+                    // show loading modal on emails load
+                    if (refresh) {
+                        $('#main-wrapper').hide();
+                        if (!(this.loading)) {
+                            this.toggleLoading(true);
+                        }
+                    }
+
+                    var url = base_url, queries = 0;
+                    var no_results = false;
+
+                    // load saved sort
+                    this.loadSort();
+
+                    if (this.search.length > 0) {
+                        // add filter equal flag
+                        url += `?equal=${this.isEqual}`;
+                        queries += 1;
+                    }
+
+                    for (var f in this.email_filter) {
+                        url += (queries === 0) ? '?' : '&';
+                        url += `${f}=${this.email_filter[f]}`;
+                        queries += 1;
+                    }
+
+
+                    url += (queries === 0) ? '?' : '&';
+                    url += `page=${this.page}&limit=${this.settings.page_limit}`;
+                    // add sort string
+                    url += `&order=${this.order}&order_dir=${this.order_dir}`;
+
+                    if (this.path_page == 2) {
+                        element = $('#emails-list')[0];
+
+                        return fetch(url).then(function (response) {
+                            return response.json();
+                        }).then((res) => {
+                                this.emails = res['result'];
+                                // get format from .env var
+                                for (let i = 0; i < this.emails.length; i++) {
+                                    this.emails[i].timestamp = this.format_date(this.emails[i].timestamp,datetime_format,false);
+                                    this.emails[i].first_attempt = this.format_date(this.emails[i].first_attempt,datetime_format,false);
+                                    this.emails[i].last_attempt = this.format_date(this.emails[i].last_attempt,datetime_format,false);
+                                }
+
+                                this.page_count = res['total_pages'];
+                                this.count = res['count'];
+
+                                this.toggleLoading(false);
+                                // check for updates
+                                this.updateCheck();
+
+                                // add advanced gui features
+                                this.$nextTick(function () {
+                                    $found_table = $('.emails-list');
+                                    thead = $found_table.find('thead');
+
+                                    // if no results don't show table and show notification
+                                    this.check_nothing_found(this.count,$found_table,false);
+
+                                    if (refresh) {
+                                        // scroll to the table top
+                                        if ($found_table.find('td:first').length > 0) {
+                                            const element = $found_table.find('td:first')[0];
+                                            var yOffset = 0;
+                                            if (this.settings.resizable) {
+                                                if (window.screen.width >= 768) {
+                                                    // desktop
+                                                    yOffset = -90; 
+                                                } else {
+                                                    //mobile
+                                                    yOffset = -130; 
+                                                }
+                                            } else {
+                                                if (window.screen.width >= 768) {
+                                                    // desktop
+                                                    yOffset = -thead.height();
+                                                } else {
+                                                    //mobile
+                                                    yOffset = -thead.height()+130;
+                                                }
+                                                
+                                            }
+                                            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                                            // scrolling offset by hide-sticky-header-button height
+                                            window.scrollTo({top: y, behavior: 'smooth'});
+                                            // to force stats update by timestamp_gt
+                                            window.app.setDuration();
+                                        }
+                                    } else {
+                                        // set timestamp_gt if saving filters is off and refresh is false
+                                        window.app.setDuration();
+                                    }
+                                    // style selected column for sort
+                                    $found_table.find('#'+this.order).removeClass().addClass(this.order_dir);
+                                    // if no results don't process empty table
+                                    if (this.count != 0) {
+                                        // add on row click title
+                                        if (this.localeData.tips.five == undefined) {
+                                            text = this.fallbackLocaleData.tips.five
+                                        } else {
+                                            text = this.localeData.tips.five
+                                        }
+                                        $found_table.find('tbody tr').attr('title', text);
+
+                                        // bind sort to table headers
+                                        $('.emails-list th:not(#refresh-button)').one('click',function(){
+                                            window.app.callSort(this);
+                                        });
+                                        
+                                        // add sticky table header
+                                        if (this.settings.sticky) {
+                                            thead.first().css({'top': 0, 'position':'sticky', 'z-index': 1, 'background':'inherit' })/*.addClass('sticky-visible')*/;
+                                            // add show/hide sticky header button 
+                                            //if (window.matchMedia('(max-width: 767px)').matches)
+                                            if (window.app.is_mobile)
+                                            {
+                                                window.app.checkButtonArrow(thead);
+
+                                                // check visibility state
+                                                if (window.localStorage['sticky_header_visible'] !== "true") {
+                                                    window.app.ToggleStickyHeader(thead);
+                                                }
+                                            }
+                                        }
+
+                                        if (this.settings.resizable) {
+                                            // add class resizable
+                                            $found_table.addClass('resizable');
+                                            this.callResizableTableColumns($found_table);
+
+                                            if (this.localeData.user_settings.resizable_title_tip == undefined) {
+                                                text = this.fallbackLocaleData.user_settings.resizable_title_tip
+                                            } else {
+                                                text = this.localeData.user_settings.resizable_title_tip
+                                            }
+                                            thead.find('th').attr('title',text)
+                                            // reset colResizable() widths states
+                                            thead.find('th:not(#refresh-button)').one( "contextmenu", function() {
+                                                window.localStorage.removeItem($found_table.attr('id'));
+                                                window.app.loadEmails(true);
+                                                return false;
+                                            });
+                                        } else {
+                                            // cleanup if colResizable() was called earlier
+                                            $('.JCLRgrips').hide();
+                                            $found_table.removeClass('resizable');
+                                        }
+                                    }
+
+                                    // styling of statuses and status filter dropdown
+                                    if (!$found_table.find('td:nth-child(3)').hasClass('styled')) {
+                                        $found_table.find('td:nth-child(3):contains("deferred")').addClass('styled')/*.prepend(this.settings.status_icon['deferred'])*/;
+                                        $found_table.find('td:nth-child(3):contains("sent")').addClass('styled')/*.prepend(this.settings.status_icon['sent'])*/;
+                                        $found_table.find('td:nth-child(3):contains("reject")').addClass('styled')/*.prepend(this.settings.status_icon['reject'])*/;
+                                        $found_table.find('td:nth-child(3):contains("bounced")').addClass('styled')/*.prepend(this.settings.status_icon['bounced'])*/;
+                                        $found_table.find('td:nth-child(3):contains("multiple")').addClass('styled')/*.prepend(this.settings.status_icon['multiple'])*/;
+                                        $found_table.find('td:nth-child(3):contains("unknown")').addClass('styled')/*.prepend(this.settings.status_icon['unknown'])*/;
+                                    }
+
+                                    if (this.settings.colored) {
+                                        var filter_email = $('#filter-email');
+
+                                        for (let x in this.settings.status_color) {
+                                            var color = this.settings.status_color[x];
+                                            var text_color = "black";
+
+                                            // coloring based on dark mode
+                                            if (this.settings.dark) {
+                                                if (x != 'NOFILTER') {
+                                                    color = this.shadeColor(color,-40);
+                                                } else {
+                                                    color = this.settings.status_color.NOFILTER_dark;
+                                                }
+                                                text_color = "white";
+                                            }
+
+                                            $found_table.find('td:nth-child(3):contains("'+x+'")').closest('tr').css('background-color',color);
+
+                                            $('#filter-email option[value="'+x+'"]').css({'background-color':color, 'color': text_color});
+                                        } 
+
+                                        // coloring current selected option
+
+                                        filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
+                                        filter_email.one('change', function () {
+                                            filter_email.css({'background-color': filter_email[0].options[filter_email[0].selectedIndex].style.backgroundColor, 'color': text_color});
+                                        });
+
+                                    }
+                                    // styling sorted column
+                                    var sort_column = thead.find('th.asc, th.desc');
+                                    sort_column.css('background-color', window.app.settings.status_color['sorted']);
+                                    $('.emails-list tr:nth-child(n) td:nth-child('+(sort_column.index()+1)+')').each(function(i, obj) {
+                                        $(obj).css('background-color',window.app.settings.status_color['sorted']);
+                                    });
+
+                                    // add filter links to table cells
+                                    this.addFilterLink($found_table);
+
+                                    // set min date based on housekeeping_days
+                                    var min_date=new Date();
+                                    if (housekeeping_days != 0) {
+                                        min_date.setDate(min_date.getDate()-housekeeping_days);
+                                    } else {
+                                        min_date = undefined;
+                                    }
+
+                                    // samoilov add calendar date picker fields
+                                    $('#rangestart').calendar({
+                                      onChange: function(date, text, mode) {
+                                          // fomat date to iso8601
+                                          window.app.date_filter__gt = text;
+                                      },
+                                      text: this.localeData.calendar,
+                                      endCalendar: $('#rangeend'),
+                                      monthFirst: false,
+                                      minDate: min_date,
+                                      maxDate: new Date(Date.now()),
+                                      formatter: {
+                                        cellTime: 'H:mm',
+                                        datetime: datetime_format
+                                      }
+                                    });
+                                    $('#rangeend').calendar({
+                                      onChange: function(date, text, mode) {
+                                          // fomat date to iso8601
+                                          window.app.date_filter__lt = text;
+                                      },
+                                      text: this.localeData.calendar,
+                                      startCalendar: $('#rangestart'),
+                                      monthFirst: false,
+                                      minDate: min_date,
+                                      maxDate: new Date(Date.now()),
+                                      formatter: {
+                                        cellTime: 'H:mm',
+                                        datetime: datetime_format
+                                      }
+                                    });
+                                    // set dark mode
+                                    this.setDark($found_table);
+                                    this.filters_changed = false;
+                                });
+                            this.updateCheck();
+                        }).catch((res) => {
+                            console.error('Error:', res);
+                            if (this.path_page == 2) {
+                                this.toggleLoading(false);
+                                this.filters_changed = false;
+                                this.waitForElm('#emails-list').then((elm) => {
+                                    window.app.additional_styling(elm);
+                                    window.app.check_nothing_found(this.count,$(elm),true);
+                                })
+                            }
+                        });
+                    }
+                }
+            })
+            
+
 
             if (this.path_page == 1) {
                 this.toggleLoading(false);
@@ -1407,14 +1448,7 @@ const app = Vue.createApp({
                 return [this.settings.status_icon['unknown'],'question']
             }*/
         },
-        show_modal(m,index,key,transition) {
-
-            /*console.log(key)
-            console.log(index)*/
-
-            this.msg = m[index];
-            this.index = index;
-            this.msg_length = m.length;
+        email_modal_appearance(transition) {
 
             if ($('#mail-modal').modal('is active')) {
                 $('#mail-modal').modal('hide all');
@@ -1459,6 +1493,18 @@ const app = Vue.createApp({
             duration: 300,
             //dimmerSettings: { opacity: 0.3 }
             }).modal('show');
+        },
+        show_email_modal(m,index,key,transition) {
+
+            /*console.log(key)
+            console.log(index)*/
+
+            this.msg = m[index];
+            this.index = index;
+            this.msg_length = m.length;
+
+            this.email_modal_appearance(transition);
+
 
             // fix of fomantic ui scrolling appear on the many related log lines modals
             //$('body').addClass('scrolling');

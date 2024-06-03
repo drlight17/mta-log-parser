@@ -1,6 +1,6 @@
     app.component('pager', {
         template: `
-        <div v-if="!$parent.loading" id="navi" class="ui buttons" :class="{inverted: $parent.settings.dark}" >
+        <div v-if="!$parent.loading" id="navi" class="ui segment buttons" :class="{inverted: $parent.settings.dark, disabled: $parent.processing, loading: $parent.processing}" >
             <button class="ui labeled icon button navi" :class="{disabled: !has_prev, inverted: $parent.settings.dark}" @click="$emit('update:modelValue', 1);">
                 <i class="angle double left icon"/><span v-if="$parent.localeData.pager.first" v-html="$parent.localeData.pager.first"></span><span v-else v-html="$parent.fallbackLocaleData.pager.first"></span>
             </button>

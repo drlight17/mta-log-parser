@@ -48,7 +48,7 @@
 
 	<stats v-if="!loading" ref="statsRef"></stats>
 
-    <div id="filters-wrapper" v-if="!loading" class="ui segment stackable two column grid">
+    <div id="filters-wrapper" v-if="!loading" class="ui segment stackable two column grid" :class="{ inverted: settings.dark, disabled: processing, loading: processing }" >
         <div class="seven wide column">
             <h3><span v-if="localeData.filters.search" v-html="localeData.filters.search"></span><span v-else v-html="fallbackLocaleData.filters.search"></span></h3>
             <div class="ui form">
@@ -154,7 +154,7 @@
 
     <!--<Pager v-model="page" :page-count="page_count"></Pager>-->
     <table id="emails-list" class="ui table celled emails-list" v-if="!loading">
-        <thead>
+        <thead id="emails-list-head" class="ui segment" :class="{ inverted: settings.dark, disabled: processing }"  >
             <tr>
             	<!--<th>#</th>-->
                 <th v-if="localeData.emails_list.timestamp" id="timestamp"><i class="clock icon"></i> [[ localeData.emails_list.timestamp ]]</th>
@@ -179,7 +179,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr @click="show_modal(emails,counter_index,'','fade')" v-for="(m, counter_index) in emails">
+            <tr @click="show_email_modal(emails,counter_index,'','fade')" v-for="(m, counter_index) in emails">
             	<!--<td><span>[[ counter_index ]]</span></td>-->
                 <td><span>[[ m.timestamp ]]</span></td>
                 <td><span>[[ m.id ]]</span></td>
@@ -190,7 +190,7 @@
                 <td><span>[[ m.size ]]</span></td>
                 <td><span>[[ m.first_attempt ]]</span></td>
                 <td><span>[[ m.last_attempt ]]</span></td>
-                <!--<td><button @click="show_modal(m)" class="ui button primary"><i class="envelope open icon"></i><span v-if="localeData.emails_list.show_button">[[ localeData.emails_list.show_button ]]</span><span v-else>[[ fallbackLocaleData.emails_list.show_button ]]</span></button></td>-->
+                <!--<td><button @click="show_email_modal(m)" class="ui button primary"><i class="envelope open icon"></i><span v-if="localeData.emails_list.show_button">[[ localeData.emails_list.show_button ]]</span><span v-else>[[ fallbackLocaleData.emails_list.show_button ]]</span></button></td>-->
             </tr>
         </tbody>
     </table>
@@ -199,15 +199,15 @@
 
     <div class="ui modal" id="mail-modal" :class="{ inverted: settings.dark }">
         <i class="close icon"></i>
-            <div tabindex="0" @click="show_modal(emails,index+1,'right','fade left')" @keyup.end="show_modal(emails,msg_length-1,'end','fade left')" @keyup.right="show_modal(emails,index+1,'right','fade left')" :class="{disabled: index >= msg_length-1 }" class="next_email">
+            <div tabindex="0" @click="show_email_modal(emails,index+1,'right','fade left')" @keyup.end="show_email_modal(emails,msg_length-1,'end','fade left')" @keyup.right="show_email_modal(emails,index+1,'right','fade left')" :class="{disabled: index >= msg_length-1 }" class="next_email">
                 <i v-if="!loading && localeData.next" :title="localeData.next" class="angle right icon"></i>
                 <i v-else :title="fallbackLocaleData.next" class="angle right icon"></i>
-                <i v-if="!loading && localeData.last" :title="localeData.last" @click.stop.prevent="show_modal(emails,msg_length-1,'end','fade left')" class="angle double right icon"></i>
-                <i v-else :title="fallbackLocaleData.last" @click.stop.prevent="show_modal(emails,msg_length-1,'end','fade left')" class="angle double right icon"></i>
+                <i v-if="!loading && localeData.last" :title="localeData.last" @click.stop.prevent="show_email_modal(emails,msg_length-1,'end','fade left')" class="angle double right icon"></i>
+                <i v-else :title="fallbackLocaleData.last" @click.stop.prevent="show_email_modal(emails,msg_length-1,'end','fade left')" class="angle double right icon"></i>
             </div>
-            <div tabindex="0" @click="show_modal(emails,index-1,'left','fade right')" @keyup.home="show_modal(emails,0,'home','fade right')" @keyup.left="show_modal(emails,index-1,'left','fade right')" :class="{disabled: index <= 0 }" class="prev_email">
-                <i v-if="!loading && localeData.first" :title="localeData.first" @click.stop.prevent="show_modal(emails,0,'home','fade right')" class="angle double left icon"></i>
-                <i v-else :title="fallbackLocaleData.first" @click.stop.prevent="show_modal(emails,0,'home','fade right')" class="angle double left icon"></i>
+            <div tabindex="0" @click="show_email_modal(emails,index-1,'left','fade right')" @keyup.home="show_email_modal(emails,0,'home','fade right')" @keyup.left="show_email_modal(emails,index-1,'left','fade right')" :class="{disabled: index <= 0 }" class="prev_email">
+                <i v-if="!loading && localeData.first" :title="localeData.first" @click.stop.prevent="show_email_modal(emails,0,'home','fade right')" class="angle double left icon"></i>
+                <i v-else :title="fallbackLocaleData.first" @click.stop.prevent="show_email_modal(emails,0,'home','fade right')" class="angle double left icon"></i>
                 <i v-if="!loading && localeData.previous" :title="localeData.previous" class="angle left icon"></i>
                 <i v-else :title="fallbackLocaleData.previous" class="angle left icon"></i>
             </div>
