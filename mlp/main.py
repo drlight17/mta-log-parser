@@ -18,7 +18,6 @@ Copyright::
 import asyncio
 import logging
 import re
-import uuid
 import rethinkdb.query
 from enum import Enum
 from typing import Dict
@@ -31,6 +30,7 @@ import base64
 import quopri
 import json
 import os
+import hashlib
 
 from datetime import datetime, timedelta, timezone
 from quart import jsonify
@@ -204,10 +204,13 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             else:
             	#dtime, qid, msg  = m.groups()
                 qid, msg  = m.groups()
-            # process postfix NOQUEUE, generate new random qid
+            # process postfix NOQUEUE, generate new qid based on msg and timestamp
             if settings.mta == 'postfix':
                 if qid == 'NOQUEUE':
-                    qid = str(uuid.uuid4().hex.upper()[0:11])
+                    newqid = str(dtime)+msg
+                    qid = hashlib.md5(newqid.encode('utf-8')).hexdigest().upper()[0:11]
+                    #print(qid)
+                    #qid = str(uuid.uuid4().hex.upper()[0:11])
             #log.info(qid)
             #dtime, msg, qid  = m.groups()
 
