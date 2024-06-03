@@ -1036,7 +1036,7 @@ const app = Vue.createApp({
                             text = this.localeData.notie.twenty_seven
                         }
                         window.app.processing = true
-                        notie.alert({type: 'info', text: text/*, stay: true */});
+                        notie.alert({type: 'info', text: text, time: 5});
 
                     }
                     setTimeout(() => window.app.loadEmails(true,window.app.processing), 1000);
