@@ -271,9 +271,9 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
                         #    print(checking_mailto)
                         #    print(msg)
                         # 27.05.2024 need tests added 'or' below to compare full email or only local part 
-                        if '@' in checking_mailto:
-                            checking_mailto = checking_mailto.split('@')[0]
-                        if checking_mailto in msg:
+                        '''if '@' in checking_mailto:
+                            checking_mailto = checking_mailto.split('@')[0]'''
+                        if checking_mailto in msg or checking_mailto.split('@')[0] in msg:
                             same_qid = qid
                             counter += 1
                             # don't add email duplicates
