@@ -13,6 +13,7 @@ Unreleased VER.
 - parse log file from the new lines since last parsing
 
 VER. 1.8.3
+- ~~BUG: multipe recipients view in mobile narrow gui~~
 - ~~BUG: block also autorefresh in case of GUI blocking while parsing~~
 - ~~BUG: parser wrong recognize as multiple mail_to the following exim example~~
 - ~~BUG: parser exim no relay and client ip addresses examples~~
