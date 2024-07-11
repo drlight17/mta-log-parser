@@ -2040,7 +2040,7 @@ const app = Vue.createApp({
                     document.cookie = "mlp_latest_version="+response["tag_name"].substring(1)+"; max-age=3600";
                     //if (parser_version != response["tag_name"].substring(1)) {
                     if (parser_version.localeCompare(response["tag_name"].substring(1), undefined, { numeric: true, sensitivity: 'base' }) == '-1') {
-                        window.app.waitForElm('#footer > div > span:nth-child(2)').then((elm) => {
+                        window.app.waitForElm('#footer > div > span:nth-child(3)').then((elm) => {
                             if (window.app.localeData.footer.four == undefined) {
                                 text = window.app.fallbackLocaleData.footer.four
                             } else {
