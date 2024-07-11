@@ -695,6 +695,7 @@ button:not(.navi), #footer {
 }*/
 .multiple_with_aliases {
     display: inline-flex;
+    flex-wrap: wrap;
 }
 
 .multiple_with_aliases span{
