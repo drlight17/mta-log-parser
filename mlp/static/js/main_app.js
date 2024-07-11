@@ -343,26 +343,28 @@ const app = Vue.createApp({
         // detect swipe direction
         checkDirection(e) {
           //if (e.target.className !== "log_lines") {
-            if ((Math.abs(touchstartY - touchendY) < 50) && (e.target.scrollWidth <= e.target.clientWidth)/* && (e.target.parentElement.className !== "log_lines")*/) {
-                
-                if (touchendX < touchstartX) {
-                    if (window.app.index >= window.app.msg_length-1) {
-                        $('.next_email').blur();
-                    } else {
-                        $('.next_email').focus();
-                        //console.log($('#mail-modal i.angle.right.icon:not(.double)'))
-                        $('#mail-modal i.angle.right.icon:not(.double)').focus().click();
-                        this.swiped = true;
+            if ((Math.abs(touchstartY - touchendY) < 40) && (e.target.scrollWidth <= e.target.clientWidth)/* && (e.target.parentElement.className !== "log_lines")*/) {
+                // check if element under cursor is scrollable
+                if ($(e.target.parentElement).outerWidth() - $(e.target.parentElement).get(0).scrollWidth > -1 ) {
+                    if (touchendX < touchstartX) {
+                        if (window.app.index >= window.app.msg_length-1) {
+                            $('.next_email').blur();
+                        } else {
+                            $('.next_email').focus();
+                            //console.log($('#mail-modal i.angle.right.icon:not(.double)'))
+                            $('#mail-modal i.angle.right.icon:not(.double)').focus().click();
+                            this.swiped = true;
+                        }
                     }
-                }
-                if (touchendX > touchstartX) {
-                    if (window.app.index <= 0) {
-                        $('.prev_email').blur();
-                    } else {
-                        $('.prev_email').focus();
-                        //console.log($('#mail-modal i.angle.left.icon:not(.double)'))
-                        $('#mail-modal i.angle.left.icon:not(.double)').focus().click();
-                        this.swiped = true;
+                    if (touchendX > touchstartX) {
+                        if (window.app.index <= 0) {
+                            $('.prev_email').blur();
+                        } else {
+                            $('.prev_email').focus();
+                            //console.log($('#mail-modal i.angle.left.icon:not(.double)'))
+                            $('#mail-modal i.angle.left.icon:not(.double)').focus().click();
+                            this.swiped = true;
+                        }
                     }
                 }
             } else {
@@ -622,7 +624,9 @@ const app = Vue.createApp({
             return text2;
         },
         multiple_check(object) {
+
             try {
+                //console.log(object.text())
                 parsed = JSON.parse(object.text())
                 return parsed;
             } catch (e) {
@@ -643,6 +647,7 @@ const app = Vue.createApp({
                 
             }
             var counter = 1;
+            //console.log(array)
             for (const element of array) {
 
 
@@ -656,8 +661,11 @@ const app = Vue.createApp({
                 let span = document.createElement('span');
                 
                 $(span).append(txt);
-                $(span).prepend(counter+". ")
-                counter ++;
+                // dont append counter if there is only one element in array
+                if (array.length > 1) {
+                    $(span).prepend(counter+". ")
+                    counter ++;
+                }
 
 
                 // add indicator and onhover event
@@ -670,7 +678,6 @@ const app = Vue.createApp({
                 } else {
                     text = this.localeData.filters.filter_link_tip
                 }
-
                 window.app.bindMailtoFilterClick(tooltip);
                 //if ((mode == 1) && (!(window.matchMedia('(max-width: 767px)').matches))) {
                 if ((mode == 1) && (!(window.app.is_mobile))) {
@@ -747,7 +754,13 @@ const app = Vue.createApp({
             $(object).on("click", function(e){
                 if (!($('#mail-modal').is(':visible'))) {
                     if (is_multiple) {
-                        multiple = window.app.returnAllowedString(e.target.innerText.replace(/[\[\]']+/g,'')).split(". ")[1].replace('*', '').trim();
+                        multiple = window.app.returnAllowedString(e.target.innerText.replace(/[\[\]']+/g,''))
+                        if (multiple.indexOf(". ") >= 0) {
+                            multiple = multiple.split(". ")[1].replace('*', '').trim();
+                        } else {
+                            multiple = multiple.replace('*', '').trim();
+                        }
+                        //multiple = window.app.returnAllowedString(e.target.innerText.replace(/[\[\]']+/g,'')).split(". ")[1].replace('*', '').trim();
                     } else {
                         multiple = window.app.returnAllowedString(e.target.innerText.replace(/[\[\]']+/g,'')).replace('*', '').trim()
                     }
@@ -1039,7 +1052,7 @@ const app = Vue.createApp({
                         notie.alert({type: 'info', text: text, time: 5});
 
                     }
-                    setTimeout(() => window.app.loadEmails(true,window.app.processing), 1000);
+                    setTimeout(() => window.app.loadEmails(refresh,window.app.processing), 1000);
                     // disable loadEmails call gui elements
                     // prevent span links click 
                     $('#emails-list td.filter_linked span').addClass('disabled');
@@ -1057,10 +1070,12 @@ const app = Vue.createApp({
                             }, 1000);
                         }
                     }
+
                     this.check_date_lt();
 
                     // call to resresh countdown
                     this.setRefresh();
+
 
                     // check if search_error clear search text
                     if (this.search_error) {
@@ -1109,6 +1124,11 @@ const app = Vue.createApp({
                                 this.emails = res['result'];
                                 // get format from .env var
                                 for (let i = 0; i < this.emails.length; i++) {
+                                    // process messages with single recipient with alias
+                                    if ((!(_.isEmpty(this.emails[i].mail_to_alias))) && (this.emails[i].mail_to.match(/\[[^\]]*]/g)==null)) {
+                                        this.emails[i].mail_to = '[{"mail_to": "'+Object.keys(this.emails[i].mail_to_alias)+'", "mail_to_alias": "'+Object.values(this.emails[i].mail_to_alias)+'"}]';
+                                    }
+                                    //console.log(this.emails[i].mail_to)
                                     this.emails[i].timestamp = this.format_date(this.emails[i].timestamp,datetime_format,false);
                                     this.emails[i].first_attempt = this.format_date(this.emails[i].first_attempt,datetime_format,false);
                                     this.emails[i].last_attempt = this.format_date(this.emails[i].last_attempt,datetime_format,false);
@@ -1668,26 +1688,33 @@ const app = Vue.createApp({
             clearInterval(this.contdown_timer);
             if (time >= 1) {
                 this.contdown_timer = setInterval(function() {
-                    window.app.contdown_sec = --time;
-                    window.app.contdown = window.app.ConvertSeconds(window.app.contdown_sec,true);
+                    if (window.app.contdown_sec >= 1) {
+                        window.app.contdown_sec = --time;
+                        window.app.contdown = window.app.ConvertSeconds(window.app.contdown_sec,true);
+                    }
                 }, 1000);
             }
         },
         setRefresh() {
+            let multiplier = 60; //minute
             // autorefresh
             this.$nextTick(function () {
                 clearInterval(window.app.timer);
                 // hide rotation animation after 1s
                 setTimeout(() => $('#navi .sync.icon').removeClass('rotate'), 1000);
                 if (window.app.settings.refresh > 0) {
-                    window.app.contdown_sec = window.app.settings.refresh * 60;
+
+                    window.app.contdown_sec = window.app.settings.refresh * multiplier;
                     window.app.timer = setInterval(function(){
                         if (window.app.settings.refresh !== undefined) {
                             // show rotation animation
                             $('#navi .sync.icon').addClass('rotate');
-                            window.app.loadEmails(false);
+                            // check if processing then skip autorefresh
+                            if (!(window.app.processing)) {
+                                window.app.loadEmails(false);
+                            }
                         }
-                    }, window.app.settings.refresh * 60000);
+                    }, window.app.settings.refresh * multiplier * 1000);
                 } else {
                     window.app.contdown_sec = 0;
                     window.app.contdown = '';

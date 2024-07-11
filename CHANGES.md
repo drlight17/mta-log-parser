@@ -12,6 +12,18 @@ Unreleased VER.
 - provide variables in .env for user defined parser regexps override
 - parse log file from the new lines since last parsing
 
+VER. 1.8.3
+- ~~BUG: block also autorefresh in case of GUI blocking while parsing~~
+- ~~BUG: parser wrong recognize as multiple mail_to the following exim example~~
+- ~~BUG: parser exim no relay and client ip addresses examples~~
+- ~~BUG: parsing exim(only alias as rcpt in example)/postfix(only rcpt as rcpt in example) , with multiple rcpt it works as expected - maybe some algorithm issue~~
+- ~~mobile GUI: make swipe less sensitive~~
+- ~~mobile GUI BUG: dont swipe in log_lines details area~~
+- ~~mobile GUI BUG: title of hidden helper z-index blocks navigation and dont fit narrow width devices~~
+- ~~mobile GUI: stats titles dont fit (visually blocks by refresh button)~~
+- ~~add desciption for "Save filters" option with info about full unblocking dates range  if turned on~~
+- ~~BUG: "Index `timestamp` was not found on table `maildata.sent_mail` in..." error handle if not index found~~
+- ~~BUG: [issue 14](https://github.com/drlight17/mta-log-parser/issues/14)~~
 
 VER. 1.8.2
 - ~~some GUI styling fixes~~

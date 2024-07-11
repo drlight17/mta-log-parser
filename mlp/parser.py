@@ -52,10 +52,13 @@ exim_message_id = re.compile(r'.*<=.*id=(.*)\s(?:T=)')
 #exim_client = re.compile(r'.*<=.*H=([a-zA-Z0-9-._]+).*\[([a-zA-Z0-9.:]+)')
 #exim_client = re.compile(r'.*<=.*H=([a-zA-Z0-9-._)(]+).*\[([a-zA-Z0-9.:]+)')
 #exim_client = re.compile(r'.*H=\(?\[?([a-zA-Z0-9-._]+)\]?\)?.\[?([a-zA-Z0-9.:]+)\]?.([0-9]{3,6}).[I=]')
-exim_client = re.compile(r'.*H=\[?([a-zA-Z0-9-\s()._]+)\]?\s\[?([a-zA-Z0-9.:]+)\]?.([0-9]{3,6}).[I=]')
+#exim_client = re.compile(r'.*H=\[?([a-zA-Z0-9-\s()._]+)\]?\s\[?([a-zA-Z0-9.:]+)\]?.([0-9]{3,6}).[I=]')
+exim_client = re.compile(r'.*H=\[?([a-zA-Z0-9-\s()._]+)\]?\s\(?\[?([a-zA-Z0-9.\s()\[\]]+)\]?\)?:([0-9]{3,6}).[I=]')
 #exim_relay = re.compile(r'.*=>.*T=(dovecot)|.*T=remote_smtp.*H=([a-zA-Z0-9-._]+).\[([a-zA-Z0-9.:]+)')
 #exim_relay = re.compile(r'.*=>.*T=(dovecot)|.*T=remote_smtp.*H=([a-zA-Z0-9-._]+).\[?([a-zA-Z0-9.:]+)\]?.([0-9]*)?')
-exim_relay = re.compile(r'.*(?:T=remote_smtp)?\d+\s[?:H|I]=(\(?[a-zA-Z0-9-._]+\)?)?.\[?([a-zA-Z0-9.:]+)\]?.([0-9]{2,3})\s')
+#exim_relay = re.compile(r'.*(?:T=remote_smtp)?\d+\s[?:H|I]=(\(?[a-zA-Z0-9-._]+\)?)?.\[?([a-zA-Z0-9.:]+)\]?.([0-9]{2,3})\s')
+exim_relay = re.compile(r'.*(?:T=remote_smtp)?[?:H|I]=(\(?[a-zA-Z0-9-._]+\)?)?.\[?([a-zA-Z0-9.:]+)\]?.([0-9]{2,3})\s')
+
 #exim_status = re.compile(r'.*(rejected).(.*)|(.>{1}).*T=(.*)|.*(\*\*).(.*)|.*(==).*T.*:.(.*)')
 exim_status = re.compile(r'.*(rejected).(.*)|(.>{1}).*\s(?:T|C)="?(.*)(?:"|S)|.*(\*\*).(.*)|.*(==).*(?:T=).*:\s(.*)')
 
@@ -208,11 +211,11 @@ async def parse_line(mline) -> dict:
                 lm['relay'] = dict(host=_relay.group(2), ip=_relay.group(3), port=_relay.group(4))'''
             lm['relay'] = dict(host=_relay.group(1), ip=_relay.group(2), port=_relay.group(3))
         if _client is not None:
-            
+            # clear _client.group(1) and _client.group(2) from brackets if any
             if _client.group(3):
-                lm['client'] = dict(host=_client.group(1), ip=_client.group(2)+":"+_client.group(3))
+                lm['client'] = dict(host=re.sub('[^A-Za-z0-9 .]+','', _client.group(1)), ip=re.sub('[^A-Za-z0-9 .]+','', _client.group(2))+":"+_client.group(3))
             else:
-                lm['client'] = dict(host=_client.group(1), ip=_client.group(2))
+                lm['client'] = dict(host=re.sub('[^A-Za-z0-9 .]+','', _client.group(1)), ip=re.sub('[^A-Za-z0-9 .]+','', _client.group(2)))
         if _from is not None:
             if _from.group(1) is not None:
                 lm['mail_from'] = _from.group(1)

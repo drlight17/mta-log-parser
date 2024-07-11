@@ -25,6 +25,7 @@ from mlp import settings
 from mlp.core import get_rethink
 from mlp.objects import PostfixLog, PostfixMessage
 from mlp.parser import parse_line
+import time
 import email
 import base64
 import quopri
@@ -44,13 +45,15 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.8.2"
+VERSION ="1.8.3"
 
 lockfile = "processing.lock"
 # postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
 #postf_match = r'([A-Za-z]+[ \t]+[0-9]+[ \t]+[0-9]+\:[0-9]+:[0-9]+).*'
 #postf_match += r'.*\:[ \t]([A-Z0-9]{1,15})\:[ \t]+?(.*)'
-postf_match = r'.*\:[ \t]([A-Z0-9]{1,15})\:[ \t]+?(.*)'
+#postf_match = r'.*\:[ \t]([A-Z0-9]{1,15})\:[ \t]+?(.*)'
+postf_match = r'.*postfix.*\[.+\]\:[ \t](?!statistics|warning)([A-Za-z0-9]{8,15})\:[ \t]+?(.*)'
+
 """Regex to match the (1) Queue ID and the (2) Log Message"""
 
 # exim regexp (for syslog and separate mainlog)
@@ -231,11 +234,12 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             messages[qid].merge(await parse_line(msg))
             #print(messages[qid])
             #print(msg)
-            #if qid == '1s9iCj-0068FU-RQ':
+            #if qid == '1sFUlr-000rus-Io':
             #    print(msg)
+
             checking_mailto_alias = {}
             if settings.mta == 'postfix' or settings.mta == 'exim':
-                if messages[qid].get('mail_to_alias') is not None:  
+                if messages[qid].get('mail_to_alias') is not None:
                     if messages[qid].get('mail_to_alias') != {}:
                         #print(messages[qid].get('mail_to'))
                         #print(messages[qid].get('mail_to_alias'))
@@ -243,7 +247,9 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
                         #print(messages[qid]['mail_to'])
                         try:
                             subdict = {}
+                            # samoilov test append mail_to_alias into every mail_to
                             subdict['mail_to'] = messages[qid]['mail_to']
+                            #subdict['mail_to'] = messages[qid]['mail_to_alias']
                             subdict['mail_to_alias'] = messages[qid]['mail_to_alias'][messages[qid].get('mail_to')]
                             checking_mailto_alias[qid] = subdict
                             
@@ -256,6 +262,7 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
                 checking_mailto = messages[qid]['mail_to']'''
 
             checking_mailto = messages[qid]['mail_to']
+            #print(checking_mailto)
             # remove commas for ms exchange log
             if settings.mta == 'exchange':
                 messages[qid]['mail_to'] = messages[qid]['mail_to'].replace(",", "")
@@ -263,7 +270,7 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             # TODO maybe comment only for exim???
             # *************************************************************
             #if qid not in set(multiple_recipients_qids):
-            #if qid == '1sBTAv-0018OM-4k':
+            #if qid == '1sFUlr-000rus-Io':
             #    print(checking_mailto)
             if qid == same_qid or same_qid == '':
                 if messages[qid]['status'].get('code') is not None:
@@ -276,15 +283,16 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
                         # 27.05.2024 need tests added 'or' below to compare full email or only local part 
                         '''if '@' in checking_mailto:
                             checking_mailto = checking_mailto.split('@')[0]'''
+                        #print(msg)
                         if checking_mailto in msg or checking_mailto.split('@')[0] in msg:
-                            same_qid = qid
-                            counter += 1
-                            # don't add email duplicates
                             #if qid == '1sBTAv-0018OM-4k':
                             #    print(checking_mailto)
                             #    print(multiple_recipients[same_qid])
-                            if checking_mailto not in multiple_recipients[same_qid]:
 
+                            # don't add email duplicates
+                            if checking_mailto not in multiple_recipients[same_qid]:
+                                same_qid = qid
+                                counter += 1
                                 # add alias dict if any
                                 if checking_mailto_alias is not None and checking_mailto_alias != {}:
                                     checking_mailto = checking_mailto_alias[qid]
@@ -304,11 +312,10 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
         # fix for the last log line if multiple
         if counter > 1:
             multiple_recipients_qids.append(same_qid)
-
             
     # clear multiple_recipients from the qids with < 2 recipients
     for k in list(multiple_recipients):
-        if k not in multiple_recipients_qids:    
+        if k not in multiple_recipients_qids:
             del multiple_recipients[k]
 
     #print(multiple_recipients)
@@ -370,29 +377,36 @@ async def main():
         log.info('Blocking GUI updates while processing')
         global lockfile
         t = open(lockfile, "w")
+    try:
+        """housekeeping from old logs"""
+        housekeeping_days = settings.housekeeping_days
+        if housekeeping_days != '':
+            log.info('Start housekeeping')
+            # try to avoid error if no index created (in case of no table exist)
 
-    """housekeeping from old logs"""
-    housekeeping_days = settings.housekeeping_days
-    if housekeeping_days != '':
-        log.info('Start housekeeping')
-        hk_result = await housekeeping(housekeeping_days)
-        log.info('Finished housekeeping')
-        if hk_result['status']=='true':
-            log.info('Housekeeping has successfully deleted %d messages older then %d day(s)', hk_result['deleted'], housekeeping_days)
+            hk_result = await housekeeping(housekeeping_days)
+            log.info('Finished housekeeping')
+            if hk_result['status']=='true':
+                log.info('Housekeeping has successfully deleted %d messages older then %d day(s)', hk_result['deleted'], housekeeping_days)
+            else:
+                log.info('Housekeeping has deleted NOTHING. There are no emails %d day(s) ago or something went wrong.', housekeeping_days)
         else:
-            log.info('Housekeeping has deleted NOTHING. There are no emails %d day(s) ago or something went wrong.', housekeeping_days)
-    else:
-        log.info('Housekeeping is not configured so there will be no deletion of old data! Pay attention to the disk space!')
-    log.info('Importing %s log file', settings.mta)
-    import_output = await import_log(settings.mail_log)
-    log.info('Converting %s log data into list',settings.mta)
-    multiple_recipients_qids = import_output['multiple_recipients_qids']
-    multiple_recipients = import_output['multiple_recipients']
-    msgs = import_output['messages']
-    msg_list = [{"id": qid, **msg.clean_dict(convert_time=r_q.expr)} for qid, msg in msgs.items()]
-    log.info('Total of %d message entries', len(msg_list))
-    log.info('Generating async batch save list')
-    save_list = []
+            log.info('Housekeeping is not configured so there will be no deletion of old data! Pay attention to the disk space!')
+        log.info('Importing %s log file', settings.mta)
+        import_output = await import_log(settings.mail_log)
+        log.info('Converting %s log data into list',settings.mta)
+        multiple_recipients_qids = import_output['multiple_recipients_qids']
+        multiple_recipients = import_output['multiple_recipients']
+        msgs = import_output['messages']
+        msg_list = [{"id": qid, **msg.clean_dict(convert_time=r_q.expr)} for qid, msg in msgs.items()]
+        log.info('Total of %d message entries', len(msg_list))
+        log.info('Generating async batch save list')
+        save_list = []
+    except Exception:
+        log.exception('Error while trying housekeeping... Wait 5s before retry...')
+        time.sleep(5)
+        return await main()
+
     for m in msg_list:
         try:
             # check and process status
@@ -447,6 +461,9 @@ async def main():
             save_list.append(save_obj('sent_mail', m, primary="id", onconflict=OnConflict.UPDATE))
         except Exception:
             log.exception('Error while parsing email %s', m)
+            log.exception('Wait 5s before retry...')
+            time.sleep(5)
+            return await main()
 
     log.info('Firing off asyncio.gather(save_list)...')
     await asyncio.gather(*save_list)

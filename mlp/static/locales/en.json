@@ -150,7 +150,7 @@
     "resizable": "Resizable columns",
     "resizable_title": "Switch resizable columns",
     "resizable_title_tip": "Right-click to reset columns widths to default equals",
-    "save_and_load": "Save filters",
+    "save_and_load": "Save filters (switch on to fully unlock date range filter)",
     "save_and_load_title": "Save and load filters on page reload",
     "save_settings": "Save settings"
   },

@@ -815,9 +815,19 @@ async def _filter_form_key(equal: bool, fkey: str, fval: str, query: QueryOrTabl
     rval = fval.replace('*', '')  # fval but without asterisks
 
     if equal == 'false':
-        query = query.filter(lambda m: (~m[fkey].match(rval)))
+        # try to find something in mail_to_alias too
+        if 'mail_to' in fkey:
+            query = query.filter(lambda m: (~m[fkey].coerce_to("string").match(rval) & ~m['mail_to_alias'].coerce_to("string").match(rval)))
+        else:
+            query = query.filter(lambda m: (~m[fkey].coerce_to("string").match(rval)))
     else:
-        query = query.filter(lambda m: m[fkey].match(rval))
+        # try to find something in mail_to_alias too
+        if 'mail_to' in fkey:
+            query = query.filter(lambda m: m[fkey].coerce_to("string").match(rval) | m['mail_to_alias'].coerce_to("string").match(rval))
+        else:
+            query = query.filter(lambda m: m[fkey].coerce_to("string").match(rval))
+
+
     return query
 
     #return query.filter(lambda m: m[fkey] == fval)

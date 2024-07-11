@@ -47,7 +47,8 @@
     transition: all 0.15s ease-in-out;
     opacity: .7!important;
     position: absolute;
-    right: 3vh;
+    /*right: 3vh;*/
+    right: 5px;
     text-align: right!important;
     cursor: pointer;
     font-size: x-large!important;
@@ -118,7 +119,29 @@
             -ms-user-select: none;
                 user-select: none; 
 }
+/*fix of refresh button blocks span*/
+@media only screen and (max-width: 445px) {
+    #filtered_top_recipients, #filtered_top_senders,#charts-wrapper span {
+        max-width: 80%;
+        white-space: break-spaces;
+        display: inline-block;
+    }
+}
 
+@media only screen and (max-width: 869px) and (min-width: 768px) {
+    /*hide exit and stats text at main menu if narrow width*/
+    #emails_list > div.ui.menu > div.right.menu > a:nth-child(4) > span, #emails_list > div.ui.menu > div.right.menu > a:nth-child(3) > span {
+        display: none;
+    }
+}
+/*fix of hidden data tooltip appearance*/
+[data-tooltip]::after {
+    white-space: break-spaces!important;
+    z-index: 2!important;
+}
+[data-tooltip]::before {
+    z-index: 2!important;
+}
 /*.hidable.hide {
     display:none!important;
 }*/

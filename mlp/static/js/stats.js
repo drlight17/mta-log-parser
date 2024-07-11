@@ -1052,7 +1052,7 @@
         mounted() {
             // add housekeeping days to overall stats title
             if (housekeeping_days > 0) {
-                $('#overall_pie_title').append(" ").append(this.$parent.localeData.overall_pie_ally).append(" ").append(housekeeping_days).append(" ").append(this.$parent.localeData.overall_pie_end)
+                $('#overall_pie_title span').text($('#overall_pie_title span').text()+" "+this.$parent.localeData.overall_pie_ally+" "+housekeeping_days+" "+this.$parent.localeData.overall_pie_end)
             }
             
             // save stats_app for further usage
