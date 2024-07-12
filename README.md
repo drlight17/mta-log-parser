@@ -42,7 +42,7 @@ All maintained docker images could be found [here](https://hub.docker.com/r/drli
 - Docker-compose (tested on 2.9.0)
 
 ```
-If you want to use complete image downloaded from docker hub (for production) then you don't have to git clone full repo. You will only need docker-compose.yaml from the root path and create .env file (see decription below).
+If you want to use complete image downloaded from docker hub (for production) then you don't have to git clone full repo. You will only need docker-compose.yaml from the root path and create .env file (see description below).
 git clone https://github.com/drlight17/mta-log-parser
 cd mta-log-parser
 cp example.env .env
