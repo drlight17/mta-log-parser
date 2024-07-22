@@ -41,35 +41,41 @@ All maintained docker images could be found [here](https://hub.docker.com/r/drli
 - Docker.io (tested on 23.0.2)
 - Docker-compose (tested on 2.9.0)
 
-```
+
 If you want to use complete image downloaded from docker hub (for production) then you don't have to git clone full repo. You will only need docker-compose.yaml from the root path and create .env file (see description below).
+```
 git clone https://github.com/drlight17/mta-log-parser
 cd mta-log-parser
 cp example.env .env
-
-# If you want to build your image of mta-log-parser then copy Dockerfile and docker-compose.yaml files from build
-# dir to the root path (recommended for development). If you want to use complete image downloaded from docker hub then pass this step (recommended for production).
+```
+If you want to build your image of mta-log-parser then copy Dockerfile and docker-compose.yaml files from build
+dir to the root path (recommended for development). If you want to use complete image downloaded from docker hub then pass this step (recommended for production).
+```
 yes | cp -rf ./build/Dockerfile ./Dockerfile
 yes | cp -rf ./build/docker-compose.yaml ./docker-compose.yaml
-
-# Adjust the example .env as needed. Make sure you set SECRET_KEY to a long random string
-# to the password you want to use to log into the web application. Other variables are described. 
+```
+Adjust the example .env as needed. Make sure you set SECRET_KEY to a long random string
+to the password you want to use to log into the web application. Other variables are described. 
+```
 nano .env
-
-# To build and run app with web GUI run
+```
+To build and run app with web GUI run
+```
 docker-compose up -d
+```
 
-# To stop app with web GUI app run
+To stop app with web GUI app run
+```
 docker-compose down
+```
 
-# To schedule log parsing add to your crontab (every minute in example)
+To schedule log parsing add to your crontab (every minute in example)
+```
 crontab -e
 */1  *   *   *   *   docker exec -t mta-log-parser flock /tmp/lck_mlp /app/run.sh cron
-
-
-
-
 ```
+
+
 GUI access
 ========
 Rethinkdb web gui is available on the port 8080 (you may change expose port in .env).
@@ -113,7 +119,9 @@ apt install -y python3 python3-dev python3-pip libsasl2-dev python-dev-is-python
 python3 -m pip install -U pipenv
 
 adduser --gecos "" --disabled-password mailparser
-# To ensure that the parser is able to read the mail.log, add the user to the appropriate groups
+```
+To ensure that the parser is able to read the mail.log, add the user to the appropriate groups
+```
 gpasswd -a mailparser syslog adm postfix
 
 su - mailparser
@@ -123,33 +131,29 @@ cd mta-log-parser
 pipenv install
 
 cp example.env .env
-# Adjust the example .env as needed. Make sure you set SECRET_KEY to a long random string
-# to the password you want to use to log into the web application.
+```
+Adjust the example .env as needed. Make sure you set SECRET_KEY to a long random string
+to the password you want to use to log into the web application.
+```
 nano .env
-
-# Add a crontab entry to run the parse/import script every minute or so
-# You should use a file lock utility such as `flock` (included by default on Ubuntu) or `lckdo` to prevent the
-# cron overlapping if there's a lot to parse.
-
+```
+Add a crontab entry to run the parse/import script every minute or so
+You should use a file lock utility such as `flock` (included by default on Ubuntu) or `lckdo` to prevent the
+cron overlapping if there's a lot to parse.
+```
 crontab -e
 # *  *   *   *   *    flock /tmp/lck_mailparser /home/mailparser/mta-log-parser/run.sh cron
-
-####
-# DEVELOPMENT
-####
-
+```
+Development
+===========
+```
 ./run.sh dev         # Run the development server with automatic restart on edits
 ./run.sh parse       # Import MAIL_LOG immediately
+```
 
-####
-# PRODUCTION
-####
-
-exit
-
-# (AS ROOT)
-
-# Production systemd service for the WebUI
+Production systemd service for the WebUI
+===================
+```
 install -m 644 /home/mailparser/mta-log-parser/mta-log-parser.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable mta-log-parser.service
