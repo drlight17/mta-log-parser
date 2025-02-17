@@ -716,6 +716,7 @@ button:not(.navi), #footer {
     display: flex !important;
     align-items: baseline;
     flex-direction: column;
+    flex-wrap: nowrap;
 }
 
 #mail_to_details {
