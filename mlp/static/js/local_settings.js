@@ -1,4 +1,4 @@
-    app.component('local-settings', {
+     app.component('local-settings', {
         template: `
         <div id="user-settings-wrapper" class="ui segment">
             <h3><i class="big icons">
@@ -23,7 +23,7 @@
                             <div style="display:none" id="default_period_div">
                                 <div v-if="!$parent.loading" :title="$parent.localeData.user_settings.show_last_min_title" class="ui field"><i class="clock icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.show_last_min"></label> {{ settings.default_period_processed }} </div>
                                 <div class="ui input">
-                                    <input v-if="!$parent.loading" v-model="settings.default_period" type="range" step="5" min="5" max="4320" :title="$parent.localeData.user_settings.show_last_min_title" class="ui input range">
+                                    <input v-if="!$parent.loading" v-model="settings.default_period" type="range" step="5" min="5" :max="$parent.gui_max_log_period" :title="$parent.localeData.user_settings.show_last_min_title" class="ui input range">
                                 </div>
                             </div>
                             <div v-if="settings.refresh !== 0" class="ui field"><i class="sync icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh"></label> {{ settings.refresh }} <label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh_end"></label></div>
@@ -85,6 +85,7 @@
                     resizable: false,
                     filters: false,
                     locale: "",
+                    gui_max_log_period: 4320,
                     status_color: {
                         /*NOFILTER: 'rgba(255, 255, 255, 1)',
                         deferred: 'rgba(247, 201, 116, 1)',

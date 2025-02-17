@@ -12,6 +12,18 @@ Unreleased VER.
 - provide variables in .env for user defined parser regexps override
 - parse log file from the new lines since last parsing
 
+Ver. 1.8.4
+- ~~GUI: add ability to config gui max log show interval (now it is 3 days) by .env variable~~
+- ~~BUG: gui add non-breaking space ( ) instead of space in multiple recipients row between number and recipient~~
+- ~~BUG: add flex-wrap: nowrap; to .multiple_with_aliases .multiple_mailtos to create proper vertical column of recipients in #mail_to_details~~
+- ~~BUG: mobile narrow gui users edit page fix~~
+- ~~BUG: add error handler for overlimit query (if query output is overlimit RETHINK_ARR_LIMIT env var)~~
+- ~~GUI: add ability to turn off gui parser operating block (by .env variable)~~
+- ~~GUI: remove > [...] in tips modal~~
+- ~~dependabot security fix (python 3.9, quart 0.20.0, werkzeug 3.0.6)~~
+- ~~BUG: in user edit menu changing gui settings cause infinite loading circle~~
+- ~~BUG: add ability to set length of date string in log file to extract timestamp (by .env variable)~~
+
 VER. 1.8.3
 - ~~BUG: multipe recipients view in mobile narrow gui~~
 - ~~BUG: block also autorefresh in case of GUI blocking while parsing~~

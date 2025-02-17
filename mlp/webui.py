@@ -688,12 +688,19 @@ async def api_emails():
 
         return jsonify(res.to_json_dict())
 
-    except:
+    except Exception as e:
+
         #This is acceptable at the moment since that's the normal behavior for every management script
-        print("Cannot connect to rethinkdb, trying to reconnect!")
-        __STORE.clear()
-        r, conn, r_q = await get_rethink()
-        session['NOTIE_MESSAGE'] = "api_error"
+        if 'Array over size limit' in str(e):
+            print("Check RETHINK_ARR_LIMIT as api reply is overlimit this value!")
+            __STORE.clear()
+            session['NOTIE_MESSAGE'] = "api_error_overlimit"
+        else:
+            print("Cannot connect to rethinkdb, trying to reconnect!")
+            __STORE.clear()
+            r, conn, r_q = await get_rethink()
+            session['NOTIE_MESSAGE'] = "api_error"
+
         return redirect(f'{PREFIX}/')
         #conn.reconnect(noreply_wait=True)
         #sys.exit(1)
@@ -836,7 +843,8 @@ async def _process_notie():
     NOTIE_MESSAGE = ""
     if 'NOTIE_MESSAGE' in session:
         NOTIE_MESSAGE = session['NOTIE_MESSAGE']
-        del session['NOTIE_MESSAGE']
+        if NOTIE_MESSAGE != 'api_error_overlimit':
+            del session['NOTIE_MESSAGE']
     return NOTIE_MESSAGE
 
 # check ldap user and password

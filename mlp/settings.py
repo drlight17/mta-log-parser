@@ -73,11 +73,17 @@ housekeeping_days = env_int('HOUSEKEEPING_DAYS', '')
 # add datetime_format var from env
 datetime_format = env('DATETIME_FORMAT', 'HH:mm:ss, DD.MM.YYYY')
 
+# add datetime_input_length var from env
+datetime_input_length = env_int('DATETIME_INPUT_LENGTH', 20)
+
 # add mail_log_timestamp_convert var from env
 mail_log_timestamp_convert = env_bool('MAIL_LOG_TIMESTAMP_CONVERT', False)
 
 # add gui_refresh_block var from env
 gui_refresh_block = env_bool('GUI_REFRESH_BLOCK', True)
+
+# add gui_refresh_block var from env
+gui_max_log_period = env_int('GUI_MAX_LOG_PERIOD', 4320)
 
 # add mta var from env
 mta = env('MTA', '')

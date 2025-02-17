@@ -45,7 +45,7 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.8.3"
+VERSION ="1.8.4"
 
 lockfile = "processing.lock"
 # postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'
@@ -63,7 +63,8 @@ postf_match = r'.*postfix.*\[.+\]\:[ \t](?!statistics|warning)([A-Za-z0-9]{8,15}
 #exim_match += r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
 #exim_match += r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
 #exim_match = r'.*([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
-exim_match = r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
+#exim_match = r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6}-[0-9A-Za-z]{2}).(.+)'
+exim_match = r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6,11}-[0-9A-Za-z]{2,4})\s(.+)'
 """Regex to match the (1) Message ID and the (2) Log Message"""
 
 # sendmail regexp
@@ -189,7 +190,10 @@ async def import_log(logfile: str) -> Dict[str, PostfixMessage]:
             # TODO test new universal datetime extractor instead of regexps (cut first 20 symbols from the string)
             # change to line for exim
             #dtimes = datefinder.find_dates(m.group(0)[:20])
-            dtimes = datefinder.find_dates(line[:20])
+            # add datetime_input_length 
+            #dtimes = datefinder.find_dates(line[:20])
+            dtimes = datefinder.find_dates(line[:settings.datetime_input_length])
+            #print(dtimes)
             #print(line[:20])
 
             for dtime in dtimes:
@@ -392,8 +396,18 @@ async def main():
                 log.info('Housekeeping has deleted NOTHING. There are no emails %d day(s) ago or something went wrong.', housekeeping_days)
         else:
             log.info('Housekeeping is not configured so there will be no deletion of old data! Pay attention to the disk space!')
+
+        # TODO create log lines preparation function before call import_log (1.8.4???)
+        '''log.info('Prepare %s log file', settings.mta)
+        prepared_log = await prepare_log(settings.mail_log)
+
+        log.info('Importing %s log file', settings.mta)
+        import_output = import_log(prepared_log)'''
+
         log.info('Importing %s log file', settings.mta)
         import_output = await import_log(settings.mail_log)
+
+
         log.info('Converting %s log data into list',settings.mta)
         multiple_recipients_qids = import_output['multiple_recipients_qids']
         multiple_recipients = import_output['multiple_recipients']

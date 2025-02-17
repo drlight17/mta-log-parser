@@ -1,5 +1,5 @@
 # Dockerfile for building image
-FROM python:3.8-alpine
+FROM python:3.9-alpine
 RUN apk update
 RUN apk add bash ncurses musl-dev gcc flock openldap-dev
 # upgrade pip

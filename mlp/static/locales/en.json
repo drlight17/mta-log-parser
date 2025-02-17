@@ -55,7 +55,8 @@
     "twenty_four": "\"Date from\" can't be set from shared link because \"Save filters\" is not turned on!",
     "twenty_five": "LDAP error. Check backend logs and LDAP settings!",
     "twenty_six": "Warning! Fulltext LOG search is very time consuming and resource-intensive!",
-    "twenty_seven": "Parsing is running. Updated data will be available after process completion. Wait..."
+    "twenty_seven": "Parsing is running. Updated data will be available after process completion. Wait...",
+    "twenty_eight": "API call error. Rethinkdb output overlimit! Check RETHINK_ARR_LIMIT value in .env and increase it if necessary."
   },
   "login": {
     "message": "Please login to proceed.",
@@ -157,7 +158,7 @@
   "tips": {
     "title": "Emails filtering tips and some other info",
     "title2": "Accounts management tips",
-    "one": "All your text search requests are wildcards, so search string will match start, middle or end of found strings. <details><summary>[...]</summary>For example <code><strong>qwerty</strong></code> will match <strong>qwerty@mail.com</strong>, <strong>user@qwerty.com</strong> and <strong>user@mail.qwerty</strong></details>",
+    "one": "All your text search requests are wildcards, so search string will match start, middle or end of found strings. For example <code><strong>qwerty</strong></code> will match <strong>qwerty@mail.com</strong>, <strong>user@qwerty.com</strong> and <strong>user@mail.qwerty</strong>",
     "two": "Use start and end date fields to apply date range filter",
     "three": "Use \"Refresh\" <i class=\"sync icon\"></i> button to reload email list with current applied filters",
     "four": "Use <i class=\"eraser icon\"></i> button to clear all applied filters and reload email list",
@@ -169,14 +170,14 @@
     "nine": "<code>HOUSEKEEPING_DAYS</code> (maximum days of logs storing before cleanup) is currently set to",
     "ten": "<code>DATETIME_FORMAT</code> (date/time format) is currently set to",
     "eleven": "Click cell content to set text filter and search_by value to the values of cell content and it's column accordingly",
-    "twelve": "If \"Save filters\" is off then you can only change end date field, start date is dynamically filled based on <details><summary>[...]</summary>the \"Show logs for\" <i class=\"clock icon\"></i> slider value!</details>",
+    "twelve": "If \"Save filters\" is off then you can only change end date field, start date is dynamically filled based on the \"Show logs for\" <i class=\"clock icon\"></i> slider value!",
     "thirteen": "There are all created accounts in the table below",
     "fourteen": "To call edit or delele account dialogue click the desired account's row",
     "fifteen": "To create new account press <i class=\"plus icon\"></i>",
     "sixteen": "Use <i class=\"search icon\"></i> button to apply text filter and reload email list",
     "seventeen": "Permanently hidden from top 10 senders addresses ",
     "eighteen": "Permanently hidden from top 10 recipients addresses ",
-    "nineteen": "To temporary hide senders or recipients from the corresponding top 10 stats use right mouse click (desktop) or <details><summary>[...]</summary>long tap (mobile device) on chosen chart bar and select <i class=\"eye slash icon\"></i></details>"
+    "nineteen": "To temporary hide senders or recipients from the corresponding top 10 stats use right mouse click (desktop) or long tap (mobile device) on chosen chart bar and select <i class=\"eye slash icon\"></i>"
   },
   "filters": {
     "filter_link_tip": "Click to apply text filter",

@@ -12,6 +12,9 @@ if (datetime_format == '') {
 // get mail_domain from .env
 var mail_domain = document.currentScript.getAttribute('mail_domain');
 
+// get gui_max_log_period from .env
+var gui_max_log_period = document.currentScript.getAttribute('gui_max_log_period');
+
 // get current mlp version
 var parser_version = document.currentScript.getAttribute('parser_version');
 
@@ -42,6 +45,7 @@ const app = Vue.createApp({
             fallbackLocaleData: [],
             locales: lang_files,
             loading: true,
+            gui_max_log_period: gui_max_log_period,
             //hidden_settips: true,
             hidden_stats: true,
             error: null,
@@ -663,7 +667,7 @@ const app = Vue.createApp({
                 $(span).append(txt);
                 // dont append counter if there is only one element in array
                 if (array.length > 1) {
-                    $(span).prepend(counter+". ")
+                    $(span).prepend(counter+".&nbsp;")
                     counter ++;
                 }
 
@@ -916,11 +920,20 @@ const app = Vue.createApp({
                     }
                     notie.alert({type: 'info', text: text });
                 } else {
-                    if (this.localeData.notie.eight == undefined) {
-                        text = this.fallbackLocaleData.notie.eight
+                    if (notie_message == 'api_error_overlimit') {
+                        if (this.localeData.notie.twenty_eight == undefined) {
+                            text = this.fallbackLocaleData.notie.twenty_eight
+                        } else {
+                            text = this.localeData.notie.twenty_eight
+                        }
                     } else {
-                        text = this.localeData.notie.eight
+                        if (this.localeData.notie.eight == undefined) {
+                            text = this.fallbackLocaleData.notie.eight
+                        } else {
+                            text = this.localeData.notie.eight
+                        }
                     }
+
                     notie.alert({type: 'error', text: text, stay: true });
                 }
 
@@ -1808,35 +1821,38 @@ const app = Vue.createApp({
             this.settings = v;
             this.loaded_settings = true;
 
-            if (updatePage) {
-                // reset date filter after save filters is switched on
-                if (this.settings.filters) {
-                    // don't clearup date_filter__gt for optimization purposes! show warning!
-                    //this.date_filter__gt = "";
-                    //this.date_filter__lt = "";
-                } else {
-                    this.setDuration();
+
+            if (this.path_page != 1) { // in user edit menu changing gui settings cause infinite loading circle if no such check
+                if (updatePage) {
+                    // reset date filter after save filters is switched on
+                    if (this.settings.filters) {
+                        // don't clearup date_filter__gt for optimization purposes! show warning!
+                        //this.date_filter__gt = "";
+                        //this.date_filter__lt = "";
+                    } else {
+                        this.setDuration();
+                    }
+
+                    this.setRefresh();
+
+                    if (reload) {
+                        $("#settings-modal").modal({
+                            onHidden: function () {
+                                // show loading modal before reload
+                                window.app.toggleLoading(true);
+                                location.reload();
+                            }
+                        }).modal("hide");
+                    } else {
+                        $("#settings-modal").modal({
+                            onHidden: function () {
+                                window.app.debounce_emails(true);
+                            }
+                        }).modal("hide");
+
+                    }
+
                 }
-
-                this.setRefresh();
-
-                if (reload) {
-                    $("#settings-modal").modal({
-                        onHidden: function () {
-                            // show loading modal before reload
-                            window.app.toggleLoading(true);
-                            location.reload();
-                        }
-                    }).modal("hide");
-                } else {
-                    $("#settings-modal").modal({
-                        onHidden: function () {
-                            window.app.debounce_emails(true);
-                        }
-                    }).modal("hide");
-
-                }
-
             }
 
         },
@@ -1870,13 +1886,22 @@ const app = Vue.createApp({
 
              // login notie messages
             if (notie_message == 'api_error') {
-                if (this.localeData.notie.eight == undefined) {
-                    text = this.fallbackLocaleData.notie.eight
+                if (notie_message == 'api_error_overlimit') {
+                    if (this.localeData.notie.twenty_eight == undefined) {
+                        text = this.fallbackLocaleData.notie.twenty_eight
+                    } else {
+                        text = this.localeData.notie.twenty_eight
+                    }
                 } else {
-                    text = this.localeData.notie.eight
+                    if (this.localeData.notie.eight == undefined) {
+                        text = this.fallbackLocaleData.notie.eight
+                    } else {
+                        text = this.localeData.notie.eight
+                    }
                 }
                 notie.alert({type: 'error', text: text})
             }
+                
             if (notie_message == 'unauth') {
                 if (this.localeData.notie.six == undefined) {
                     text = this.fallbackLocaleData.notie.six

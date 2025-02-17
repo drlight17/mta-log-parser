@@ -396,7 +396,18 @@ summary {
 
 
 #auth-list #index {
+    transform: scale(1);
     width: 7%;
+}
+
+#acc_list {
+    transition: transform 0.3s ease;
+}
+@media (max-width: 450px) {
+  #acc_list {
+    transform: scale(0.8);
+    transform-origin: top center;
+  }
 }
 
 .ui.form {
@@ -711,6 +722,8 @@ button:not(.navi), #footer {
     display: flex!important;
     flex-direction: column;
     max-width: 100%!important;
+    /*to create proper vertical column of recipients*/
+    flex-wrap: nowrap;
 }
 
 /*@media only screen and (max-width: 767px)
