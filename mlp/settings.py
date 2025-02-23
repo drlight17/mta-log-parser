@@ -82,7 +82,7 @@ mail_log_timestamp_convert = env_bool('MAIL_LOG_TIMESTAMP_CONVERT', False)
 # add gui_refresh_block var from env
 gui_refresh_block = env_bool('GUI_REFRESH_BLOCK', True)
 
-# add gui_refresh_block var from env
+# add gui_max_log_period var from env
 gui_max_log_period = env_int('GUI_MAX_LOG_PERIOD', 4320)
 
 # add mta var from env
