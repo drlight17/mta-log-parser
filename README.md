@@ -173,4 +173,13 @@ This project is licensed under the **GNU AGPL v3**
 
 For full details, please see `LICENSE.txt` and `AGPL-3.0.txt`.
 
+# 💰 Support
+This application is absolutely free. But any attention motivates me to support the application. You can send a donation of $1 or more to a TON wallet:
+```
+UQBz_YJrj5-PCpYIqr7wsdspdSgrzETS02N2t0KSo1njX0FJ
+```
+and/or [![GitHub stars](https://img.shields.io/github/stars/drlight17/mta-log-parser.svg?style=social&label=Star&logo=github)](https://github.com/drlight17/mta-log-parser) this repository. 
+
+
+
 
