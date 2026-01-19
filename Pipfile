@@ -17,6 +17,7 @@ werkzeug = "=3.0.6"
 moment = "*"
 datefinder = "*"
 python-ldap = "*"
+hypercorn = "*"
 
 [requires]
 python_version = "3"
