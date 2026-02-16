@@ -92,9 +92,32 @@
 				<span style="opacity:.5;" v-if="localeData.footer.one" v-html="localeData.footer.one"></span>
 				<span style="opacity:.5;" v-else v-html="fallbackLocaleData.footer.one"></span>
 			</div>
+            <a class= "donate_link" :title="localeData.donate_title" @click="showDonate()" class="item"><i :class="{ inverted: settings.dark }" class="big donate icon"></i>&nbsp;<span v-if="localeData.donate" v-html="localeData.donate"></span><span v-else v-html="fallbackLocaleData.donate"></span></a>
             <a target="_blank" href="https://github.com/drlight17">
 				<img class="developed_by" src="{{ url_for('static', filename='images/developed_by_drlight.png')|version }}" />
 			</a>
+        </div>
+    </div>
+    <div class="ui modal" id="donate-modal" :class="{ inverted: settings.dark }">
+        <i class="close icon"></i>
+        <div id="donate" v-if="!loading">
+            <div class="ui segment">
+                <h3><i class="big donate icon"></i><span v-if="localeData.donate_message" v-html="localeData.donate_message"></span><span v-else v-html="fallbackLocaleData.donate_message"></span></h3>
+                <div class=donate_buttons>
+                    <button id="show_ton_to_clipboard_button" @click="show_ton()" class="ui button"><i class="coins large icon"></i><span v-if="localeData.donate_copy_ton_wallet">[[ localeData.donate_copy_ton_wallet ]]</span><span v-else>[[ fallbackLocaleData.donate_copy_ton_wallet ]]</span></button>
+                    <div id="ton_address_placeholder" class="ui input left icon">
+                        <input  type="text" class="ui input" @click="copy_ton_to_clipboard()">
+                        <i class="copy icon"></i>
+                    </div>
+                    <iframe 
+                        src="https://ghbtns.com/github-btn.html?user=drlight17&repo=mta-log-parser&type=star&count=true&size=large" frameborder="0"
+                        scrolling="0"
+                        width="125"
+                        height="30"
+                        title="GitHub">
+                    </iframe>
+                </div>
+            </div>
         </div>
     </div>
 

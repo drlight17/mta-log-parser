@@ -375,24 +375,21 @@
                     <li>
                          <span v-if="localeData.tips.seventeen" v-html="localeData.tips.seventeen"></span>
                          <span v-else v-html="fallbackLocaleData.tips.seventeen"></span>
-                         <details>: <summary>[...]</summary>
-                            <strong> {{ settings.exclude_from_top_senders }}</strong>
-                        </details>
+                         <strong> {{ settings.exclude_from_top_senders }}</strong>
                     </li>
                     {% endif %}
                     {% if settings.exclude_from_top_recipients %}
                     <li>
                          <span v-if="localeData.tips.eighteen" v-html="localeData.tips.eighteen"></span>
                          <span v-else v-html="fallbackLocaleData.tips.eighteen"></span>
-                         <details>: <summary>[...]</summary>
-                            <strong> {{ settings.exclude_from_top_recipients }}</strong>
-                         </details>
+                         <strong> {{ settings.exclude_from_top_recipients }}</strong>
                     </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </div>
+
 
 {% endblock %}
 
