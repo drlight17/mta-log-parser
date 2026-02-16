@@ -12,6 +12,15 @@ Unreleased VER.
 - provide variables in .env for user defined parser regexps override
 - parse log file from the new lines since last parsing
 
+Ver. 1.8.5
+- ~~BUG: dependabot security alert fix~~
+- ~~BUG: install Python packages system-wide instead of virtualenv ([pr#26](https://github.com/drlight17/mta-log-parser/pull/26))~~
+- ~~BUG: wrong vertical popup alias offset in case after email details modal, do forced body height: max-content in css~~
+- ~~GUI: add ability to hide navi or to make in without label to fit in mobile narrow width window~~
+- ~~BUG: on multiple recipient click number goes to filter~~
+- ~~BUG: tips permanently hidden remove summary details tags~~
+- ~~NEW: donate icon in footer~~
+
 Ver. 1.8.4
 - ~~GUI: add ability to config gui max log show interval (now it is 3 days) by .env variable~~
 - ~~BUG: gui add non-breaking space ( ) instead of space in multiple recipients row between number and recipient~~
