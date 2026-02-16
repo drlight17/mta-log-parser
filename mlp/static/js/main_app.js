@@ -46,6 +46,7 @@ const app = Vue.createApp({
             locales: lang_files,
             loading: true,
             gui_max_log_period: gui_max_log_period,
+            ton_wallet: 'UQBz_YJrj5-PCpYIqr7wsdspdSgrzETS02N2t0KSo1njX0FJ',
             //hidden_settips: true,
             hidden_stats: true,
             error: null,
@@ -81,6 +82,7 @@ const app = Vue.createApp({
             isEqual: true,
             swiped: false,
             is_mobile: false,
+            reduced_navi: false,
             processing: false
         }
     },
@@ -238,6 +240,12 @@ const app = Vue.createApp({
                 this.settings.blurring = false;
             } else {
                 this.is_mobile = false;
+            }
+
+            if (window.matchMedia('(max-width: 574px)').matches) {
+                this.reduced_navi = true;
+            } else {
+                this.reduced_navi = false;
             }
         },
         check_button() {
@@ -502,6 +510,16 @@ const app = Vue.createApp({
                     blurring: this.settings.blurring
                 }).modal('show');
         },
+        showDonate(a,index,type) {
+            $('#donate-modal').modal({
+                onHidden: function () {
+                    //$('body').removeClass('scrolling');
+                },
+                    closable: true,
+                    inverted: false,
+                    blurring: this.settings.blurring
+                }).modal('show');
+        },
         showSettings(a,index,type) {
             $('#settings-modal').modal({
                 onHidden: function () {
@@ -720,10 +738,11 @@ const app = Vue.createApp({
                             //content  :  txt_alias,
                             html: $(tooltip),
                             on    : 'hover',
+                            inline: true,
                             hoverable: true,
                             position: 'top center',
                             variation: variation,
-                            distanceAway: -7
+                            //distanceAway: -7
                         });
                     }
                 } else {
@@ -759,8 +778,11 @@ const app = Vue.createApp({
                 if (!($('#mail-modal').is(':visible'))) {
                     if (is_multiple) {
                         multiple = window.app.returnAllowedString(e.target.innerText.replace(/[\[\]']+/g,''))
-                        if (multiple.indexOf(". ") >= 0) {
-                            multiple = multiple.split(". ")[1].replace('*', '').trim();
+                        console.log(multiple)
+                        // Use regex to match period followed by any whitespace characters
+                        const match = multiple.match(/^.*?\.\s+(.*)/);
+                        if (match) {
+                            multiple = match[1].replace('*', '').trim();
                         } else {
                             multiple = multiple.replace('*', '').trim();
                         }
@@ -1381,6 +1403,37 @@ const app = Vue.createApp({
         auth() {
             window.location = path_prefix+'/auth';
         },
+        async copy_ton_to_clipboard() {
+            try {                
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(this.ton_wallet);
+                    document.execCommand("copy", this.ton_wallet);
+                    if (this.localeData.notie.thirty == undefined) {
+                        text = this.fallbackLocaleData.notie.thirty
+                    } else {
+                        text = this.localeData.notie.thirty
+                    }
+                    notie.alert({type: 'success', text: text, time: 3});
+
+                }
+                else {
+                    if (this.localeData.notie.twenty_nine == undefined) {
+                        text = this.fallbackLocaleData.notie.twenty_nine
+                    } else {
+                        text = this.localeData.notie.twenty_nine
+                    }
+                    notie.alert({type: 'warning', text: text, time: 5});
+                }
+                $('#ton_address_placeholder input').select();
+            }
+            catch (err) {
+                console.log(err)
+            }
+        },
+        show_ton() {
+            $('#ton_address_placeholder input').val(this.ton_wallet);
+            $('#ton_address_placeholder').show();
+        },
         emails_back() {
             window.location = path_prefix+'/emails';
         },
@@ -1758,7 +1811,11 @@ const app = Vue.createApp({
                             this.waitForElm('.api_error_container').then((elm) => {
                                 $(elm).addClass('inverted');
                             });
+                            this.waitForElm('#donate > div').then((elm) => {
+                                $(elm).addClass('inverted');
+                            });
                         } else {
+                            $('#donate > div').addClass('inverted');
                             $('#footer').addClass('inverted');
                         }
                     } else {
@@ -1766,6 +1823,7 @@ const app = Vue.createApp({
                         $('#user-settings-wrapper').removeClass('inverted');
                         $('#user-settings-wrapper > div').removeClass('inverted');
                         $('#tips > div').removeClass('inverted');
+                        $('#donate > div').removeClass('inverted');
                         $('#filters-wrapper').removeClass('inverted');
                         $('#charts-wrapper').removeClass('inverted');
                         if (table) {

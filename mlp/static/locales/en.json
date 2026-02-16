@@ -6,6 +6,10 @@
   "settings_title": "Show local user settings",
   "settings_menu": "Settings",
   "tips_menu": "Tips",
+  "donate":"Support me",
+  "donate_title":"Show developer support info",
+  "donate_message":"This application is absolutely free. But any attention motivates the developer to support the application. You can send any donation to a TON wallet and/or star the repository on GitHub. <br><span id=\"donate_thankyou\">Thank you for your support!</span>",
+  "donate_copy_ton_wallet":"Show TON wallet address",
   "charts_menu": "Stats",
   "hide_charts_title": "Hide or show statistics and visuals",
   "overall_pie": "Overall delivery stats",
@@ -56,7 +60,9 @@
     "twenty_five": "LDAP error. Check backend logs and LDAP settings!",
     "twenty_six": "Warning! Fulltext LOG search is very time consuming and resource-intensive!",
     "twenty_seven": "Parsing is running. Updated data will be available after process completion. Wait...",
-    "twenty_eight": "API call error. Rethinkdb output overlimit! Check RETHINK_ARR_LIMIT value in .env and increase it if necessary."
+    "twenty_eight": "API call error. Rethinkdb output overlimit! Check RETHINK_ARR_LIMIT value in .env and increase it if necessary.",
+    "twenty_nine": "Error copying to clipboard, because web GUI works in non-secure http context. Please copy text manually.",
+    "thirty": "TON wallet address is copied to clipboard."
   },
   "login": {
     "message": "Please login to proceed.",

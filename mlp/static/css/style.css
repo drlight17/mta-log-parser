@@ -5,6 +5,7 @@
 
 #app {
     margin-right: initial!important;
+    height: max-content!important;
 }
 
 /*dark skin*/
@@ -415,6 +416,9 @@ summary {
 }
 
 .ui.button>.icon {
+    position: relative!important;
+    vertical-align: baseline!important;
+    padding: 0!important;
     margin:0!important;
 }
 
@@ -471,6 +475,7 @@ summary {
     background: white;
     justify-content: center;
     flex-wrap: wrap;
+    font-size:0!important;
 }
 
 /*change notification z-index and fix of notie blurring when modal blur is on in firefox*/
@@ -522,12 +527,58 @@ summary {
     padding:initial!important;
 }
 
-#user-settings, #tips {
+#user-settings, #tips, #donate {
     display: flex;
     align-items: stretch;
     flex-direction: column;
     justify-content: flex-end;
 }
+
+.donate_link {
+    cursor: pointer;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+/*.donate_link i {
+    color: white;
+}*/
+.donate_buttons {
+    display: flex;
+    align-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+#ton_address_placeholder, #show_ton_to_clipboard_button, .donate_buttons iframe {
+    margin-top:15px;
+    margin-left:15px;
+    margin-right:15px;
+}
+#donate_thankyou {
+    margin:auto;
+    display:table;
+    margin-top: 15px;
+    margin-bottom: 30px;
+    font-size: larger;
+}
+#show_ton_to_clipboard_button {
+    max-width: fit-content;
+    /* width: 170px; */
+    padding: 0 10px 0px 10px;
+    /* padding-left: 10px; */
+    /* padding-right: 10px; */
+    height: 30px;
+}
+
+#ton_address_placeholder {
+    display: none;
+    width: 410px;
+}
+#ton_address_placeholder input {
+    cursor: pointer;
+    width: 100%!important;
+}
+
 /*to fill empty space vertically in #user-settings and #tips*/
 .ui.segment:last-child {
     flex: 1;
@@ -553,7 +604,7 @@ summary {
  }
 
 @media only screen and (max-width: 767px){
-    #user-settings, #tips {
+    #user-settings, #tips, #donate {
         padding-left: 0;
         padding-right: 0;
         }
@@ -597,6 +648,12 @@ summary {
     }
 }
 
+@media only screen and (max-width: 574px) {
+    #navi .navi span,  #navi .navi strong{
+        display: none!important;
+    }
+}
+
 @media only screen and (max-width: 500px) {
     .title {
         max-width: 40%;
@@ -609,6 +666,7 @@ summary {
     }
 }
 
+
 .ui.grid+.grid {
     margin-top: 1rem;
     margin-bottom: 1rem;
@@ -619,6 +677,7 @@ button:not(.navi), #footer {
     width:100%;
 	display: flex;
 	justify-content: space-between;
+    align-items: center;
 }
 /* fix of calendar z-index over modals*/
 .ui.popup {

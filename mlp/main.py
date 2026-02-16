@@ -45,7 +45,7 @@ log = logging.getLogger(__name__)
 
 # !!! change version upon update !!!
 global VERSION
-VERSION ="1.8.4"
+VERSION ="1.8.5"
 
 lockfile = "processing.lock"
 # postf_match += r'([A-F0-9]{11})\:[ \t]+?(.*)'

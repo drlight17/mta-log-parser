@@ -10,4 +10,5 @@ COPY . /app/
 # uncomment to append ypur ca cert for TLS connections i.e. LDAPS, place crt file in folder with Dockerfile
 #COPY ca.crt /usr/local/share/ca-certificates/ca.crt
 #RUN cat /usr/local/share/ca-certificates/ca.crt >> /etc/ssl/certs/ca-certificates.crt
-RUN pipenv install
+ENV PIPENV_PYTHON=/usr/local/bin/python3.9
+RUN pipenv lock && pipenv install --system --deploy
