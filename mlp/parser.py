@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 # Postfix
 postf_to = re.compile(r'^.*to=<([^>]*)>,.*orig_to=<([^>]*)>|^.*to=<([^>]*)>')
 postf_from = re.compile(r'.*from=<([a-zA-Z0-9-+_.=]+@[a-zA-Z0-9-+_.]+)>')
-postf_subject = re.compile(r'.*header\sSubject:\s?(.*)\sfrom\s')
+postf_subject = re.compile(r'.*header\sSubject:\s?(.*)')
 postf_size = re.compile(r'.*size=([0-9]{1,}),.*')
 postf_message_id = re.compile(r'.*message-id=<(.*)>')
 postf_status = re.compile(r'.*status=([a-zA-Z0-9-_.]+) (.*)?|.*(reject):\s.*:\s([0-9].*);\s')
@@ -123,6 +123,14 @@ def _exchange_status(lm: dict, status) -> None:
         lm['status']['message'] = status.group(2)[:-1]
 
 
+def _postfix_subject(value: str) -> str:
+    # Postfix appends " from <client>[<ip>]; from=<sender> to=<recipient> ..." to header lines
+    parts = re.split(r';\s*from=', value, maxsplit=1)
+    if len(parts) == 2:
+        value = re.sub(r'\s+from\s+\S+(?:\[[^\]]*\])?\s*$', '', parts[0])
+    return value.strip()
+
+
 async def parse_line(mline) -> dict:
     lm = {}
 
@@ -156,7 +164,10 @@ async def parse_line(mline) -> dict:
             lm['mail_to'] = _to.group(1)
 
     if _subject is not None:
-        lm['subject'] = _subject.group(1)[:-1] if _mta == 'exchange' else _subject.group(1)
+        subject = _subject.group(1)[:-1] if _mta == 'exchange' else _subject.group(1)
+        if _mta == 'postfix':
+            subject = _postfix_subject(subject)
+        lm['subject'] = subject
 
     if _size is not None:
         raw_size = _size.group(1)[:-1] if _mta == 'exchange' else _size.group(1)

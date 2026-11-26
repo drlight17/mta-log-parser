@@ -1,4 +1,5 @@
 .env
+user_prompts.md
 *.log
 venv/
 __pycache__/

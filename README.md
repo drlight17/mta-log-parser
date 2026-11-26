@@ -167,6 +167,8 @@ Custom parser regular expressions
 =================================
 Built-in parser expressions for the selected `MTA` can be overridden from `.env` without editing source. See the `PARSER_*_REGEX` block in `example.env`. The main matcher (`PARSER_MATCH_REGEX`) must keep group 1 = queue/message id and group 2 = log message, and field matchers must keep their existing group order. Empty values use the built-in pattern; an invalid expression stops the parser with a clear error.
 
+Note: Postfix logs `warning: header Subject:` lines with the header value truncated to 200 characters (`%.200s` in Postfix `cleanup`). Subjects longer than that cannot be fully recovered from the MTA log; the parser decodes and shows as much as was logged. Systems that read the full message (such as rspamd) can show the complete subject.
+
 Etc
 ========
 More info will be published in the [project wiki](https://github.com/drlight17/mta-log-parser/wiki).

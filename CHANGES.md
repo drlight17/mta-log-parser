@@ -15,6 +15,7 @@ Unreleased VER.
 Ver. 1.8.6
 - ~~NEW: allow overriding built-in parser regular expressions from `.env` via `PARSER_*_REGEX` ([#25](https://github.com/drlight17/mta-log-parser/issues/25), [#28](https://github.com/drlight17/mta-log-parser/issues/28))~~
 - ~~BUG: accept a missing space after `Subject:` when parsing postfix subjects ([#25](https://github.com/drlight17/mta-log-parser/issues/25))~~
+- ~~BUG: robust postfix subject extraction and RFC 2047 decoding with rspamd-style same-charset word gluing, folded separators and truncated words ([#25](https://github.com/drlight17/mta-log-parser/issues/25), [#28](https://github.com/drlight17/mta-log-parser/issues/28))~~
 - ~~SECURITY: upgrade Werkzeug to 3.1.9 to fix `safe_join()` Windows device name handling (dependabot #10)~~
 - ~~SECURITY: hash web UI passwords and migrate legacy plaintext values on login~~
 - ~~SECURITY: restrict user management, harden LDAP auth and session cookies, enforce a strong `SECRET_KEY`~~

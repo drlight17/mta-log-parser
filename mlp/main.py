@@ -205,39 +205,100 @@ async def import_log(logfile: str) -> Dict[str, object]:
     }
 
 
-# Matches RFC 2047 encoded words in subjects
-pat2 = re.compile(r'(([^=]*)=\?([^\?]*)\?([BbQq])\?([^\?]*)([^=]*))', re.IGNORECASE)
+# Matches RFC 2047 encoded words; group 4 is "?=", or the end of a truncated log line
+_ENCODED_WORD_RE = re.compile(r'=\?([^?]+)\?([BbQq])\?([^?]*)(\?=|$)', re.IGNORECASE)
+_INCOMPLETE_QP_RE = re.compile(r'=[0-9A-Fa-f]?$')
+_SEPARATOR_RE = re.compile(r'[\s?]*')
 
 
-def decodev2(value):
+def _decode_bytes(payload: bytes, charset: str, incomplete: bool = False) -> str:
+    text = None
+    for encoding in (charset, 'utf-8', 'latin-1'):
+        try:
+            text = payload.decode(encoding, errors='replace')
+            break
+        except LookupError:
+            continue
+    if text is None:
+        text = payload.decode('utf-8', errors='replace')
+    if incomplete:
+        text = text.rstrip('\ufffd')
+    return text
+
+
+def _decode_encoded_word(match):
+    charset = match.group(1).split('*', 1)[0]
+    method = match.group(2).lower()
+    text = match.group(3).strip()
+    complete = match.group(4) == '?='
+    try:
+        if method == 'b':
+            if len(text) % 4 == 1:
+                text = text[:-1]
+            text += '=' * (-len(text) % 4)
+            return charset, base64.b64decode(text, validate=False), complete
+        text = text.replace('_', ' ')
+        if not complete:
+            text = _INCOMPLETE_QP_RE.sub('', text)
+        return charset, quopri.decodestring(text), complete
+    except Exception:
+        return charset, None, complete
+
+
+def decode_subject(value):
+    """
+    Decode RFC 2047 subjects like rspamd: glue adjacent same-charset words before
+    decoding, tolerate Postfix's "?=??=?" separators, and salvage truncated words.
+    """
     if not isinstance(value, str):
         return value
 
-    data = pat2.findall(value)
-    if not data:
+    value = value.strip()
+    if not value:
         return value
+    if '=?' not in value:
+        return re.sub(r'\s+', ' ', value).strip()
 
     parts = []
-    for _raw, extra1, encoding, method, encoded, extra in data:
-        extra1 = extra1.replace('\r', '').replace('\n', '').strip()
-        if extra1:
-            parts.append(extra1)
+    buffer = bytearray()
+    buffer_charset = None
+    incomplete = False
 
-        try:
-            if method.lower() == 'q':
-                payload = quopri.decodestring(encoded)
-            else:
-                encoded += '=' * (-len(encoded) % 4)
-                payload = base64.b64decode(encoded)
-            parts.append(payload.decode(encoding, errors='ignore'))
-        except (ValueError, LookupError):
-            parts.append(encoded)
+    def flush():
+        nonlocal buffer_charset, incomplete
+        if buffer and buffer_charset is not None:
+            parts.append(_decode_bytes(bytes(buffer), buffer_charset, incomplete))
+        buffer.clear()
+        buffer_charset = None
+        incomplete = False
 
-        extra = extra.replace('\r', '').replace('\n', '').strip()
-        if extra:
-            parts.append(extra)
+    position = 0
+    for match in _ENCODED_WORD_RE.finditer(value):
+        plain = value[position:match.start()]
+        if plain and not _SEPARATOR_RE.fullmatch(plain):
+            flush()
+            parts.append(plain)
 
-    return ''.join(parts)
+        charset, payload, complete = _decode_encoded_word(match)
+        if payload is None:
+            flush()
+            parts.append(match.group(0))
+        else:
+            if buffer_charset is not None and buffer_charset.lower() != charset.lower():
+                flush()
+            buffer_charset = charset
+            buffer.extend(payload)
+            incomplete = not complete
+        position = match.end()
+
+    tail = value[position:]
+    if tail and not _SEPARATOR_RE.fullmatch(tail):
+        flush()
+        parts.append(tail)
+    else:
+        flush()
+
+    return re.sub(r'\s+', ' ', ''.join(parts)).strip()
 
 
 def _status_domain(value) -> str:
@@ -260,7 +321,7 @@ def _prepare_message(m):
     m['status'] = status
 
     try:
-        m['subject'] = decodev2(m.get('subject'))
+        m['subject'] = decode_subject(m.get('subject'))
     except Exception:
         pass
 
