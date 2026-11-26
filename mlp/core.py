@@ -16,6 +16,8 @@ Copyright::
 
 """
 import logging
+import os
+import re
 import rethinkdb.query
 
 from typing import Tuple, List
@@ -36,6 +38,24 @@ _lh.add_console_handler(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 __STORE = {}
+
+
+def compile_env_regex(env_name: str, default_pattern: str) -> re.Pattern:
+    """
+    Compile a parser regex, using the ``env_name`` environment variable when it is set.
+
+    This allows operators to override the built-in parser expressions from ``.env`` without
+    editing the source. An invalid expression stops the process instead of silently
+    falling back to the default and mis-parsing logs.
+    """
+    raw = os.getenv(env_name, '').strip()
+    if not raw:
+        return re.compile(default_pattern)
+    try:
+        return re.compile(raw)
+    except re.error as exc:
+        log.error('Invalid regular expression in %s: %s', env_name, exc)
+        raise SystemExit(1)
 
 
 async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:

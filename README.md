@@ -163,6 +163,10 @@ location /logs/ {
    proxy_pass http://domain.org:8487;
 }
 ```
+Custom parser regular expressions
+=================================
+Built-in parser expressions for the selected `MTA` can be overridden from `.env` without editing source. See the `PARSER_*_REGEX` block in `example.env`. The main matcher (`PARSER_MATCH_REGEX`) must keep group 1 = queue/message id and group 2 = log message, and field matchers must keep their existing group order. Empty values use the built-in pattern; an invalid expression stops the parser with a clear error.
+
 Etc
 ========
 More info will be published in the [project wiki](https://github.com/drlight17/mta-log-parser/wiki).

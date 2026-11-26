@@ -33,7 +33,7 @@ import moment
 import rethinkdb.query
 
 from mlp import settings
-from mlp.core import get_rethink, __STORE
+from mlp.core import get_rethink, __STORE, compile_env_regex
 from mlp.objects import PostfixLog, PostfixMessage
 from mlp.parser import parse_line
 
@@ -62,7 +62,7 @@ _MATCHERS = {
 if settings.mta not in _MATCHERS:
     log.error('Incorrect value of MTA env variable: %s. Check example and set the correct one!', settings.mta)
     raise SystemExit(1)
-match = re.compile(_MATCHERS[settings.mta])
+match = compile_env_regex('PARSER_MATCH_REGEX', _MATCHERS[settings.mta])
 
 VALID_STATUS_CODES = ('sent', 'reject', 'deferred', 'bounced', 'multiple')
 

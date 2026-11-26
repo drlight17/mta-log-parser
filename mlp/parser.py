@@ -19,13 +19,14 @@ import re
 import logging
 
 from mlp import settings
+from mlp.core import compile_env_regex
 
 log = logging.getLogger(__name__)
 
 # Postfix
 postf_to = re.compile(r'^.*to=<([^>]*)>,.*orig_to=<([^>]*)>|^.*to=<([^>]*)>')
 postf_from = re.compile(r'.*from=<([a-zA-Z0-9-+_.=]+@[a-zA-Z0-9-+_.]+)>')
-postf_subject = re.compile(r'.*header\sSubject:\s(.*)\sfrom\s')
+postf_subject = re.compile(r'.*header\sSubject:\s?(.*)\sfrom\s')
 postf_size = re.compile(r'.*size=([0-9]{1,}),.*')
 postf_message_id = re.compile(r'.*message-id=<(.*)>')
 postf_status = re.compile(r'.*status=([a-zA-Z0-9-_.]+) (.*)?|.*(reject):\s.*:\s([0-9].*);\s')
@@ -80,6 +81,16 @@ if _mta not in _MTA_PATTERNS:
 
 (find_to, find_from, find_subject, find_size,
  find_client, find_relay, find_status, find_message_id) = _MTA_PATTERNS[_mta]
+
+# .env overrides for the configured MTA; empty values keep the built-in patterns
+find_to = compile_env_regex('PARSER_TO_REGEX', find_to.pattern)
+find_from = compile_env_regex('PARSER_FROM_REGEX', find_from.pattern)
+find_subject = compile_env_regex('PARSER_SUBJECT_REGEX', find_subject.pattern)
+find_size = compile_env_regex('PARSER_SIZE_REGEX', find_size.pattern)
+find_client = compile_env_regex('PARSER_CLIENT_REGEX', find_client.pattern)
+find_relay = compile_env_regex('PARSER_RELAY_REGEX', find_relay.pattern)
+find_status = compile_env_regex('PARSER_STATUS_REGEX', find_status.pattern)
+find_message_id = compile_env_regex('PARSER_MESSAGE_ID_REGEX', find_message_id.pattern)
 
 
 def _exim_status(lm: dict, status) -> None:
