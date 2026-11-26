@@ -23,3 +23,13 @@ Then selected: "Fix all except compose" (fix both auth issues and harden default
 [2026-11-26 11:33:16 UTC]
 
 ok, commit these changes to https://github.com/drlight17/mta-log-parser/tree/v.1.8.6 branch. Don't forget to add changes description .
+
+***
+[2026-11-26 11:40:13 UTC]
+
+Fix this: Werkzeug safe_join() allows Windows special device names (closes dependabot #10)
+
+***
+[2026-11-26 11:51:34 UTC]
+
+push this commit to 1.8.6 branch. Remember: we pushing all commits to this branch when i command to push commit.

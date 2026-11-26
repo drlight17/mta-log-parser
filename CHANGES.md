@@ -12,6 +12,13 @@ Unreleased VER.
 - provide variables in .env for user defined parser regexps override
 - parse log file from the new lines since last parsing
 
+Ver. 1.8.6
+- ~~SECURITY: upgrade Werkzeug to 3.1.9 to fix `safe_join()` Windows device name handling (dependabot #10)~~
+- ~~SECURITY: hash web UI passwords and migrate legacy plaintext values on login~~
+- ~~SECURITY: restrict user management, harden LDAP auth and session cookies, enforce a strong `SECRET_KEY`~~
+- ~~BUG: parser/import, retry, lockfile, pagination and status handling fixes~~
+- ~~cleanup: remove dead code, debug output and unused imports~~
+
 Ver. 1.8.5
 - ~~BUG: dependabot security alert fix~~
 - ~~BUG: install Python packages system-wide instead of virtualenv ([pr#26](https://github.com/drlight17/mta-log-parser/pull/26))~~
