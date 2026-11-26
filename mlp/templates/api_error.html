@@ -2,8 +2,8 @@
 {% block content %}
 <div class="ui segment api_error_container">
     <div v-if="!loading" class="api_error">
-        <h2 class="ui red" v-if="localeData.api_error.title" v-html="localeData.api_error.title"></h3>
-        <h2 class="ui red" v-else v-html="fallbackLocaleData.api_error.title"></h3>
+        <h2 class="ui red" v-if="localeData.api_error.title" v-html="localeData.api_error.title"></h2>
+        <h2 class="ui red" v-else v-html="fallbackLocaleData.api_error.title"></h2>
 
         {% if status_code %}
         <strong><p><span v-if="localeData.api_error.title" v-html="localeData.api_error.status_code"></span>

@@ -129,6 +129,7 @@ async def handle_error(err_code='UNKNOWN_ERROR', err_msg=None, code: int = None,
 
 
     tpl = await render_template(
-        tpl, **res, data=json.dumps(error_dict(res.error_code, msg=res.error_msg, extra=extra), indent=4), settings=settings, VERSION=VERSION, NOTIE_MESSAGE="api_error"
+        tpl, **res, data=json.dumps(error_dict(res.error_code, msg=res.error_msg, extra=extra), indent=4),
+        settings=settings, VERSION=VERSION, NOTIE_MESSAGE="api_error", debug=settings.DEBUG,
     )
     return tpl, res.status_code

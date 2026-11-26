@@ -1,6 +1,4 @@
 # compose file for deploy
-version: '3.9'
-
 services:
   mlp:
     image: drlight17/mta-log-parser:latest

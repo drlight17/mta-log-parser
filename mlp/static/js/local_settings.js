@@ -206,7 +206,6 @@
             },
             clearFilters() {
                 this.$nextTick(function () {
-                    //console.log("Filters are cleared!");
                     window.localStorage.removeItem('saved_filters.search');
                     window.localStorage.removeItem('saved_filters.status_filter');
                     window.localStorage.removeItem('saved_filters.search_by');
@@ -288,7 +287,6 @@
                 this.settings.default_period = Number.parseInt(this.settings.default_period);
                 window.localStorage.default_period = this.settings.default_period;
                 
-                //console.log(this.settings.locale);
                 window.localStorage.locale = this.settings.locale;
 
                 if (isNaN(this.settings.blurring)) { this.settings.blurring = true; }

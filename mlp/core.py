@@ -15,17 +15,12 @@ Copyright::
     +===================================================+
 
 """
-import json
 import logging
-import rethinkdb.ast
 import rethinkdb.query
 
-from typing import Tuple, List, Union
+from typing import Tuple, List
 
 from privex.helpers import empty
-from quart import request
-# from quart.exceptions import BadRequest
-from werkzeug.exceptions import BadRequest
 from rethinkdb import RethinkDB
 from rethinkdb.ast import DB
 from rethinkdb.net import DefaultConnection
@@ -63,7 +58,6 @@ async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:
     
 
     # Setup RethinkDB connection
-    # log.debug('Initialising RethinkDB connector')
     r: rethinkdb.query = RethinkDB()
     r.set_loop_type('asyncio')
     conn = await r.connect(settings.rethink_host, settings.rethink_port)
@@ -87,10 +81,7 @@ async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:
             if index not in idxs:
                 log.debug('Index %s on table %s did not exist. Creating.', index, t)
                 if index == 'status_code':
-                    # TODO need to test index creation
-                    await db.table(t).index_create(index,r.row['status']['code'], multi=True).run(conn, array_limit=settings.rethink_arr_limit)
-                #if index == 'lines':
-                #    await db.table(t).index_create(index, lambda row: row['lines'].map(lambda line: [line['message']]).reduce(lambda left, right: left.set_union(right)), multi=True).run(conn, array_limit=settings.rethink_arr_limit)
+                    await db.table(t).index_create(index, r.row['status']['code'], multi=True).run(conn, array_limit=settings.rethink_arr_limit)
                 else:
                     await db.table(t).index_create(index).run(conn, array_limit=settings.rethink_arr_limit)
 
@@ -98,53 +89,10 @@ async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:
     return __STORE['rethink']
 
 
-async def extract_json(rq: request) -> Union[list, dict]:
-    """
-    Extract JSON formatted POST data from a Quart request.
-
-    **Example** (Dictionary JSON POST data)::
-
-        >>> async def my_view():
-        ...     data = extract_json(request)
-        ...     if not isinstance(data, dict):
-        ...         return jsonify(error=True, message=f"JSON POST data must be a dictionary (map/object)!"), 400
-        ...     first_name = data.get('first_name')
-        ...     last_name = data.get('last_name')
-
-    **Example** (List JSON POST data)::
-
-        >>> async def other_view():
-        ...     data = extract_json(request)
-        ...     if not isinstance(data, list):
-        ...         return jsonify(error=True, message=f"JSON POST data must be a list (array)!"), 400
-        ...     for name in data:
-
-    """
-    try:
-        data = await rq.get_json(force=True)
-        return data
-    except (json.decoder.JSONDecodeError, BadRequest) as e:
-        log.debug('get_json failed, falling back to extracting from form keys')
-        data = list(rq.form.keys())
-        if len(data) >= 1:
-            return json.loads(data[0])
-        raise e
-
-
 def get_accepts(headers) -> List[str]:
     lower_headers = {k.lower(): v for k, v in headers.items()}
     accepts = lower_headers.get('accept', 'application/json').split(',')
     return [a.split(';')[0] for a in accepts]
-
-
-async def filter_methods(data: list):
-    methods = {}
-    for d in data:
-        m = d['method']
-        if m not in methods:
-            methods[m] = []
-        methods[m].append(d)
-    return methods
 
 
 def _get_error(code: str, fallback: str = 'UNKNOWN_ERROR') -> AppError:

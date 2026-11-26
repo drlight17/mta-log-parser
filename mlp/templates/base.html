@@ -104,9 +104,9 @@
             <div class="ui segment">
                 <h3><i class="big donate icon"></i><span v-if="localeData.donate_message" v-html="localeData.donate_message"></span><span v-else v-html="fallbackLocaleData.donate_message"></span></h3>
                 <div class=donate_buttons>
-                    <button id="show_ton_to_clipboard_button" @click="show_ton()" class="ui button"><i class="coins large icon"></i><span v-if="localeData.donate_copy_ton_wallet">[[ localeData.donate_copy_ton_wallet ]]</span><span v-else>[[ fallbackLocaleData.donate_copy_ton_wallet ]]</span></button>
+                    <button id="show_ton_to_clipboard_button" @click="show_donation()" class="ui button"><i class="coins large icon"></i><span v-if="localeData.donate_copy">[[ localeData.donate_copy ]]</span><span v-else>[[ fallbackLocaleData.donate_copy ]]</span></button>
                     <div id="ton_address_placeholder" class="ui input left icon">
-                        <input  type="text" class="ui input" @click="copy_ton_to_clipboard()">
+                        <input  type="text" class="ui input" @click="copy_donation_to_clipboard()">
                         <i class="copy icon"></i>
                     </div>
                     <iframe 

@@ -61,14 +61,13 @@ mail_log_filename = env('MAIL_LOG_FILENAME', 'mail.log')
 
 mail_log = mail_log_path+'/'+mail_log_filename
 
-#admin_pass = env('ADMIN_PASS', 'SetThis!InYourEnv')
 secret_key = env('SECRET_KEY', 'SetThis!InYourEnv')
 
 # add prefix var from env
 path_prefix = env('PATH_PREFIX', '')
 
 # add housekeeping_days var from env
-housekeeping_days = env_int('HOUSEKEEPING_DAYS', '')
+housekeeping_days = env_int('HOUSEKEEPING_DAYS', 0)
 
 # add datetime_format var from env
 datetime_format = env('DATETIME_FORMAT', 'HH:mm:ss, DD.MM.YYYY')
@@ -115,14 +114,19 @@ DEFAULT_ERR: AppError = ERRORS['UNKNOWN_ERROR']
 
 # get all locale lang files
 basedir = path.abspath(path.dirname(__file__))
-lang_files = listdir(path.join(basedir,'static/locales/'))
+locales_dir = path.join(basedir, 'static/locales')
+lang_files = listdir(locales_dir)
 new_lang_files_json = {}
 
-for lang in lang_files:
-    f = open(path.join(basedir,'static/locales/')+lang)
-    data = json.load(f)
-    before, sep, after = lang.partition('.')
-    lang = before
+for filename in lang_files:
+    if not filename.endswith('.json'):
+        continue
+    with open(path.join(locales_dir, filename), encoding='utf-8') as f:
+        data = json.load(f)
+    lang, _, _ = filename.partition('.')
     new_lang_files_json[lang] = data['locale_lang']
 
 lang_files = json.dumps(new_lang_files_json)
+
+# SECRET_KEY is used to sign session cookies, so a default value is unsafe
+insecure_secret_key = secret_key in ('', 'ChangeMe', 'SetThis!InYourEnv')

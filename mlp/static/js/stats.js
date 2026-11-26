@@ -218,7 +218,6 @@
                                         },
                                         /*generateLabels: (chart) => {
                                             const datasets = chart.data.datasets;
-                                            //console.log(chart.data.labels_orig);
 
                                             //labels.push(this.$parent.status_localize(item,1))
 
@@ -753,7 +752,8 @@
             },
             // function to fetch data for charts and save cache to cookies
             async call_stats_data(chart_type){
-               
+                let url_upd, response;
+
                 if (chart_type == 'overall_pie') {
                     var url = base_url3, queries = 0;
                     url += (queries === 0) ? '?' : '&';
@@ -931,11 +931,11 @@
                 });
             },
             force_refresh: function (event) {
-
+                var chart_type;
                 if (event.target) {
 
                     chart_type = event.target.classList[0];
-                    
+
                      // show rotation animation
                     $('.'+chart_type).addClass('rotate');
                     setTimeout(() =>  $('.'+chart_type).removeClass('rotate'), 1000);
@@ -989,7 +989,6 @@
                 if (this.$parent.filters_changed) {
                     this.$nextTick(function () {
                         if (chart_type != 'overall_pie') {
-                            //console.log("Filter values were changed. Clear filtered stats cookies and recache.");
                             this.force_refresh(chart_type);
                         }
 
@@ -1024,10 +1023,8 @@
                 if (typeof(stats_app.$parent.getCookie(chart_type+"_excluded")) !== 'undefined') {
                     //var cookie = stats_app.$parent.getCookie(chart_type+"_excluded").replace(/["']/g, "");
                     var cookie = JSON.parse(stats_app.$parent.getCookie(chart_type+"_excluded"));
-                    //console.log(cookie)
                     //var excluded = cookie.split(',');
                     //var excluded = cookie
-                    //console.log(excluded);
                     return cookie;
                 }
             },

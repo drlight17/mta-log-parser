@@ -36,6 +36,11 @@ var notie_message = document.currentScript.getAttribute('notie_message');
 // get args if any
 var sent_args = document.currentScript.getAttribute('args');
 
+// Shared scratch variables used by notification helpers
+var text = '';
+var text_tls = '', text_no_tls = '', mail_obj;
+var touchstartX = 0, touchstartY = 0, touchendX = 0, touchendY = 0;
+
 const app = Vue.createApp({
     // to work with both quart and vue variables on the template pages
     delimiters: ['[[', ']]'],
@@ -46,7 +51,7 @@ const app = Vue.createApp({
             locales: lang_files,
             loading: true,
             gui_max_log_period: gui_max_log_period,
-            ton_wallet: 'UQBz_YJrj5-PCpYIqr7wsdspdSgrzETS02N2t0KSo1njX0FJ',
+            donation_receive: '2202 2021 5875 7462',
             //hidden_settips: true,
             hidden_stats: true,
             error: null,
@@ -271,7 +276,7 @@ const app = Vue.createApp({
         ExportToExcel(type, fn, dl) {
            var elt = document.getElementById('emails-list');
            var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
-           cur_date = new Date(Date.now());
+           var cur_date = new Date(Date.now());
            cur_date = this.format_date(cur_date,datetime_format,true);
            return dl ?
              XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }):
@@ -283,7 +288,6 @@ const app = Vue.createApp({
         // bind arrow keys for modal arrow buttons
         arrowKeyBind(modal) {
             document.onkeydown = function(e) {
-                //console.log(e.which)
                 switch(e.which) {
                     case 33: //page up
                     break;
@@ -363,7 +367,6 @@ const app = Vue.createApp({
                             $('.next_email').blur();
                         } else {
                             $('.next_email').focus();
-                            //console.log($('#mail-modal i.angle.right.icon:not(.double)'))
                             $('#mail-modal i.angle.right.icon:not(.double)').focus().click();
                             this.swiped = true;
                         }
@@ -373,7 +376,6 @@ const app = Vue.createApp({
                             $('.prev_email').blur();
                         } else {
                             $('.prev_email').focus();
-                            //console.log($('#mail-modal i.angle.left.icon:not(.double)'))
                             $('#mail-modal i.angle.left.icon:not(.double)').focus().click();
                             this.swiped = true;
                         }
@@ -648,7 +650,6 @@ const app = Vue.createApp({
         multiple_check(object) {
 
             try {
-                //console.log(object.text())
                 parsed = JSON.parse(object.text())
                 return parsed;
             } catch (e) {
@@ -669,7 +670,6 @@ const app = Vue.createApp({
                 
             }
             var counter = 1;
-            //console.log(array)
             for (const element of array) {
 
 
@@ -775,10 +775,10 @@ const app = Vue.createApp({
         },
         bindMailtoFilterClick (object,is_multiple) {
             $(object).on("click", function(e){
+                var multiple;
                 if (!($('#mail-modal').is(':visible'))) {
                     if (is_multiple) {
                         multiple = window.app.returnAllowedString(e.target.innerText.replace(/[\[\]']+/g,''))
-                        console.log(multiple)
                         // Use regex to match period followed by any whitespace characters
                         const match = multiple.match(/^.*?\.\s+(.*)/);
                         if (match) {
@@ -1076,7 +1076,6 @@ const app = Vue.createApp({
             })
             .then((res) => {
                 if (res['processing']) {
-                    //console.log("Processing is running. Dont't refresh!")
                     if (!window.app.processing) {
                         if (this.localeData.notie.twenty_seven == undefined) {
                             text = this.fallbackLocaleData.notie.twenty_seven
@@ -1163,7 +1162,6 @@ const app = Vue.createApp({
                                     if ((!(_.isEmpty(this.emails[i].mail_to_alias))) && (this.emails[i].mail_to.match(/\[[^\]]*]/g)==null)) {
                                         this.emails[i].mail_to = '[{"mail_to": "'+Object.keys(this.emails[i].mail_to_alias)+'", "mail_to_alias": "'+Object.values(this.emails[i].mail_to_alias)+'"}]';
                                     }
-                                    //console.log(this.emails[i].mail_to)
                                     this.emails[i].timestamp = this.format_date(this.emails[i].timestamp,datetime_format,false);
                                     this.emails[i].first_attempt = this.format_date(this.emails[i].first_attempt,datetime_format,false);
                                     this.emails[i].last_attempt = this.format_date(this.emails[i].last_attempt,datetime_format,false);
@@ -1403,11 +1401,11 @@ const app = Vue.createApp({
         auth() {
             window.location = path_prefix+'/auth';
         },
-        async copy_ton_to_clipboard() {
+        async copy_donation_to_clipboard() {
             try {                
                 if (navigator.clipboard && window.isSecureContext) {
-                    await navigator.clipboard.writeText(this.ton_wallet);
-                    document.execCommand("copy", this.ton_wallet);
+                    await navigator.clipboard.writeText(this.donation_receive);
+                    document.execCommand("copy", this.donation_receive);
                     if (this.localeData.notie.thirty == undefined) {
                         text = this.fallbackLocaleData.notie.thirty
                     } else {
@@ -1427,11 +1425,11 @@ const app = Vue.createApp({
                 $('#ton_address_placeholder input').select();
             }
             catch (err) {
-                console.log(err)
+                console.error(err)
             }
         },
-        show_ton() {
-            $('#ton_address_placeholder input').val(this.ton_wallet);
+        show_donation() {
+            $('#ton_address_placeholder input').val(this.donation_receive);
             $('#ton_address_placeholder').show();
         },
         emails_back() {
@@ -1516,23 +1514,17 @@ const app = Vue.createApp({
                 } else {
                     text_no_tls = window.app.localeData.emails_list.status_notls
             }
+            var found = false;
             if (m[index] !== undefined) {
                 mail_obj = JSON.parse(JSON.stringify(m[index]))
-                var found = false
                 mail_obj.lines.forEach(element => {
                     if (element['message'].indexOf("TLS") >=0) {
                         found = true
                     }
                 });
-            } else {
-                console.log("Something went wrong with getTLS icon!");
             }
 
             return found ? [text_tls,window.app.settings.status_icon['tls']] : [text_no_tls,window.app.settings.status_icon['no_tls']]
-            /*} else {
-                console.log("Something went wrong with getTLS icon!");
-                return [this.settings.status_icon['unknown'],'question']
-            }*/
         },
         email_modal_appearance(transition) {
 
@@ -1613,8 +1605,6 @@ const app = Vue.createApp({
                     if (this.settings.dark) {
                         brightness = -40;
                     }
-                    //console.log(m[index].status.code)
-                    //console.log($('#email-metadata #status_code').parent())
                     //$('#email-metadata td:contains("'+m[index].status.code+'")').css('background-color',this.shadeColor(this.settings.status_color[m[index].status.code],brightness));
                     $('#email-metadata #status_code').parent().css('background-color',this.shadeColor(this.settings.status_color[m[index].status.code],brightness));
                     $('#mail-modal .header').css('background-color',this.shadeColor(this.settings.status_color[m[index].status.code],brightness));
@@ -2141,10 +2131,9 @@ const app = Vue.createApp({
                     }
                 })
 
-                .fail(function(json_data_fallback) {
+                .fail(function() {
                     document.cookie = "mlp_latest_version="+parser_version+"; max-age=3600";
-                    console.log("Failed to get latest repo version!");
-                    console.log(JSON.parse(JSON.stringify(json_data_fallback)))
+                    console.warn("Failed to get latest version from the repository");
                 })
             } else {
                 //if (parser_version != this.getCookie('mlp_latest_version')) {

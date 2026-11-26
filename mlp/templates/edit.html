@@ -18,7 +18,7 @@
         <div class="left menu" :class="{ inverted: settings.dark, ui: is_mobile }">
             <a :title="localeData.user_settings.current_user_title" class="item"><i class="user icon"></i>&nbsp;<span v-if="localeData.user_settings.current_user" v-html="localeData.user_settings.current_user"></span>
                 <span v-else v-html="fallbackLocaleData.user_settings.current_user"></span>&nbsp;
-                <b><u><span v-html="login"></span></u></b></a>
+                <b><u><span>[[ login ]]</span></u></b></a>
             {% if not settings.ldap_connect %}
             <a :title="localeData.user_settings.back_to_emails_title" @click="emails_back()" class="item"><i class="undo icon"></i>&nbsp;<span v-if="localeData.user_settings.back_to_emails" v-html="localeData.user_settings.back_to_emails"></span><span v-else v-html="fallbackLocaleData.user_settings.back_to_emails"></span></a>
             {% else %}

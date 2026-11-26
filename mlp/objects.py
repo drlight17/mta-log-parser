@@ -1,17 +1,13 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-# TODO dayjs? as moment is deprecated
-import moment
+from datetime import datetime
 from typing import List
 
+import moment
 from dateutil.parser import parse
 from privex.helpers import Dictable, is_false
 
 from mlp.settings import log_timezone
-from mlp import settings, api
-
-import logging
-log = logging.getLogger(__name__)
+from mlp import settings
 
 @dataclass
 class PostfixLog(Dictable):
@@ -20,10 +16,8 @@ class PostfixLog(Dictable):
     message: str
 
     def __post_init__(self):
-        if type(self.timestamp) is not datetime:
+        if not isinstance(self.timestamp, datetime):
             self.timestamp = log_timezone.localize(parse(self.timestamp))
-        #if type(self.message) is list:
-        #    self.message[]
         self.message = self.message.strip()
         self.queue_id = self.queue_id.strip()
 
@@ -35,19 +29,12 @@ class PostfixLog(Dictable):
 
     def clean_dict(self, convert_time=str) -> dict:
         data = dict(self)
-        # log lines timestamp convert before append (for message related log view)
-        # this data conversion uses only one thread and takes too long so do it according to mail_log_timestamp_convert variable value
-        # log.info('Converting date and time %s using moment library according to settings',  data['timestamp'])
         if settings.mail_log_timestamp_convert:
             data['timestamp'] = moment.date(str(self.timestamp)).format(settings.datetime_format)
+        elif is_false(convert_time):
+            data['timestamp'] = self.timestamp
         else:
-        #print(data)
-
-            if is_false(convert_time):
-                data['timestamp'] = self.timestamp
-            else:
-                data['timestamp'] = convert_time(self.timestamp)
-
+            data['timestamp'] = convert_time(self.timestamp)
         return data
 
 @dataclass
@@ -57,8 +44,6 @@ class PostfixMessage(Dictable):
     lines: List[PostfixLog] = field(default_factory=list)
     mail_to: str = ""
     mail_to_alias: dict = field(default_factory=dict)
-    #mail_to_alias: str = ""
-    #mail_to: dict = field(default_factory=dict)
     mail_from: str = ""
     subject: str = ""
     size: float  = 0
@@ -68,7 +53,7 @@ class PostfixMessage(Dictable):
     client: dict = field(default_factory=dict)
 
     def __post_init__(self):
-        if type(self.timestamp) is not datetime:
+        if not isinstance(self.timestamp, datetime):
             self.timestamp = log_timezone.localize(parse(self.timestamp))
         self.queue_id = self.queue_id.strip()
 
@@ -80,11 +65,11 @@ class PostfixMessage(Dictable):
 
     @property
     def first_attempt(self) -> datetime:
-        return self.lines[0].timestamp
+        return self.lines[0].timestamp if self.lines else self.timestamp
 
     @property
     def last_attempt(self) -> datetime:
-        return self.lines[-1].timestamp
+        return self.lines[-1].timestamp if self.lines else self.timestamp
 
     def merge(self, dicdata: dict):
         for k, v in dicdata.items():
@@ -93,7 +78,6 @@ class PostfixMessage(Dictable):
 
     def clean_dict(self, convert_time=str) -> dict:
         data = dict(self)
-        #print(data)
         if is_false(convert_time):
             data['timestamp'] = self.timestamp
             data['first_attempt'], data['last_attempt'] = self.first_attempt, self.last_attempt
@@ -101,7 +85,6 @@ class PostfixMessage(Dictable):
             data['timestamp'] = convert_time(self.timestamp)
             data['first_attempt'] = convert_time(self.first_attempt)
             data['last_attempt'] = convert_time(self.last_attempt)
-        
+
         data['lines'] = [s.clean_dict(convert_time=convert_time) for s in self.lines]
-        
         return data

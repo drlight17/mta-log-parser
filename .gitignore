@@ -1,6 +1,8 @@
 .env
 *.log
 venv/
+__pycache__/
+*.py[cod]
 *.txt
 Dockerfile
 *.bak

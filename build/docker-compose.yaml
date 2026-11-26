@@ -1,6 +1,4 @@
 # compose file for building image
-version: '3.9'
-
 services:
   mlp:
     container_name: mta-log-parser

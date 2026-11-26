@@ -42,12 +42,13 @@ subparser = parser.add_subparsers()
 
 
 def runserver(opt):
+    from mlp import settings
     from mlp.webui import app
 
     app.run(
         host=opt.host,
         port=opt.port,
-        debug=app.config.get('DEBUG', False)
+        debug=settings.DEBUG
     )
 
 
