@@ -88,6 +88,7 @@
 				{{ VERSION }}
 				<span v-if="localeData.footer.three" v-html="localeData.footer.three"></span>
 				<span v-else v-html="fallbackLocaleData.footer.three"></span>
+				<span id="update_available_placeholder"></span>
 				<br>
 				<span style="opacity:.5;" v-if="localeData.footer.one" v-html="localeData.footer.one"></span>
 				<span style="opacity:.5;" v-else v-html="fallbackLocaleData.footer.one"></span>
@@ -110,7 +111,8 @@
                         <i class="copy icon"></i>
                     </div>
                     <iframe 
-                        src="https://ghbtns.com/github-btn.html?user=drlight17&repo=mta-log-parser&type=star&count=true&size=large" frameborder="0"
+                        data-src="https://ghbtns.com/github-btn.html?user=drlight17&repo=mta-log-parser&type=star&count=true&size=large"
+                        loading="lazy" frameborder="0"
                         scrolling="0"
                         width="125"
                         height="30"

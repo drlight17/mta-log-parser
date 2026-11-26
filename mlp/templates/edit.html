@@ -82,16 +82,16 @@
                     </div>
                     <div class="field">
                         <div class="ui input left icon">
-                            <input ref="password" v-if="localeData.register.password_ph" autocomplete="on" type="password" id="password" class="ui input" name="password" :placeholder="localeData.register.password_ph" :value="acc.password">
-                            <input ref="password" v-else autocomplete="on" type="password" class="ui input" name="password" :placeholder="fallbackLocaleData.register.password_ph" :value="acc.password">
-                            <i class="key icon"></i>
+                            <input ref="password" v-if="localeData.register.password_ph" autocomplete="on" :type="show_password ? 'text' : 'password'" id="password" class="ui input" name="password" :placeholder="localeData.register.password_ph" v-model="password">
+                            <input ref="password" v-else autocomplete="on" :type="show_password ? 'text' : 'password'" class="ui input" name="password" :placeholder="fallbackLocaleData.register.password_ph" v-model="password">
+                            <i class="eye icon link" :class="{ slash: show_password }" style="cursor: pointer;" @click="toggle_password('show_password')"></i>
                         </div>
                     </div>
                     <div class="field">
                         <div class="ui input left icon">
-                            <input ref="password2" v-if="localeData.register.password_again_ph" autocomplete="on" type="password" id="password2" class="ui input" name="password2" :placeholder="localeData.register.password_again_ph" :value="acc.password">
-                            <input ref="password2" v-else autocomplete="on" type="password" class="ui input" name="password2" :placeholder="fallbackLocaleData.register.password_again_ph" :value="acc.password">
-                            <i class="key icon"></i>
+                            <input ref="password2" v-if="localeData.register.password_again_ph" autocomplete="on" :type="show_password2 ? 'text' : 'password'" id="password2" class="ui input" name="password2" :placeholder="localeData.register.password_again_ph" v-model="password2">
+                            <input ref="password2" v-else autocomplete="on" :type="show_password2 ? 'text' : 'password'" class="ui input" name="password2" :placeholder="fallbackLocaleData.register.password_again_ph" v-model="password2">
+                            <i class="eye icon link" :class="{ slash: show_password2 }" style="cursor: pointer;" @click="toggle_password('show_password2')"></i>
                         </div>
                     </div>
                     <div class="field">

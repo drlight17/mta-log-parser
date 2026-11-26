@@ -76,6 +76,10 @@ const app = Vue.createApp({
             accounts: [],
             acc: [],
             edit_type: '',
+            password: '',
+            password2: '',
+            show_password: false,
+            show_password2: false,
             path_page: 0,
             loaded_settings: false,
             timer:'',
@@ -513,6 +517,11 @@ const app = Vue.createApp({
                 }).modal('show');
         },
         showDonate(a,index,type) {
+            // Load the external GitHub button only when the dialog is actually opened
+            var githubBtn = document.querySelector('#donate-modal iframe');
+            if (githubBtn && !githubBtn.getAttribute('src') && githubBtn.dataset.src) {
+                githubBtn.src = githubBtn.dataset.src;
+            }
             $('#donate-modal').modal({
                 onHidden: function () {
                     //$('body').removeClass('scrolling');
@@ -1474,8 +1483,15 @@ const app = Vue.createApp({
             window.location = path_prefix+'/logout';
 
         },
+        toggle_password(field) {
+            this[field] = !this[field];
+        },
         show_acc_modal(a,index,type) {
             this.edit_type = type;
+            this.password = '';
+            this.password2 = '';
+            this.show_password = false;
+            this.show_password2 = false;
 
             modal = $('#acc-modal');
 
@@ -2105,55 +2121,35 @@ const app = Vue.createApp({
 
 
         },
+        addUpdateNotice(version) {
+            window.app.waitForElm('#update_available_placeholder').then((elm) => {
+                if ($('#update_available').length > 0) {
+                    return;
+                }
+                var text = window.app.localeData.footer.four == undefined ? window.app.fallbackLocaleData.footer.four : window.app.localeData.footer.four;
+                var text2 = window.app.localeData.footer.five == undefined ? window.app.fallbackLocaleData.footer.five : window.app.localeData.footer.five;
+                $(elm).append(' | <span id="update_available" class="blinking">' + text + " <a href='https://github.com/drlight17/mta-log-parser/releases/latest' target='_BLANK'>" + version + "</a>" + text2 + '</span>');
+            });
+        },
         async updateCheck() {
             if (!(this.getCookie('mlp_latest_version'))) {
                 await $.getJSON("https://api.github.com/repos/drlight17/mta-log-parser/releases/latest")
                 .done(function(json_data_fallback) {
-                    response = JSON.parse(JSON.stringify(json_data_fallback));
-                    document.cookie = "mlp_latest_version="+response["tag_name"].substring(1)+"; max-age=3600";
-                    //if (parser_version != response["tag_name"].substring(1)) {
-                    if (parser_version.localeCompare(response["tag_name"].substring(1), undefined, { numeric: true, sensitivity: 'base' }) == '-1') {
-                        window.app.waitForElm('#footer > div > span:nth-child(3)').then((elm) => {
-                            if (window.app.localeData.footer.four == undefined) {
-                                text = window.app.fallbackLocaleData.footer.four
-                            } else {
-                                text = window.app.localeData.footer.four
-                            }
-                            if (window.app.localeData.footer.five == undefined) {
-                                text2 = window.app.fallbackLocaleData.footer.five
-                            } else {
-                                text2 = window.app.localeData.footer.five
-                            }
-                            if ($('#update_available').length == 0) {
-                                $(elm).append(' | '+'<span id="update_available" class="blinking">'+text+" <a href='https://github.com/drlight17/mta-log-parser/releases/latest' target='_BLANK'>"+response["tag_name"].substring(1)+"</a>"+text2+'</span>');
-                            }
-                        });
+                    var response = JSON.parse(JSON.stringify(json_data_fallback));
+                    var latest = response["tag_name"].substring(1);
+                    document.cookie = "mlp_latest_version=" + latest + "; max-age=3600";
+                    if (parser_version.localeCompare(latest, undefined, { numeric: true, sensitivity: 'base' }) == '-1') {
+                        window.app.addUpdateNotice(latest);
                     }
                 })
-
                 .fail(function() {
-                    document.cookie = "mlp_latest_version="+parser_version+"; max-age=3600";
+                    document.cookie = "mlp_latest_version=" + parser_version + "; max-age=3600";
                     console.warn("Failed to get latest version from the repository");
-                })
+                });
             } else {
-                //if (parser_version != this.getCookie('mlp_latest_version')) {
-                if (parser_version.localeCompare(this.getCookie('mlp_latest_version'), undefined, { numeric: true, sensitivity: 'base' }) == '-1') {
-                    window.app.waitForElm('#footer > div > span:nth-child(2)').then((elm) => {
-                        if (window.app.localeData.footer.four == undefined) {
-                            text = window.app.fallbackLocaleData.footer.four
-                        } else {
-                            text = window.app.localeData.footer.four
-                        }
-                        if (window.app.localeData.footer.five == undefined) {
-                            text2 = window.app.fallbackLocaleData.footer.five
-                        } else {
-                            text2 = window.app.localeData.footer.five
-                        }
-
-                        if ($('#update_available').length == 0) {
-                            $(elm).append(' | '+'<span id="update_available" class="blinking">'+text+" <a href='https://github.com/drlight17/mta-log-parser/releases/latest' target='_BLANK'>"+this.getCookie('mlp_latest_version')+"</a>"+text2+'</span>');
-                        }
-                    });
+                var latest = this.getCookie('mlp_latest_version');
+                if (parser_version.localeCompare(latest, undefined, { numeric: true, sensitivity: 'base' }) == '-1') {
+                    this.addUpdateNotice(latest);
                 }
             }
         },

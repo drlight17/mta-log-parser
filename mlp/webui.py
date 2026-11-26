@@ -51,11 +51,14 @@ PREFIX = settings.path_prefix
 new_static_path = PREFIX+"/static"
 app.static_url_path = new_static_path
 
-# version to static files
+# version to static files (file mtime busts browser caches on every change)
 @app.template_filter('version')
 def version_filter(filename):
-  newfilename = filename+"?v="+VERSION
-  return newfilename
+    try:
+        version = int(os.path.getmtime(os.path.join(app.static_folder, filename)))
+    except (OSError, TypeError):
+        version = VERSION
+    return f"{filename}?v={version}"
 
 app.url_map._rules_by_endpoint['static'] = []
 
