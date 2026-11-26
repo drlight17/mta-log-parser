@@ -262,6 +262,11 @@ const app = Vue.createApp({
                 this.debounce_emails(true);
             }
         },
+        clearFilter(field) {
+            this[field] = '';
+            this.reset_page();
+            this.debounce_emails(true);
+        },
         check_date_lt () {
             if (this.path_page == 2) {
                 if (window.app.settings.filters) {

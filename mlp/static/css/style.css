@@ -5,7 +5,19 @@
 
 #app {
     margin-right: initial!important;
-    height: max-content!important;
+    height: auto!important;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#main-wrapper {
+    flex: 1 0 auto;
+}
+
+#footer-wrapper {
+    flex: 0 0 auto;
+    width: 100%;
 }
 
 /*dark skin*/
@@ -270,12 +282,14 @@ summary {
 
 /*logo*/
 #main-wrapper {
+    position: relative;
     display: flex;
     width: 100%;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     flex-direction: column;
 }
+
 .logo img {
     width: 100px;
     height: 60px;
@@ -1076,4 +1090,45 @@ div.ui.menu.item.contextMenu.animate {
 
 #user-settings-wrapper div.ui.toggle.checkbox {
     margin-right: 2em;
+}
+
+/* clear buttons inside filter inputs */
+.ui.input.has-clear > input {
+    padding-right: 2.4em;
+}
+.ui.input > i.clear-input {
+    left: auto!important;
+    right: .15em!important;
+    width: 2em;
+    border-radius: 0 .28571429rem .28571429rem 0!important;
+    pointer-events: auto!important;
+    cursor: pointer;
+    opacity: .6;
+}
+.ui.input > i.clear-input:hover {
+    opacity: 1;
+}
+
+/* clear button for calendar inputs (kept outside the calendar widget) */
+.date-filter-wrapper {
+    position: relative;
+    width: 100%;
+}
+.date-filter-wrapper > .ui.calendar,
+.date-filter-wrapper .ui.input {
+    width: 100%;
+}
+.date-filter-wrapper > i.clear-input {
+    position: absolute;
+    top: 50%;
+    right: .65em;
+    transform: translateY(-50%);
+    width: 2em;
+    cursor: pointer;
+    opacity: .6;
+    pointer-events: auto;
+    z-index: 2;
+}
+.date-filter-wrapper > i.clear-input:hover {
+    opacity: 1;
 }

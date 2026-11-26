@@ -60,10 +60,11 @@
                         :class="[isEqual ? 'equals icon' : 'not equal icon']"></i>
                     </span>
                     <div class="eight wide field">
-                        <div class="ui input left icon">
+                        <div class="ui input left icon has-clear">
                             <input v-on:keyup.enter="check_button()" id="text_search" v-if="localeData.filters.search_placeholder" v-model="search" type="text" class="ui input" :placeholder="localeData.filters.search_placeholder">
                             <input v-on:keyup.enter="check_button()" id="text_search" v-else v-model="search" type="text" class="ui input" :placeholder="fallbackLocaleData.filters.search_placeholder">
                             <i class="search icon"></i>
+                            <i v-if="search" class="times circle icon link clear-input" @click.stop="clearFilter('search')"></i>
                         </div>
                     </div>
                     <span v-if="localeData.filters.search_by" v-html="localeData.filters.search_by" id="by"></span>
@@ -114,21 +115,27 @@
             <div class="ui form">
                 <div class="two fields">
                   <div class="field">
-                    <div class="ui calendar" :class="{ inverted: settings.dark, disabled: !settings.filters }" id="rangestart">
-                      <div class="ui input left icon">
-                        <i class="calendar icon"></i>
-                        <input v-if="localeData.filters.date_filter__gt_placeholder" v-model="date_filter__gt" type="text" :placeholder="localeData.filters.date_filter__gt_placeholder">
-                        <input v-else v-model="date_filter__gt" type="text" :placeholder="fallbackLocaleData.filters.date_filter__gt_placeholder">
+                    <div class="date-filter-wrapper">
+                      <div class="ui calendar" :class="{ inverted: settings.dark, disabled: !settings.filters }" id="rangestart">
+                        <div class="ui input left icon has-clear">
+                          <i class="calendar icon"></i>
+                          <input v-if="localeData.filters.date_filter__gt_placeholder" v-model="date_filter__gt" type="text" :placeholder="localeData.filters.date_filter__gt_placeholder">
+                          <input v-else v-model="date_filter__gt" type="text" :placeholder="fallbackLocaleData.filters.date_filter__gt_placeholder">
+                        </div>
                       </div>
+                      <i v-if="date_filter__gt" class="times circle icon link clear-input" @click.stop="clearFilter('date_filter__gt')"></i>
                     </div>
                   </div>
 	            <div class="field">
-	                  <div class="ui calendar" :class="{ inverted: settings.dark }" id="rangeend">
-	                      <div class="ui input left icon">
-	                        <i class="calendar icon"></i>
-	                        <input v-if="localeData.filters.date_filter__lt_placeholder" v-model="date_filter__lt" type="text" :placeholder="localeData.filters.date_filter__lt_placeholder">
-	                        <input v-else v-model="date_filter__lt" type="text" :placeholder="fallbackLocaleData.filters.date_filter__lt_placeholder">
-	                      </div>
+	                  <div class="date-filter-wrapper">
+	                    <div class="ui calendar" :class="{ inverted: settings.dark }" id="rangeend">
+	                        <div class="ui input left icon has-clear">
+	                          <i class="calendar icon"></i>
+	                          <input v-if="localeData.filters.date_filter__lt_placeholder" v-model="date_filter__lt" type="text" :placeholder="localeData.filters.date_filter__lt_placeholder">
+	                          <input v-else v-model="date_filter__lt" type="text" :placeholder="fallbackLocaleData.filters.date_filter__lt_placeholder">
+	                        </div>
+	                    </div>
+	                    <i v-if="date_filter__lt" class="times circle icon link clear-input" @click.stop="clearFilter('date_filter__lt')"></i>
 	                  </div>
 	              </div>
 	            </div>
@@ -389,7 +396,7 @@
             </div>
         </div>
     </div>
-
+</div>
 
 {% endblock %}
 
