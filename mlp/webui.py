@@ -19,7 +19,7 @@ import hmac
 import json
 import os.path
 from dataclasses import dataclass, field
-from datetime import timezone
+from datetime import timedelta, timezone
 from typing import List, Union, Mapping, Tuple
 
 import rethinkdb.query
@@ -69,6 +69,7 @@ app.add_url_rule(f'{new_static_path}/<path:filename>',
 app.secret_key = settings.secret_key
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
 
 if settings.insecure_secret_key:
     _secret_msg = 'SECRET_KEY is unset or uses a default value. Set a strong random SECRET_KEY in your environment.'
@@ -171,6 +172,7 @@ async def login():
 
     if auth_status == 1:
         session.clear()
+        session.permanent = bool(frm.get('remember'))
         session['login'] = frm.get('login')
         session['admin'] = random_str()
         return redirect(f'{PREFIX}/emails')
@@ -244,6 +246,7 @@ async def logout():
 
     session.pop('admin', None)
     session.pop('login', None)
+    session.permanent = False
     if 'NOTIE_MESSAGE' not in session:
         session['NOTIE_MESSAGE'] = "logged_out"
         

@@ -13,6 +13,7 @@ Unreleased VER.
 - parse log file from the new lines since last parsing
 
 Ver. 1.8.6
+- ~~NEW: "Remember me" login option keeps the session until logout~~
 - ~~NEW: hide/show email table columns from a header right-click menu; the whole table header pulses when columns are hidden, and column resizing/Excel export respect visible columns~~
 - ~~NEW: status is always visible while queue_id can be hidden from the column menu~~
 - ~~NEW: Client and Relay columns in the email table, search-by dropdown, sorting and Excel export ([#30](https://github.com/drlight17/mta-log-parser/issues/30))~~

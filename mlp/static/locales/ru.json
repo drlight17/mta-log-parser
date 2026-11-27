@@ -69,6 +69,7 @@
     "message_ldap": "Пожалуйста, введите данные LDAP аккаунта для входа.",
     "login_ph": "Ваш логин",
     "password_ph": "Ваш пароль",
+    "remember": "Запомнить меня",
     "login_button": "Войти"
   },
   "register": {

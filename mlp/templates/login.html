@@ -30,6 +30,15 @@
                         </div>
                     </div>
                     <div class="field">
+                        <div class="ui checkbox">
+                            <input type="checkbox" name="remember" id="remember" value="1">
+                            <label for="remember">
+                                <span v-if="localeData.login.remember" v-html="localeData.login.remember"></span>
+                                <span v-else v-html="fallbackLocaleData.login.remember"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="field">
                         <button class="ui button primary navi"><i class="sign in alternate icon"></i><span v-if="localeData.login.login_button" v-html="localeData.login.login_button"></span><span v-else v-html="fallbackLocaleData.login.login_button"></span></button>
                     </div>
             </form>

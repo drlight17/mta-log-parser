@@ -69,6 +69,7 @@
     "message_ldap": "Please use LDAP login and password to proceed.",
     "login_ph": "Type login",
     "password_ph": "Type password",
+    "remember": "Remember me",
     "login_button": "Log in"
   },
   "register": {
