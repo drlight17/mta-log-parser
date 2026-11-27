@@ -93,7 +93,8 @@ const app = Vue.createApp({
             swiped: false,
             is_mobile: false,
             reduced_navi: false,
-            processing: false
+            processing: false,
+            parser_poll_timer: null
         }
     },
     computed: {
@@ -291,6 +292,62 @@ const app = Vue.createApp({
             }
         },
         // table to excel export
+        ForceParse() {
+            if (this.processing) {
+                return;
+            }
+            var locale = this.localeData.notie || {};
+            var fallback = this.fallbackLocaleData.notie || {};
+            var started = locale.thirty_one !== undefined ? locale.thirty_one : fallback.thirty_one;
+            var busy = locale.thirty_two !== undefined ? locale.thirty_two : fallback.thirty_two;
+            var failed = locale.thirty_three !== undefined ? locale.thirty_three : fallback.thirty_three;
+
+            this.processing = true;
+            fetch(`${path_prefix}/api/parse`, {method: 'POST'})
+                .then((response) => response.json().then((data) => ({status: response.status, data: data})))
+                .then((res) => {
+                    if (res.status === 409 || (res.data && res.data.error === 'busy')) {
+                        notie.alert({type: 'warning', text: busy, time: 5});
+                        this.watch_parser();
+                    } else if (!res.data || res.data.error) {
+                        this.processing = false;
+                        notie.alert({type: 'error', text: failed, time: 5});
+                    } else if (res.data.status === 'started') {
+                        notie.alert({type: 'success', text: started, time: 3});
+                        this.watch_parser();
+                    } else {
+                        this.processing = false;
+                        notie.alert({type: 'success', text: started, time: 3});
+                        this.loadEmails(false);
+                    }
+                })
+                .catch(() => {
+                    this.processing = false;
+                    notie.alert({type: 'error', text: failed, time: 5});
+                });
+        },
+        watch_parser() {
+            if (this.parser_poll_timer) {
+                return;
+            }
+            var poll = () => {
+                fetch(base_url4)
+                    .then((response) => response.json())
+                    .then((res) => {
+                        if (res.processing) {
+                            this.parser_poll_timer = setTimeout(poll, 1000);
+                        } else {
+                            this.parser_poll_timer = null;
+                            this.processing = false;
+                            this.loadEmails(false);
+                        }
+                    })
+                    .catch(() => {
+                        this.parser_poll_timer = setTimeout(poll, 2000);
+                    });
+            };
+            poll();
+        },
         ExportToExcel(type, fn, dl) {
            var source = document.getElementById('emails-list');
            var wb = XLSX.utils.table_to_book(source, { sheet: "sheet1" });

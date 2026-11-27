@@ -69,6 +69,9 @@ path_prefix = env('PATH_PREFIX', '')
 # add housekeeping_days var from env
 housekeeping_days = env_int('HOUSEKEEPING_DAYS', 0)
 
+# parser loop interval in minutes (0 disables the automatic loop)
+parse_interval = env_int('PARSE_INTERVAL', 1)
+
 # add datetime_format var from env
 datetime_format = env('DATETIME_FORMAT', 'HH:mm:ss, DD.MM.YYYY')
 

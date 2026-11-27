@@ -13,6 +13,8 @@ Unreleased VER.
 - parse log file from the new lines since last parsing
 
 Ver. 1.8.6
+- ~~NEW: parser loop runs inside the container every `PARSE_INTERVAL` minutes (default 1, 0 disables) instead of external cron; added a "Parse now" GUI action (disabled while parsing) and show the interval in tips~~
+- ~~BUG: wait for RethinkDB primary availability before parsing and use a single upsert to avoid startup save errors~~
 - ~~NEW: "Remember me" login option keeps the session until logout~~
 - ~~NEW: hide/show email table columns from a header right-click menu; the whole table header pulses when columns are hidden, and column resizing/Excel export respect visible columns~~
 - ~~NEW: status is always visible while queue_id can be hidden from the column menu~~

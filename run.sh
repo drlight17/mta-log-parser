@@ -65,19 +65,51 @@ cd "$DIR"
 
 [[ -f .env ]] && source .env || msg yellow " >> Warning: No .env file found."
 
+# Parser loop interval in minutes (0 disables the automatic parser loop)
+: ${PARSE_INTERVAL='1'}
+if ! [[ "$PARSE_INTERVAL" =~ ^[0-9]+$ ]]; then
+    msg yellow " >> Warning: invalid PARSE_INTERVAL '$PARSE_INTERVAL', using 1"
+    PARSE_INTERVAL=1
+fi
+
 # Override these defaults inside of `.env`
 : ${HOST='127.0.0.1'}
 : ${PORT='8487'}
 : ${GU_WORKERS='10'}    # Number of Gunicorn worker processes
+
+parse_loop () {
+    exec 9>/tmp/lck_mlp_loop
+    if ! flock -n 9; then
+        msg yellow "Parser loop is already running"
+        return 1
+    fi
+    while true; do
+        msg ts bold green "Parsing mail log (interval ${PARSE_INTERVAL} min)"
+        flock -n /tmp/lck_mlp ./manage.py parse || true
+        sleep $((PARSE_INTERVAL * 60))
+    done
+}
 
 case "$1" in
     dev*)
         QUART_APP=wsgi QUART_ENV=development ./manage.py runserver --host "${HOST}" --port "${PORT}"
         ;;
     ''|prod*)
+        if [ "$PARSE_INTERVAL" -gt 0 ]; then
+            parse_loop &
+            PARSE_LOOP_PID=$!
+            trap 'kill "$PARSE_LOOP_PID" 2>/dev/null' EXIT
+        fi
         hypercorn -b "${HOST}:${PORT}" -w "$GU_WORKERS" wsgi
         ;;
-    cron|import|parse*)
+    cron)
+        if [ "$PARSE_INTERVAL" -gt 0 ]; then
+            parse_loop
+        else
+            msg yellow "PARSE_INTERVAL=0, parser loop is disabled"
+        fi
+        ;;
+    import|parse*)
         ./manage.py parse
         ;;
     *)
@@ -88,8 +120,10 @@ case "$1" in
         msg bold green "    Source: https://github.com/drlight17/mta-log-parser\n"
         msg green "Available run.sh commands:\n"
         msg yellow "\t dev - Start the Flask development server - UNSAFE FOR PRODUCTION"
-        msg yellow "\t prod - Start the production Hypercorn server"
-        msg yellow "\t parse - Parse and import Postfix logs"
+        msg yellow "\t prod - Start the production Hypercorn server with the parser loop"
+        msg yellow "\t cron - Run the parser loop only"
+        msg yellow "\t parse - Parse and import Postfix logs once"
+        msg yellow "\n\t Parser loop interval is set by PARSE_INTERVAL (minutes, default 1, 0 disables)"
         msg
         ;;
 esac

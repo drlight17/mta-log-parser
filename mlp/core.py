@@ -15,9 +15,11 @@ Copyright::
     +===================================================+
 
 """
+import asyncio
 import logging
 import os
 import re
+import time
 import rethinkdb.query
 
 from typing import Tuple, List
@@ -56,6 +58,43 @@ def compile_env_regex(env_name: str, default_pattern: str) -> re.Pattern:
     except re.error as exc:
         log.error('Invalid regular expression in %s: %s', env_name, exc)
         raise SystemExit(1)
+
+
+async def wait_for_rethink(timeout: int = 120, interval: int = 2) -> bool:
+    """
+    Wait until RethinkDB is reachable and the existing sent_mail table has an available
+    primary replica. This prevents startup races when the parser runs before RethinkDB
+    has finished recovering its data.
+    """
+    deadline = time.monotonic() + timeout
+    r = RethinkDB()
+    r.set_loop_type('asyncio')
+    attempt = 0
+
+    while time.monotonic() < deadline:
+        conn = None
+        try:
+            conn = await r.connect(settings.rethink_host, settings.rethink_port, timeout=5)
+            dbs = await r.db_list().run(conn, array_limit=settings.rethink_arr_limit)
+            if settings.rethink_db in dbs:
+                tables = await r.db(settings.rethink_db).table_list().run(conn, array_limit=settings.rethink_arr_limit)
+                if 'sent_mail' in tables:
+                    await r.db(settings.rethink_db).table('sent_mail').limit(1).count().run(
+                        conn, array_limit=settings.rethink_arr_limit
+                    )
+            return True
+        except Exception as exc:
+            attempt += 1
+            log.info('Waiting for RethinkDB to become ready (attempt %d): %s', attempt, exc)
+        finally:
+            if conn is not None:
+                try:
+                    await conn.close()
+                except Exception:
+                    pass
+        await asyncio.sleep(interval)
+
+    return False
 
 
 async def get_rethink() -> Tuple[DB, DefaultConnection, RethinkDB]:

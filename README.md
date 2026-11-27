@@ -62,9 +62,8 @@ docker-compose up -d
 # To stop app with web GUI app run
 docker-compose down
 
-# To schedule log parsing add to your crontab (every minute in example)
-crontab -e
-*/1  *   *   *   *   docker exec -t mta-log-parser flock /tmp/lck_mlp /app/run.sh cron
+# Log parsing runs automatically inside the container every PARSE_INTERVAL minutes (default 1).
+# Set PARSE_INTERVAL in .env (0 disables the loop). Use the "Parse now" GUI button to run it immediately.
 
 
 
@@ -127,12 +126,9 @@ cp example.env .env
 # to the password you want to use to log into the web application.
 nano .env
 
-# Add a crontab entry to run the parse/import script every minute or so
-# You should use a file lock utility such as `flock` (included by default on Ubuntu) or `lckdo` to prevent the
-# cron overlapping if there's a lot to parse.
-
-crontab -e
-# *  *   *   *   *    flock /tmp/lck_mailparser /home/mailparser/mta-log-parser/run.sh cron
+# The production service runs the parser loop automatically every PARSE_INTERVAL minutes
+# (default 1, set it in .env; 0 disables the loop). The GUI "Parse now" button starts it immediately.
+# `./run.sh parse` still runs a single import manually.
 
 ####
 # DEVELOPMENT

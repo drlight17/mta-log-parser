@@ -62,7 +62,10 @@
     "twenty_seven": "Parsing is running. Updated data will be available after process completion. Wait...",
     "twenty_eight": "API call error. Rethinkdb output overlimit! Check RETHINK_ARR_LIMIT value in .env and increase it if necessary.",
     "twenty_nine": "Error copying to clipboard, because web GUI works in non-secure http context. Please copy text manually.",
-    "thirty": "Sber card number is copied to clipboard."
+    "thirty": "Sber card number is copied to clipboard.",
+    "thirty_one": "Log parsing started.",
+    "thirty_two": "Log parser is already running.",
+    "thirty_three": "Could not start the log parser. Check backend logs!"
   },
   "login": {
     "message": "Please login to proceed.",
@@ -132,6 +135,8 @@
     "log_out_title": "Logout from current user",
     "export_to_xls": "Export",
     "export_to_xls_title": "Export current page contents to Excel file",
+    "force_parse": "Parse now",
+    "force_parse_title": "Run the log parser immediately",
     "back_to_emails": "Back",
     "back_to_emails_title": "Get back to the emails table",
     "acc_ctrl": "Accounts",
@@ -182,6 +187,7 @@
     "seven": "<code>DEFAULT_LIMIT</code> (amount of emails per page) is currently set to",
     "eight": "<code>MAX_LIMIT</code> (maximum number for <code>?limit=</code>) is currently set to",
     "nine": "<code>HOUSEKEEPING_DAYS</code> (maximum days of logs storing before cleanup) is currently set to",
+    "parse_interval": "<code>PARSE_INTERVAL</code> (automatic log parsing interval in minutes) is currently set to",
     "ten": "<code>DATETIME_FORMAT</code> (date/time format) is currently set to",
     "eleven": "Click cell content to set text filter and search_by value to the values of cell content and it's column accordingly",
     "twelve": "If \"Save filters\" is off then you can only change end date field, start date is dynamically filled based on the \"Show logs for\" <i class=\"clock icon\"></i> slider value!",

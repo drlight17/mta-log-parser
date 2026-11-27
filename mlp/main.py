@@ -33,7 +33,7 @@ import moment
 import rethinkdb.query
 
 from mlp import settings
-from mlp.core import get_rethink, __STORE, compile_env_regex
+from mlp.core import get_rethink, __STORE, compile_env_regex, wait_for_rethink
 from mlp.objects import PostfixLog, PostfixMessage
 from mlp.parser import parse_line
 
@@ -85,6 +85,10 @@ async def save_obj(table, data, primary=None, onconflict: OnConflict = OnConflic
 
     if 'id' not in _data:
         _data['id'] = _data[primary]
+
+    if onconflict == OnConflict.UPDATE:
+        return await r.table(table).insert(_data, conflict='update').run(conn, array_limit=settings.rethink_arr_limit)
+
     existing = await r.table(table).get(_data[primary]).run(conn, array_limit=settings.rethink_arr_limit)
 
     if existing is None:
@@ -94,8 +98,6 @@ async def save_obj(table, data, primary=None, onconflict: OnConflict = OnConflic
         return None
     if onconflict == OnConflict.EXCEPT:
         raise ObjectExists(f"Table '{table}' entry with '{primary} = {_data[primary]}' already exists!")
-    if onconflict == OnConflict.UPDATE:
-        return await r.table(table).get(_data[primary]).update(_data).run(conn, array_limit=settings.rethink_arr_limit)
     raise AttributeError("'save_obj' onconflict must be either 'quiet', 'except', or 'update'")
 
 
@@ -376,13 +378,16 @@ async def _import_phase():
     log.info('Saving %d message entries', len(save_list))
     results = await asyncio.gather(*save_list, return_exceptions=True)
     errors = [result for result in results if isinstance(result, Exception)]
-    for error in errors:
-        log.error('Failed to save message entry: %s', error)
     if errors:
+        log.error('%d message(s) failed to save. First error: %s', len(errors), errors[0])
         raise RuntimeError(f'{len(errors)} message(s) failed to save') from errors[0]
 
 
 async def main():
+    if not await wait_for_rethink():
+        log.error('RethinkDB did not become ready in time, parser aborted')
+        raise RuntimeError('RethinkDB is not ready')
+
     if settings.gui_refresh_block:
         log.info('Blocking GUI updates while processing')
         open(lockfile, 'w').close()

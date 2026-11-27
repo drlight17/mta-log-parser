@@ -15,9 +15,12 @@ Copyright::
     +===================================================+
 
 """
+import asyncio
+import fcntl
 import hmac
 import json
 import os.path
+import sys
 from dataclasses import dataclass, field
 from datetime import timedelta, timezone
 from typing import List, Union, Mapping, Tuple
@@ -48,6 +51,7 @@ app = Quart(__name__)
 
 # add path prefix
 PREFIX = settings.path_prefix
+PARSER_LOCK = '/tmp/lck_mlp'
 new_static_path = PREFIX+"/static"
 app.static_url_path = new_static_path
 
@@ -212,10 +216,23 @@ async def emails_ui():
     return await render_template('emails.html', VUE_DEBUG=settings.vue_debug, NOTIE_MESSAGE=NOTIE_MESSAGE, ARGS=ARGS, settings=settings, VERSION=VERSION, LOGIN=session['login'])
 
 
+def _parser_running():
+    try:
+        with open(PARSER_LOCK, 'a') as lock:
+            try:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError:
+                return True
+            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+    except OSError:
+        return False
+    return False
+
+
 @app.route(f'{PREFIX}/api/process_check', methods=['GET'])
 @app.route(f'{PREFIX}/api/process_check/', methods=['GET'])
 async def process_check():
-    return {'processing': bool(settings.gui_refresh_block and os.path.isfile(lockfile))}
+    return {'processing': bool(_parser_running() or (settings.gui_refresh_block and os.path.isfile(lockfile)))}
 
 @app.route(f'{PREFIX}/auth', methods=['GET'])
 @app.route(f'{PREFIX}/auth/', methods=['GET'])
@@ -308,6 +325,35 @@ async def api_auth():
         accounts = [dict(s) async for s in result]
 
     return jsonify(accounts)
+
+
+@app.route(f'{PREFIX}/api/parse', methods=['POST'])
+async def api_parse():
+    if 'admin' not in session:
+        return jsonify({'error': 'unauthorized'}), 401
+    if await _require_auth():
+        return jsonify({'error': 'unauthorized'}), 401
+
+    project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            'flock', '-n', PARSER_LOCK, sys.executable, 'manage.py', 'parse',
+            cwd=project_dir,
+        )
+    except Exception:
+        log.exception('Failed to start parser process')
+        return jsonify({'error': 'failed'}), 500
+
+    try:
+        await asyncio.wait_for(proc.wait(), timeout=0.5)
+    except asyncio.TimeoutError:
+        return jsonify({'status': 'started'})
+
+    if proc.returncode == 1:
+        return jsonify({'error': 'busy'}), 409
+    if proc.returncode != 0:
+        return jsonify({'error': 'failed'}), 500
+    return jsonify({'status': 'finished'})
 
 # All GET params are used for api/stats?status=reject
 @app.route(f'{PREFIX}/api/stats', methods=['GET'])
