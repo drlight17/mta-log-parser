@@ -652,11 +652,11 @@ const app = Vue.createApp({
             return this.hidden_columns.indexOf(column) >= 0;
         },
         is_protected_column(column) {
-            return column === 'timestamp' || column === 'id' || column === 'queue_id';
+            return column === 'timestamp' || column === 'status';
         },
         hideable_columns() {
             return [
-                {id: 'status', label: 'status_code'},
+                {id: 'id', label: 'queue_id'},
                 {id: 'mail_from', label: 'mail_from'},
                 {id: 'mail_to', label: 'mail_to'},
                 {id: 'subject', label: 'subject'},
@@ -676,7 +676,9 @@ const app = Vue.createApp({
             try {
                 var saved = JSON.parse(window.localStorage['hidden_columns'] || '[]');
                 if (Array.isArray(saved)) {
-                    this.hidden_columns = saved.filter((column) => !this.is_protected_column(column));
+                    this.hidden_columns = saved
+                        .map((column) => column === 'queue_id' ? 'id' : column)
+                        .filter((column) => !this.is_protected_column(column));
                 }
             } catch (e) {
                 this.hidden_columns = [];

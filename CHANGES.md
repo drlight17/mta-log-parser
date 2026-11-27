@@ -14,6 +14,7 @@ Unreleased VER.
 
 Ver. 1.8.6
 - ~~NEW: hide/show email table columns from a header right-click menu; the whole table header pulses when columns are hidden, and column resizing/Excel export respect visible columns~~
+- ~~NEW: status is always visible while queue_id can be hidden from the column menu~~
 - ~~NEW: Client and Relay columns in the email table, search-by dropdown, sorting and Excel export ([#30](https://github.com/drlight17/mta-log-parser/issues/30))~~
 - ~~BUG: parse postfix `NOQUEUE: reject` log lines ([#29](https://github.com/drlight17/mta-log-parser/issues/29))~~
 - ~~NEW: allow overriding built-in parser regular expressions from `.env` via `PARSER_*_REGEX` ([#25](https://github.com/drlight17/mta-log-parser/issues/25), [#28](https://github.com/drlight17/mta-log-parser/issues/28))~~

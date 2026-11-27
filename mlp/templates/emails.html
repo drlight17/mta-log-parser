@@ -174,10 +174,10 @@
             	<!--<th>#</th>-->
                 <th v-if="localeData.emails_list.timestamp" id="timestamp"><i class="clock icon"></i> [[ localeData.emails_list.timestamp ]]</th>
                 <th v-else id="timestamp"><i class="clock icon"></i> [[ fallbackLocaleData.emails_list.timestamp ]]</th>
-                <th v-if="localeData.emails_list.timestamp" id="id"><i class="stream icon"></i> [[ localeData.emails_list.queue_id ]]</th>
-                <th v-else id="queue_id"><i class="stream icon"></i> [[ fallbackLocaleData.emails_list.queue_id ]]</th>
-                <th v-if="!is_column_hidden('status') && localeData.emails_list.status_code" id="status"><i class="info icon"></i> [[ localeData.emails_list.status_code ]]</th>
-                <th v-if="!is_column_hidden('status') && !localeData.emails_list.status_code" id="status"><i class="info icon"></i> [[ fallbackLocaleData.emails_list.status_code ]]</th>
+                <th v-if="!is_column_hidden('id') && localeData.emails_list.queue_id" id="id"><i class="stream icon"></i> [[ localeData.emails_list.queue_id ]]</th>
+                <th v-if="!is_column_hidden('id') && !localeData.emails_list.queue_id" id="id"><i class="stream icon"></i> [[ fallbackLocaleData.emails_list.queue_id ]]</th>
+                <th v-if="localeData.emails_list.status_code" id="status"><i class="info icon"></i> [[ localeData.emails_list.status_code ]]</th>
+                <th v-else id="status"><i class="info icon"></i> [[ fallbackLocaleData.emails_list.status_code ]]</th>
                 <th v-if="!is_column_hidden('mail_from') && localeData.emails_list.mail_from" id="mail_from"><i class="address card icon"></i> [[ localeData.emails_list.mail_from ]]</th>
                 <th v-if="!is_column_hidden('mail_from') && !localeData.emails_list.mail_from" id="mail_from"><i class="address card icon"></i> [[ fallbackLocaleData.emails_list.mail_from ]]</th>
                 <th v-if="!is_column_hidden('mail_to') && localeData.emails_list.mail_to" id="mail_to"><i class="address card outline icon"></i> [[ localeData.emails_list.mail_to ]]</th>
@@ -201,8 +201,8 @@
             <tr @click="show_email_modal(emails,counter_index,'','fade')" v-for="(m, counter_index) in emails">
             	<!--<td><span>[[ counter_index ]]</span></td>-->
                 <td><span>[[ m.timestamp ]]</span></td>
-                <td><span>[[ m.id ]]</span></td>
-                <td v-if="!is_column_hidden('status')" class="status"><i class="icon" :class="getStatusIcon(emails,counter_index)"></i><span>[[ m.status.code ]]</span></td>
+                <td v-if="!is_column_hidden('id')"><span>[[ m.id ]]</span></td>
+                <td class="status"><i class="icon" :class="getStatusIcon(emails,counter_index)"></i><span>[[ m.status.code ]]</span></td>
                 <td v-if="!is_column_hidden('mail_from')"><span>[[ m.mail_from ]]</span></td>
                 <td v-if="!is_column_hidden('mail_to')"><span>[[ m.mail_to ]]</span></td>
                 <td v-if="!is_column_hidden('subject')" class="subject"><span>[[ m.subject ]]</span></td>
