@@ -12,6 +12,7 @@ services:
     volumes:
       - .:/app
       - /tmp:/tmp
+      - /etc/localtime:/etc/localtime:ro
       - ${MAIL_LOG_PATH}:${MAIL_LOG_PATH}
     depends_on:
       - rethinkdb
@@ -27,6 +28,7 @@ services:
     restart: always
     volumes:
       - ./:/data
+      - /etc/localtime:/etc/localtime:ro
     networks:
       - internal
 

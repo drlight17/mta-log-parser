@@ -59,6 +59,8 @@ nano .env
 # To build and run app with web GUI run
 docker-compose up -d
 
+# Containers use the host timezone via /etc/localtime, so backend log timestamps match the host clock.
+
 # To stop app with web GUI app run
 docker-compose down
 

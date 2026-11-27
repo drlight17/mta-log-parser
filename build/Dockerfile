@@ -1,7 +1,7 @@
 # Dockerfile for building image
 FROM python:3.9-alpine
 RUN apk update
-RUN apk add bash ncurses musl-dev gcc flock openldap-dev
+RUN apk add bash ncurses musl-dev gcc flock openldap-dev tzdata
 # upgrade pip
 RUN pip install --upgrade pip
 RUN pip3 install -U pipenv
