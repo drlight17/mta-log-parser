@@ -20,7 +20,6 @@ var parser_version = document.currentScript.getAttribute('parser_version');
 
 // get current login
 const login = document.currentScript.getAttribute('login');
-var donate_token = document.currentScript.getAttribute('donate_token') || '';
 
 // get HOUSEKEEPING_DAYS from .env
 var housekeeping_days = document.currentScript.getAttribute('housekeeping_days');
@@ -53,6 +52,9 @@ const app = Vue.createApp({
             loading: true,
             gui_max_log_period: gui_max_log_period,
             donation_receive: '2202 2021 5875 7462',
+            donate_status_pending: false,
+            donate_status_checked: false,
+            donate_licensed: false,
             //hidden_settips: true,
             hidden_stats: true,
             error: null,
@@ -918,15 +920,27 @@ const app = Vue.createApp({
                 }).modal('show');
             this.$nextTick(() => this.load_donate_iframe());
         },
-        maybe_show_donate(attempt) {
-            attempt = attempt || 0;
-            if (!login || donate_token) {
+        check_donate_status() {
+            if (!login || this.donate_status_pending) {
                 return;
             }
-            if (!this.loaded_settings || !this.settings || this.settings.blurring === undefined || this.loading) {
-                if (attempt < 20) {
-                    setTimeout(() => this.maybe_show_donate(attempt + 1), 500);
-                }
+            this.donate_status_pending = true;
+            fetch(`${path_prefix}/api/donate_status?_=${Date.now()}`, {cache: 'no-store'})
+                .then((response) => response.json())
+                .then((res) => {
+                    this.donate_status_pending = false;
+                    this.donate_status_checked = true;
+                    this.donate_licensed = !!(res && res.licensed === true);
+                    if (!this.donate_licensed) {
+                        this.show_donate_if_due();
+                    }
+                })
+                .catch(() => {
+                    this.donate_status_pending = false;
+                });
+        },
+        show_donate_if_due() {
+            if (!login || this.donate_licensed) {
                 return;
             }
             if ($('#donate-modal').modal('is active')) {
@@ -942,6 +956,26 @@ const app = Vue.createApp({
             }
             window.localStorage['donate_modal_last_shown'] = Date.now();
             this.$nextTick(() => this.showDonate());
+        },
+        maybe_show_donate(attempt) {
+            attempt = attempt || 0;
+            if (!login) {
+                return;
+            }
+            if (!this.loaded_settings || !this.settings || this.settings.blurring === undefined || this.loading) {
+                if (attempt < 20) {
+                    setTimeout(() => this.maybe_show_donate(attempt + 1), 500);
+                }
+                return;
+            }
+            if (this.donate_licensed) {
+                return;
+            }
+            if (!this.donate_status_checked) {
+                this.check_donate_status();
+                return;
+            }
+            this.show_donate_if_due();
         },
         showSettings(a,index,type) {
             $('#settings-modal').modal({

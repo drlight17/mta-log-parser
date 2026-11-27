@@ -20,7 +20,10 @@ import fcntl
 import hmac
 import json
 import os.path
+import platform
+import socket
 import sys
+import urllib.request
 from dataclasses import dataclass, field
 from datetime import timedelta, timezone
 from typing import List, Union, Mapping, Tuple
@@ -52,6 +55,9 @@ app = Quart(__name__)
 # add path prefix
 PREFIX = settings.path_prefix
 PARSER_LOCK = '/tmp/lck_mlp'
+LICENSE_PRODUCT = 'MTA Log Parser'
+LICENSE_USER_AGENT = f'{LICENSE_PRODUCT} {VERSION} ({socket.gethostname()}/{platform.machine()}/{platform.system()})'
+_DONATE_LICENSE_CACHE = {'ts': 0.0, 'valid': False, 'token': ''}
 new_static_path = PREFIX+"/static"
 app.static_url_path = new_static_path
 
@@ -386,6 +392,52 @@ async def api_parse_status():
         'interval': settings.parse_interval,
         'next_parse_in': None if running else _next_parse_in(),
     })
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
+async def _donate_license_valid():
+    token = settings.donate_token
+    if not token:
+        return False
+
+    now = time.time()
+    cache = _DONATE_LICENSE_CACHE
+    if cache['token'] == token and now - cache['ts'] < 3600:
+        return cache['valid']
+
+    def check_license():
+        url = settings.license_server_url.rstrip('/') + '/api'
+        payload = json.dumps({'key': token, 'action': 'validate'}).encode('utf-8')
+        request_obj = urllib.request.Request(
+            url, data=payload, method='POST',
+            headers={
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'User-Agent': LICENSE_USER_AGENT,
+            },
+        )
+        with urllib.request.urlopen(request_obj, timeout=5) as response_obj:
+            data = json.loads(response_obj.read().decode('utf-8'))
+        return bool(data.get('valid')) and data.get('product') == LICENSE_PRODUCT
+
+    try:
+        valid = await asyncio.to_thread(check_license)
+    except Exception:
+        # Fail closed: a licensed user should not see the donation prompt when the server is unavailable
+        log.warning('Could not validate DONATE_TOKEN with the license server, suppressing the donate dialog')
+        valid = True
+
+    cache.update(ts=now, valid=valid, token=token)
+    return valid
+
+
+@app.route(f'{PREFIX}/api/donate_status', methods=['GET'])
+async def api_donate_status():
+    if 'admin' not in session:
+        return jsonify({'error': 'unauthorized'}), 401
+    licensed = await _donate_license_valid() if settings.donate_token else False
+    response = jsonify({'show': not licensed, 'licensed': licensed})
     response.headers['Cache-Control'] = 'no-store'
     return response
 
