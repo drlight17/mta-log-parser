@@ -12,7 +12,7 @@ Unreleased VER.
 - provide variables in .env for user defined parser regexps override
 - parse log file from the new lines since last parsing
 
-Ver. 1.8.6
+Ver. 2.0.0
 - ~~NEW: parser loop runs inside the container every `PARSE_INTERVAL` minutes (default 1, 0 disables) instead of external cron; added a "Parse now" GUI action (disabled while parsing) and show the interval in tips~~
 - ~~BUG: wait for RethinkDB primary availability before parsing and use a single upsert to avoid startup save errors~~
 - ~~BUG: use the host timezone inside the containers so backend log timestamps match the host clock~~

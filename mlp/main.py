@@ -39,7 +39,7 @@ from mlp.parser import parse_line
 
 log = logging.getLogger(__name__)
 
-VERSION = "1.8.6"
+VERSION = "2.0.0"
 
 lockfile = "processing.lock"
 
