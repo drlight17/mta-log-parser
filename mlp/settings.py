@@ -56,6 +56,9 @@ ldap_username_domain_part = env('LDAP_USERNAME_DOMAIN_PART', '')
 
 mail_domain = env('MAIL_DOMAIN', '')
 
+# undocumented: any non-empty token disables the automatic donate dialog
+donate_token = env('DONATE_TOKEN', '')
+
 mail_log_path = env('MAIL_LOG_PATH', '/var/log')
 mail_log_filename = env('MAIL_LOG_FILENAME', 'mail.log')
 

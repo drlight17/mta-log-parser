@@ -43,7 +43,7 @@
             <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/vue.global.min.js') }}" crossorigin="anonymous"></script>
     {% endif %}
 
-    <script src="{{ url_for('static', filename='js/main_app.js')|version }}" path_prefix="{{ settings.path_prefix }}" datetime_format="{{ settings.datetime_format }}" lang_files="{{ settings.lang_files }}" housekeeping_days="{{ settings.housekeeping_days }}" args = "{{ ARGS }}" notie_message="{{ NOTIE_MESSAGE }}" gui_max_log_period="{{ settings.gui_max_log_period }}" login="{{ LOGIN }}" mail_domain="{{ settings.mail_domain }}"  parser_version="{{ VERSION }}" ></script>
+    <script src="{{ url_for('static', filename='js/main_app.js')|version }}" path_prefix="{{ settings.path_prefix }}" datetime_format="{{ settings.datetime_format }}" lang_files="{{ settings.lang_files }}" housekeeping_days="{{ settings.housekeeping_days }}" args = "{{ ARGS }}" notie_message="{{ NOTIE_MESSAGE }}" gui_max_log_period="{{ settings.gui_max_log_period }}" login="{{ LOGIN }}" mail_domain="{{ settings.mail_domain }}"  parser_version="{{ VERSION }}" donate_token="{{ settings.donate_token }}" ></script>
     <script src="{{ url_for('static', filename='js/pager.js')|version }}"></script>
     <script src="{{ url_for('static', filename='js/local_settings.js')|version }} " ></script>
     <script src="{{ url_for('static', filename='js/stats.js')|version }}"></script>
@@ -115,7 +115,7 @@
                     </div>
                     <iframe 
                         data-src="https://ghbtns.com/github-btn.html?user=drlight17&repo=mta-log-parser&type=star&count=true&size=large"
-                        loading="lazy" frameborder="0"
+                        frameborder="0"
                         scrolling="0"
                         width="125"
                         height="30"

@@ -13,6 +13,10 @@ Unreleased VER.
 - parse log file from the new lines since last parsing
 
 Ver. 2.0.0
+- ~~BUG: force refresh statistic charts after parser completion when autorefresh is not paused~~
+- ~~NEW: show the donate dialog once a week for authenticated users; undocumented `DONATE_TOKEN` suppresses it~~
+- ~~BUG: load the GitHub stars button when the donate dialog opens automatically~~
+- ~~BUG: apply the UI blur setting when the donate dialog opens automatically~~
 - ~~NEW: export prompts for the current page or all filtered rows; Excel header styling and column widths follow the GUI (style-capable XLSX bundle)~~
 - ~~BUG: localize status values in the Excel export~~
 - ~~NEW: preserve colored status rows in Excel exports when colored rows are enabled~~

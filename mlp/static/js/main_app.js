@@ -20,6 +20,7 @@ var parser_version = document.currentScript.getAttribute('parser_version');
 
 // get current login
 const login = document.currentScript.getAttribute('login');
+var donate_token = document.currentScript.getAttribute('donate_token') || '';
 
 // get HOUSEKEEPING_DAYS from .env
 var housekeeping_days = document.currentScript.getAttribute('housekeeping_days');
@@ -338,7 +339,22 @@ const app = Vue.createApp({
             var key = this.autorefresh_paused ? 'autorefresh_resume_title' : 'autorefresh_pause_title';
             return locale[key] !== undefined ? locale[key] : fallback[key];
         },
+        refresh_stats_after_parse() {
+            if (typeof stats_app === 'undefined' || !stats_app || typeof stats_app.force_refresh !== 'function') {
+                return;
+            }
+            ['overall_pie', 'filtered_pie', 'filtered_top_senders', 'filtered_top_recipients'].forEach((chart_type) => {
+                try {
+                    stats_app.force_refresh(chart_type);
+                } catch (err) {
+                    console.error('Stats refresh failed:', err);
+                }
+            });
+        },
         refresh_emails_after_parse() {
+            if (!this.autorefresh_paused) {
+                this.refresh_stats_after_parse();
+            }
             var $table = $('#emails-list');
             if ($table.length && $table.is(':visible') && $table.find('tbody tr').length > 0) {
                 this.loadEmails(false);
@@ -883,12 +899,15 @@ const app = Vue.createApp({
                     blurring: this.settings.blurring
                 }).modal('show');
         },
-        showDonate(a,index,type) {
-            // Load the external GitHub button only when the dialog is actually opened
+        load_donate_iframe() {
             var githubBtn = document.querySelector('#donate-modal iframe');
             if (githubBtn && !githubBtn.getAttribute('src') && githubBtn.dataset.src) {
                 githubBtn.src = githubBtn.dataset.src;
             }
+        },
+        showDonate(a,index,type) {
+            // Load the external GitHub button only when the dialog is actually opened
+            this.load_donate_iframe();
             $('#donate-modal').modal({
                 onHidden: function () {
                     //$('body').removeClass('scrolling');
@@ -897,6 +916,32 @@ const app = Vue.createApp({
                     inverted: false,
                     blurring: this.settings.blurring
                 }).modal('show');
+            this.$nextTick(() => this.load_donate_iframe());
+        },
+        maybe_show_donate(attempt) {
+            attempt = attempt || 0;
+            if (!login || donate_token) {
+                return;
+            }
+            if (!this.loaded_settings || !this.settings || this.settings.blurring === undefined || this.loading) {
+                if (attempt < 20) {
+                    setTimeout(() => this.maybe_show_donate(attempt + 1), 500);
+                }
+                return;
+            }
+            if ($('#donate-modal').modal('is active')) {
+                return;
+            }
+            var week = 7 * 24 * 60 * 60 * 1000;
+            var last = parseInt(window.localStorage['donate_modal_last_shown'] || '0', 10);
+            if (isNaN(last)) {
+                last = 0;
+            }
+            if (Date.now() - last < week) {
+                return;
+            }
+            window.localStorage['donate_modal_last_shown'] = Date.now();
+            this.$nextTick(() => this.showDonate());
         },
         showSettings(a,index,type) {
             $('#settings-modal').modal({
@@ -1713,6 +1758,7 @@ const app = Vue.createApp({
                                 this.toggleLoading(false);
                                 // check for updates
                                 this.updateCheck();
+                                this.maybe_show_donate();
 
                                 // add advanced gui features
                                 this.$nextTick(function () {
@@ -1990,6 +2036,7 @@ const app = Vue.createApp({
                 this.setDark($(element));
                 $(element).show();
                 this.updateCheck();
+                this.maybe_show_donate();
             });
             
         },
@@ -2003,6 +2050,7 @@ const app = Vue.createApp({
             var hidden_stats = localStorage.getItem('hidden_stats');
             var hidden_columns = localStorage.getItem('hidden_columns');
             var autorefresh_paused = localStorage.getItem('autorefresh_paused');
+            var donate_modal_last_shown = localStorage.getItem('donate_modal_last_shown');
             localStorage.clear();
             localStorage.setItem('localeData',localeData);
             localStorage.setItem('fallbackLocaleData',fallbackLocaleData);
@@ -2015,6 +2063,9 @@ const app = Vue.createApp({
             }
             if (autorefresh_paused !== null) {
                 localStorage.setItem('autorefresh_paused',autorefresh_paused);
+            }
+            if (donate_modal_last_shown !== null) {
+                localStorage.setItem('donate_modal_last_shown',donate_modal_last_shown);
             }
 
             // clear stats
