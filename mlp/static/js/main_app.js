@@ -267,6 +267,17 @@ const app = Vue.createApp({
             } else {
                 this.reduced_navi = false;
             }
+
+            var thead = $('#emails-list thead');
+            if (thead.length) {
+                if (this.is_mobile && this.settings.sticky) {
+                    this.checkButtonArrow(thead);
+                } else {
+                    thead.find('.hide-sticky-header-button').remove();
+                    thead.css('top', 0);
+                    thead.removeData('header-collapsed');
+                }
+            }
         },
         check_button() {
             if (this.isDisabled) {
@@ -876,20 +887,13 @@ const app = Vue.createApp({
             return output;
         },
         ToggleStickyHeader(thead) {
-
-            $('.hide-sticky-header-button i').toggleClass('down').toggleClass('up');
-
-            if (parseInt(thead.css('top')) != -271) {
-                window.localStorage['sticky_header_visible']=false;
-                thead.animate({
-                    top: '-271px'
-                })
-            } else {
-                window.localStorage['sticky_header_visible']=true;
-                thead.animate({
-                    top: '0px'
-                })
-            }
+            var row = thead.find('tr').first();
+            var offset = -Math.max(row.outerHeight() || 0, 0);
+            var collapsed = thead.data('header-collapsed') !== true;
+            thead.data('header-collapsed', collapsed);
+            window.localStorage['sticky_header_visible'] = collapsed ? 'false' : 'true';
+            thead.stop(true, false).animate({top: collapsed ? offset : 0}, 250);
+            $('.hide-sticky-header-button i').toggleClass('down', collapsed).toggleClass('up', !collapsed);
         },
         showTips(a,index,type) {
             $('#tips-modal').modal({
@@ -906,6 +910,14 @@ const app = Vue.createApp({
             if (githubBtn && !githubBtn.getAttribute('src') && githubBtn.dataset.src) {
                 githubBtn.src = githubBtn.dataset.src;
             }
+        },
+        refresh_favicon() {
+            var href = `${path_prefix}/brand_logo?v=${Date.now()}`;
+            document.querySelectorAll('link[rel~="icon"]').forEach((link) => link.parentNode.removeChild(link));
+            var icon = document.createElement('link');
+            icon.rel = 'icon';
+            icon.href = href;
+            document.head.appendChild(icon);
         },
         upload_brand_logo() {
             if (this.$refs.brandLogoInput) {
@@ -924,7 +936,8 @@ const app = Vue.createApp({
                 .then((response) => response.json().then((data) => ({status: response.status, data: data})))
                 .then((res) => {
                     if (res.status === 200 && res.data && res.data.status === 'ok') {
-                        location.reload();
+                        this.refresh_favicon();
+                        setTimeout(() => location.reload(), 300);
                     } else {
                         this.brand_logo_error();
                     }
@@ -936,7 +949,8 @@ const app = Vue.createApp({
                 .then((response) => response.json())
                 .then((res) => {
                     if (res && res.status === 'ok') {
-                        location.reload();
+                        this.refresh_favicon();
+                        setTimeout(() => location.reload(), 300);
                     } else {
                         this.brand_logo_error();
                     }
@@ -1574,16 +1588,17 @@ const app = Vue.createApp({
 
             if (thead.find('.hide-sticky-header-button').length == 0) {
                 thead.append('<div class="hide-sticky-header-button"><i class="ui chevron up icon"></i></div>');
-                $('.hide-sticky-header-button').on( "click", function() {
+                thead.find('.hide-sticky-header-button').on('click', function() {
                     window.app.ToggleStickyHeader(thead);
                 });
             }
 
-            if (parseInt(thead.css('top')) != -271) {
-                $('.hide-sticky-header-button i').removeClass('down').addClass('up');
-            } else {
-                $('.hide-sticky-header-button i').removeClass('up').addClass('down');
-            }
+            var collapsed = window.localStorage['sticky_header_visible'] !== 'true';
+            var row = thead.find('tr').first();
+            var offset = -Math.max(row.outerHeight() || 0, 0);
+            thead.data('header-collapsed', collapsed);
+            thead.css('top', collapsed ? offset : 0);
+            $('.hide-sticky-header-button i').toggleClass('down', collapsed).toggleClass('up', !collapsed);
         },
         toggleLoading(state) {
             if (state) {
@@ -1902,12 +1917,15 @@ const app = Vue.createApp({
                                             if (window.app.is_mobile)
                                             {
                                                 window.app.checkButtonArrow(thead);
-
-                                                // check visibility state
-                                                if (window.localStorage['sticky_header_visible'] !== "true") {
-                                                    window.app.ToggleStickyHeader(thead);
-                                                }
+                                            } else {
+                                                thead.find('.hide-sticky-header-button').remove();
+                                                thead.css('top', 0);
+                                                thead.removeData('header-collapsed');
                                             }
+                                        } else {
+                                            thead.find('.hide-sticky-header-button').remove();
+                                            thead.css('top', 0);
+                                            thead.removeData('header-collapsed');
                                         }
 
                                         if (this.settings.resizable) {

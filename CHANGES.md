@@ -1,4 +1,6 @@
 Ver. 2.0.0
+- ~~BUG: mobile sticky-header toggle uses the current header height, respecting hidden/shown columns~~
+- ~~BUG: force favicon refresh after brand logo upload/removal~~
 - ~~NEW: custom brand logo via `BRAND_LOGO_PATH` and GUI upload/remove, with dynamic favicon and CSS-normalized sizing~~
 - ~~NEW: update the application logo and favicon to the v2 white transparent logo~~
 - ~~NEW: reorganize the user settings modal into a cleaner two-column layout~~
