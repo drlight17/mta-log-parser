@@ -76,6 +76,7 @@ fi
 : ${HOST='127.0.0.1'}
 : ${PORT='8487'}
 : ${GU_WORKERS='10'}    # Number of Gunicorn worker processes
+: ${PARSE_NEXT_FILE='/tmp/mlp_next_parse'}
 
 parse_loop () {
     exec 9>/tmp/lck_mlp_loop
@@ -83,9 +84,11 @@ parse_loop () {
         msg yellow "Parser loop is already running"
         return 1
     fi
+    rm -f "$PARSE_NEXT_FILE"
     while true; do
         msg ts bold green "Parsing mail log (interval ${PARSE_INTERVAL} min)"
         flock -n /tmp/lck_mlp ./manage.py parse || true
+        echo $(( $(date +%s) + PARSE_INTERVAL * 60 )) > "$PARSE_NEXT_FILE"
         sleep $((PARSE_INTERVAL * 60))
     done
 }
@@ -110,7 +113,7 @@ case "$1" in
         fi
         ;;
     import|parse*)
-        ./manage.py parse
+        flock -n /tmp/lck_mlp ./manage.py parse || true
         ;;
     *)
         echo "Runner script for MTA Log Parser"

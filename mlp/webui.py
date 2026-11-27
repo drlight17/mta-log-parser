@@ -32,7 +32,7 @@ from rethinkdb.net import DefaultConnection
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from mlp.main import VERSION, lockfile
+from mlp.main import VERSION
 from mlp import settings, api
 
 from mlp.exceptions import APIException
@@ -232,7 +232,7 @@ def _parser_running():
 @app.route(f'{PREFIX}/api/process_check', methods=['GET'])
 @app.route(f'{PREFIX}/api/process_check/', methods=['GET'])
 async def process_check():
-    return {'processing': bool(_parser_running() or (settings.gui_refresh_block and os.path.isfile(lockfile)))}
+    return {'processing': bool(_parser_running())}
 
 @app.route(f'{PREFIX}/auth', methods=['GET'])
 @app.route(f'{PREFIX}/auth/', methods=['GET'])
@@ -345,7 +345,7 @@ async def api_parse():
         return jsonify({'error': 'failed'}), 500
 
     try:
-        await asyncio.wait_for(proc.wait(), timeout=0.5)
+        await asyncio.wait_for(proc.wait(), timeout=50)
     except asyncio.TimeoutError:
         return jsonify({'status': 'started'})
 
@@ -354,6 +354,40 @@ async def api_parse():
     if proc.returncode != 0:
         return jsonify({'error': 'failed'}), 500
     return jsonify({'status': 'finished'})
+
+
+def _parse_done_marker():
+    try:
+        with open(settings.parse_done_file, 'r') as marker:
+            return marker.read().strip()
+    except OSError:
+        return ''
+
+
+def _next_parse_in():
+    if settings.parse_interval <= 0:
+        return None
+    try:
+        with open(settings.parse_next_file, 'r') as marker:
+            next_ts = float(marker.read().strip())
+    except (OSError, ValueError):
+        return None
+    return max(0, int(next_ts - time.time()))
+
+
+@app.route(f'{PREFIX}/api/parse_status', methods=['GET'])
+async def api_parse_status():
+    if 'admin' not in session:
+        return jsonify({'error': 'unauthorized'}), 401
+    running = bool(_parser_running())
+    response = jsonify({
+        'running': running,
+        'marker': _parse_done_marker(),
+        'interval': settings.parse_interval,
+        'next_parse_in': None if running else _next_parse_in(),
+    })
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 # All GET params are used for api/stats?status=reject
 @app.route(f'{PREFIX}/api/stats', methods=['GET'])
@@ -615,7 +649,7 @@ async def _process_filters(mode, r_q, query: QueryOrTable, frm: Mapping, skip_ke
     if empty(frm, itr=True):
         return query
 
-    skip_keys = ['limit', 'offset', 'page'] if not skip_keys else skip_keys
+    skip_keys = ['limit', 'offset', 'page', '_'] if not skip_keys else skip_keys
     timestamp_key = 'timestamp'
     fval_gt = ''
     fval_lt = ''

@@ -651,6 +651,11 @@ summary {
     cursor: help!important;
 }
 
+.parse-countdown {
+    opacity: .7;
+    font-variant-numeric: tabular-nums;
+}
+
 @media only screen and (min-width: 768px) and (max-width: 963px) {
     #filters-wrapper > div.five.wide.column {
         width: 55%!important;

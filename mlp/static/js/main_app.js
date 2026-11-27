@@ -83,10 +83,6 @@ const app = Vue.createApp({
             show_password2: false,
             path_page: 0,
             loaded_settings: false,
-            timer:'',
-            contdown_sec: 0,
-            contdown: '',
-            contdown_timer: 0,
             vertical_menu: false,
             filters_changed: false,
             isEqual: true,
@@ -94,7 +90,12 @@ const app = Vue.createApp({
             is_mobile: false,
             reduced_navi: false,
             processing: false,
-            parser_poll_timer: null
+            parse_status_timer: null,
+            parse_status_running: false,
+            parse_status_initialized: false,
+            parse_done_marker: '',
+            parse_countdown: '',
+            autorefresh_paused: window.localStorage['autorefresh_paused'] === 'true'
         }
     },
     computed: {
@@ -302,48 +303,111 @@ const app = Vue.createApp({
             var busy = locale.thirty_two !== undefined ? locale.thirty_two : fallback.thirty_two;
             var failed = locale.thirty_three !== undefined ? locale.thirty_three : fallback.thirty_three;
 
-            this.processing = true;
-            fetch(`${path_prefix}/api/parse`, {method: 'POST'})
+            this.set_processing(true);
+            fetch(`${path_prefix}/api/parse`, {method: 'POST', cache: 'no-store'})
                 .then((response) => response.json().then((data) => ({status: response.status, data: data})))
                 .then((res) => {
                     if (res.status === 409 || (res.data && res.data.error === 'busy')) {
                         notie.alert({type: 'warning', text: busy, time: 5});
-                        this.watch_parser();
                     } else if (!res.data || res.data.error) {
-                        this.processing = false;
+                        this.set_processing(false);
                         notie.alert({type: 'error', text: failed, time: 5});
                     } else if (res.data.status === 'started') {
                         notie.alert({type: 'success', text: started, time: 3});
-                        this.watch_parser();
                     } else {
-                        this.processing = false;
+                        this.set_processing(false);
                         notie.alert({type: 'success', text: started, time: 3});
-                        this.loadEmails(false);
+                        this.loadEmails(true);
                     }
                 })
                 .catch(() => {
-                    this.processing = false;
+                    this.set_processing(false);
                     notie.alert({type: 'error', text: failed, time: 5});
                 });
         },
-        watch_parser() {
-            if (this.parser_poll_timer) {
+        toggle_autorefresh() {
+            this.autorefresh_paused = !this.autorefresh_paused;
+            window.localStorage['autorefresh_paused'] = this.autorefresh_paused;
+            if (!this.autorefresh_paused) {
+                this.loadEmails(true);
+            }
+        },
+        autorefresh_title() {
+            var locale = this.localeData.pager || {};
+            var fallback = this.fallbackLocaleData.pager || {};
+            var key = this.autorefresh_paused ? 'autorefresh_resume_title' : 'autorefresh_pause_title';
+            return locale[key] !== undefined ? locale[key] : fallback[key];
+        },
+        set_processing(state) {
+            this.processing = state;
+            if (state) {
+                $('#emails-list td.filter_linked span').addClass('disabled');
+            } else {
+                $('#emails-list td.filter_linked span').removeClass('disabled');
+            }
+        },
+        format_countdown(total) {
+            total = Math.max(0, Math.floor(total));
+            var h = Math.floor(total / 3600);
+            var m = Math.floor((total % 3600) / 60);
+            var s = total % 60;
+            var pad = (n) => (n < 10 ? '0' : '') + n;
+            return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+        },
+        start_parse_status() {
+            if (this.parse_status_timer) {
                 return;
             }
             var poll = () => {
-                fetch(base_url4)
+                fetch(`${path_prefix}/api/parse_status?_=${Date.now()}`, {cache: 'no-store'})
                     .then((response) => response.json())
                     .then((res) => {
-                        if (res.processing) {
-                            this.parser_poll_timer = setTimeout(poll, 1000);
+                        if (!this.parse_status_initialized) {
+                            this.parse_status_initialized = true;
+                            this.parse_done_marker = res.marker || '';
+                            this.parse_status_running = !!res.running;
+                            if (res.running) {
+                                this.set_processing(true);
+                            }
                         } else {
-                            this.parser_poll_timer = null;
-                            this.processing = false;
-                            this.loadEmails(false);
+                            var was_running = this.parse_status_running;
+                            this.parse_status_running = !!res.running;
+                            var refresh = false;
+                            if (res.running) {
+                                this.set_processing(true);
+                            } else {
+                                if (was_running) {
+                                    this.set_processing(false);
+                                    refresh = true;
+                                }
+                                if (res.marker && res.marker !== this.parse_done_marker) {
+                                    refresh = true;
+                                }
+                            }
+                            if (res.marker) {
+                                this.parse_done_marker = res.marker;
+                            }
+                            if (refresh && !this.autorefresh_paused) {
+                                if ($('#mail-modal').modal('is active')) {
+                                    $('#mail-modal').modal('hide all');
+                                    setTimeout(() => {
+                                        this.email_modal_appearance('fade');
+                                    }, 1000);
+                                }
+                                this.loadEmails(true);
+                            }
                         }
+                        if (res.running) {
+                            this.parse_countdown = '';
+                        } else if (res.next_parse_in !== undefined && res.next_parse_in !== null) {
+                            this.parse_countdown = this.format_countdown(res.next_parse_in);
+                        } else {
+                            this.parse_countdown = '';
+                        }
+                        this.parse_status_timer = setTimeout(poll, 1000);
                     })
                     .catch(() => {
-                        this.parser_poll_timer = setTimeout(poll, 2000);
+                        this.parse_status_timer = setTimeout(poll, 5000);
                     });
             };
             poll();
@@ -1322,7 +1386,7 @@ const app = Vue.createApp({
         },
         loadEmails(refresh,processing) {
 
-            fetch(base_url4).then(function (response) {
+            fetch(base_url4, {cache: 'no-store'}).then(function (response) {
                 return response.json();
             })
             .then((res) => {
@@ -1333,21 +1397,15 @@ const app = Vue.createApp({
                         } else {
                             text = this.localeData.notie.twenty_seven
                         }
-                        window.app.processing = true
+                        window.app.set_processing(true);
                         notie.alert({type: 'info', text: text, time: 5});
 
                     }
                     setTimeout(() => window.app.loadEmails(refresh,window.app.processing), 1000);
-                    // disable loadEmails call gui elements
-                    // prevent span links click 
-                    $('#emails-list td.filter_linked span').addClass('disabled');
                 } else {
                     if (window.app.processing) {
                         notie.hideAlerts();
-                        window.app.processing = false
-                        // enable loadEmails call gui elements
-                        // prevent span links click
-                        $('#emails-list td.filter_linked span').removeClass('disabled');
+                        window.app.set_processing(false);
                         if ($('#mail-modal').modal('is active')) {
                             $('#mail-modal').modal('hide all');
                             setTimeout(() => {
@@ -1357,10 +1415,6 @@ const app = Vue.createApp({
                     }
 
                     this.check_date_lt();
-
-                    // call to resresh countdown
-                    this.setRefresh();
-
 
                     // check if search_error clear search text
                     if (this.search_error) {
@@ -1397,13 +1451,13 @@ const app = Vue.createApp({
 
                     url += (queries === 0) ? '?' : '&';
                     url += `page=${this.page}&limit=${this.settings.page_limit}`;
-                    // add sort string
-                    url += `&order=${this.order}&order_dir=${this.order_dir}`;
+                    // add sort string and bypass browser caches
+                    url += `&order=${this.order}&order_dir=${this.order_dir}&_=${Date.now()}`;
 
                     if (this.path_page == 2) {
                         element = $('#emails-list')[0];
 
-                        return fetch(url).then(function (response) {
+                        return fetch(url, {cache: 'no-store'}).then(function (response) {
                             return response.json();
                         }).then((res) => {
                                 this.emails = res['result'];
@@ -1713,6 +1767,7 @@ const app = Vue.createApp({
             var hidden_settings_tips = localStorage.getItem('hidden_settings_tips');
             var hidden_stats = localStorage.getItem('hidden_stats');
             var hidden_columns = localStorage.getItem('hidden_columns');
+            var autorefresh_paused = localStorage.getItem('autorefresh_paused');
             localStorage.clear();
             localStorage.setItem('localeData',localeData);
             localStorage.setItem('fallbackLocaleData',fallbackLocaleData);
@@ -1722,6 +1777,9 @@ const app = Vue.createApp({
             localStorage.setItem('hidden_stats',hidden_stats);
             if (hidden_columns !== null) {
                 localStorage.setItem('hidden_columns',hidden_columns);
+            }
+            if (autorefresh_paused !== null) {
+                localStorage.setItem('autorefresh_paused',autorefresh_paused);
             }
 
             // clear stats
@@ -2007,45 +2065,6 @@ const app = Vue.createApp({
                 }
             });
         },
-        countdown (time) {
-          // Update every second
-            clearInterval(this.contdown_timer);
-            if (time >= 1) {
-                this.contdown_timer = setInterval(function() {
-                    if (window.app.contdown_sec >= 1) {
-                        window.app.contdown_sec = --time;
-                        window.app.contdown = window.app.ConvertSeconds(window.app.contdown_sec,true);
-                    }
-                }, 1000);
-            }
-        },
-        setRefresh() {
-            let multiplier = 60; //minute
-            // autorefresh
-            this.$nextTick(function () {
-                clearInterval(window.app.timer);
-                // hide rotation animation after 1s
-                setTimeout(() => $('#navi .sync.icon').removeClass('rotate'), 1000);
-                if (window.app.settings.refresh > 0) {
-
-                    window.app.contdown_sec = window.app.settings.refresh * multiplier;
-                    window.app.timer = setInterval(function(){
-                        if (window.app.settings.refresh !== undefined) {
-                            // show rotation animation
-                            $('#navi .sync.icon').addClass('rotate');
-                            // check if processing then skip autorefresh
-                            if (!(window.app.processing)) {
-                                window.app.loadEmails(false);
-                            }
-                        }
-                    }, window.app.settings.refresh * multiplier * 1000);
-                } else {
-                    window.app.contdown_sec = 0;
-                    window.app.contdown = '';
-                }
-                window.app.countdown (window.app.contdown_sec);
-            });
-        },
         setDark(table) {
             this.$nextTick(function () {
                 if ('dark' in window.localStorage) {
@@ -2101,11 +2120,10 @@ const app = Vue.createApp({
 
             let v = JSON.parse(JSON.stringify(val));
             v.page_limit = Number.parseInt(v.page_limit);
-            v.refresh = Number.parseInt(v.refresh);
             v.default_period = Number.parseInt(v.default_period);
 
 
-            let updatePage = (v.default_period !== Number.parseInt(this.settings.default_period) || v.page_limit !== Number.parseInt(this.settings.page_limit) || v.refresh !== Number.parseInt(this.settings.refresh) /*|| v.marquee !== this.settings.marquee || v.dark !== this.settings.dark*/ || v.colored !== this.settings.colored || v.sticky !== this.settings.sticky || v.resizable !== this.settings.resizable || v.locale !== this.settings.locale || v.filters !== this.settings.filters);
+            let updatePage = (v.default_period !== Number.parseInt(this.settings.default_period) || v.page_limit !== Number.parseInt(this.settings.page_limit) /*|| v.marquee !== this.settings.marquee || v.dark !== this.settings.dark*/ || v.colored !== this.settings.colored || v.sticky !== this.settings.sticky || v.resizable !== this.settings.resizable || v.locale !== this.settings.locale || v.filters !== this.settings.filters);
             
 
             let reload = false;
@@ -2148,8 +2166,6 @@ const app = Vue.createApp({
                     } else {
                         this.setDuration();
                     }
-
-                    this.setRefresh();
 
                     if (reload) {
                         $("#settings-modal").modal({
@@ -2596,8 +2612,10 @@ const app = Vue.createApp({
             this.path_page = 2;
         }
 
-        // set refresh interval
-        this.setRefresh();
+        // receive parser state changes from the backend
+        if (this.path_page == 2) {
+            this.start_parse_status();
+        }
 
         // show loading modal on the page load
         this.toggleLoading(true);

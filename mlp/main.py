@@ -20,9 +20,9 @@ import base64
 import hashlib
 import json
 import logging
-import os
 import quopri
 import re
+import time
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -40,8 +40,6 @@ from mlp.parser import parse_line
 log = logging.getLogger(__name__)
 
 VERSION = "2.0.0"
-
-lockfile = "processing.lock"
 
 # Matches (1) Queue ID and (2) log message
 postf_match = r'.*postfix.*\[.+\]\:[ \t](?!statistics|warning)([A-Za-z0-9]{8,15}|NOQUEUE)\:[ \t]+?(.*)'
@@ -388,10 +386,6 @@ async def main():
         log.error('RethinkDB did not become ready in time, parser aborted')
         raise RuntimeError('RethinkDB is not ready')
 
-    if settings.gui_refresh_block:
-        log.info('Blocking GUI updates while processing')
-        open(lockfile, 'w').close()
-
     try:
         for attempt in range(3):
             try:
@@ -404,10 +398,9 @@ async def main():
                 __STORE.clear()
                 await asyncio.sleep(5)
     finally:
-        if settings.gui_refresh_block:
-            log.info('Unblocking GUI updates')
-            try:
-                os.remove(lockfile)
-            except FileNotFoundError:
-                pass
+        try:
+            with open(settings.parse_done_file, 'w') as marker:
+                marker.write(f'{time.time():.6f}')
+        except OSError:
+            log.warning('Could not write parser completion marker %s', settings.parse_done_file)
     log.info('Finished!')

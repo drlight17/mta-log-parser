@@ -26,11 +26,6 @@
                                     <input v-if="!$parent.loading" v-model="settings.default_period" type="range" step="5" min="5" :max="$parent.gui_max_log_period" :title="$parent.localeData.user_settings.show_last_min_title" class="ui input range">
                                 </div>
                             </div>
-                            <div v-if="settings.refresh !== 0" class="ui field"><i class="sync icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh"></label> {{ settings.refresh }} <label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.refresh_end"></label></div>
-                            <div v-else class="ui field"><i class="sync icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.no_refresh"></label></div>
-                            <div class="ui input">
-                                <input v-model="settings.refresh" type="range" step="1" min="0" max="60" class="ui input range" placeholder="Amount of seconds">
-                            </div>
                         </div>
                         <div class="field">
                             <div class="ui toggle checkbox">
@@ -76,7 +71,6 @@
                     page_limit: 50,
                     default_period: 30,
                     default_period_processed: '',
-                    refresh: 10,
                     sticky: true,
                     blurring: true,
                     dark: false,
@@ -150,18 +144,6 @@
                 this.settings.default_period_processed = this.$parent.ConvertSeconds(val*60,false);
                 $('#savesettings').prop('disabled', false);
             },
-            /*'settings.refresh': _.debounce(function(val) {
-                if (val < 10) {
-                    this.settings.refresh = 10;
-                    $('#savesettings').prop('disabled', true);
-                } else {
-                    this.settings.refresh = val;
-                    $('#savesettings').prop('disabled', false);
-                }
-            }, 400),*/
-            'settings.refresh': function(val) {
-                $('#savesettings').prop('disabled', false);
-            },
             'settings.colored': function(val) {
                 $('#savesettings').prop('disabled', false);
             },
@@ -221,11 +203,6 @@
                 if ('page_limit' in window.localStorage)
                     s.page_limit = Number.parseInt(window.localStorage['page_limit']);
 
-                if (isNaN(s.refresh))
-                    s.refresh = 10;
-                if ('refresh' in window.localStorage)
-                    s.refresh = Number.parseInt(window.localStorage['refresh']);
-
                 if (isNaN(s.default_period))
                     s.default_period = 30;
                 if ('default_period' in window.localStorage)
@@ -278,10 +255,6 @@
                 this.settings.page_limit = Number.parseInt(this.settings.page_limit);
                 window.localStorage.page_limit = this.settings.page_limit;
 
-
-                if (isNaN(this.settings.refresh)) { this.settings.refresh = 10; }
-                this.settings.refresh = Number.parseInt(this.settings.refresh);
-                window.localStorage.refresh = this.settings.refresh;
 
                 if (isNaN(this.settings.default_period)) { this.settings.default_period = 30; }
                 this.settings.default_period = Number.parseInt(this.settings.default_period);

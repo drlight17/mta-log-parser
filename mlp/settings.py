@@ -72,6 +72,10 @@ housekeeping_days = env_int('HOUSEKEEPING_DAYS', 0)
 # parser loop interval in minutes (0 disables the automatic loop)
 parse_interval = env_int('PARSE_INTERVAL', 1)
 
+# marker written after each parse so the GUI can refresh without auto-refresh timers
+parse_done_file = env('PARSE_DONE_FILE', '/tmp/mlp_parse_done')
+parse_next_file = env('PARSE_NEXT_FILE', '/tmp/mlp_next_parse')
+
 # add datetime_format var from env
 datetime_format = env('DATETIME_FORMAT', 'HH:mm:ss, DD.MM.YYYY')
 
@@ -80,9 +84,6 @@ datetime_input_length = env_int('DATETIME_INPUT_LENGTH', 20)
 
 # add mail_log_timestamp_convert var from env
 mail_log_timestamp_convert = env_bool('MAIL_LOG_TIMESTAMP_CONVERT', False)
-
-# add gui_refresh_block var from env
-gui_refresh_block = env_bool('GUI_REFRESH_BLOCK', True)
 
 # add gui_max_log_period var from env
 gui_max_log_period = env_int('GUI_MAX_LOG_PERIOD', 4320)
