@@ -44,7 +44,7 @@ VERSION = "1.8.6"
 lockfile = "processing.lock"
 
 # Matches (1) Queue ID and (2) log message
-postf_match = r'.*postfix.*\[.+\]\:[ \t](?!statistics|warning)([A-Za-z0-9]{8,15})\:[ \t]+?(.*)'
+postf_match = r'.*postfix.*\[.+\]\:[ \t](?!statistics|warning)([A-Za-z0-9]{8,15}|NOQUEUE)\:[ \t]+?(.*)'
 # Matches (1) Message ID and (2) log message
 exim_match = r'([0-9A-Za-z]{6}-[0-9A-Za-z]{6,11}-[0-9A-Za-z]{2,4})\s(.+)'
 # Matches (1) Queue ID and (2) log message
@@ -151,6 +151,9 @@ async def import_log(logfile: str) -> Dict[str, object]:
                 qid, msg = m.groups()
 
             if settings.mta == 'postfix' and qid == 'NOQUEUE':
+                # NOQUEUE lines have no queue id; only rejects carry a complete record
+                if not msg.lstrip().lower().startswith('reject:'):
+                    continue
                 qid = hashlib.md5((str(dtime) + msg).encode('utf-8')).hexdigest().upper()[:11]
 
             if qid not in messages:

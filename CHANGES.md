@@ -13,6 +13,7 @@ Unreleased VER.
 - parse log file from the new lines since last parsing
 
 Ver. 1.8.6
+- ~~BUG: parse postfix `NOQUEUE: reject` log lines ([#29](https://github.com/drlight17/mta-log-parser/issues/29))~~
 - ~~NEW: allow overriding built-in parser regular expressions from `.env` via `PARSER_*_REGEX` ([#25](https://github.com/drlight17/mta-log-parser/issues/25), [#28](https://github.com/drlight17/mta-log-parser/issues/28))~~
 - ~~BUG: accept a missing space after `Subject:` when parsing postfix subjects ([#25](https://github.com/drlight17/mta-log-parser/issues/25))~~
 - ~~BUG: robust postfix subject extraction and RFC 2047 decoding with rspamd-style same-charset word gluing, folded separators and truncated words ([#25](https://github.com/drlight17/mta-log-parser/issues/25), [#28](https://github.com/drlight17/mta-log-parser/issues/28))~~
