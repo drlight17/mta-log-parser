@@ -12,6 +12,7 @@ services:
       - /tmp:/tmp
       - /etc/localtime:/etc/localtime:ro
       - ${MAIL_LOG_PATH}:${MAIL_LOG_PATH}
+      - ./brand:/app/mlp/static/images/brand
     depends_on:
       - rethinkdb
     networks:

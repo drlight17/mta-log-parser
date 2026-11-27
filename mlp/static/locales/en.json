@@ -65,7 +65,8 @@
     "thirty": "Sber card number is copied to clipboard.",
     "thirty_one": "Log parsing started.",
     "thirty_two": "Log parser is already running.",
-    "thirty_three": "Could not start the log parser. Check backend logs!"
+    "thirty_three": "Could not start the log parser. Check backend logs!",
+    "brand_logo_error": "Could not update the brand logo. Check the file and backend logs."
   },
   "login": {
     "message": "Please login to proceed.",
@@ -175,7 +176,9 @@
     "hidden_columns_title": "Hidden columns:",
     "save_and_load": "Save filters (switch on to fully unlock date range filter)",
     "save_and_load_title": "Save and load filters on page reload",
-    "save_settings": "Save settings"
+    "save_settings": "Save settings",
+    "brand_logo_upload": "Upload brand logo",
+    "brand_logo_remove": "Remove uploaded logo"
   },
   "tips": {
     "title": "Emails filtering tips and some other info",

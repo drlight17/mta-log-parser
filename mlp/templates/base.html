@@ -3,9 +3,8 @@
 <head>
     <!-- add mobile switch gui -->
     <meta name="viewport" content="width=device-width, maximum-scale=1, user-scalable=no" />
-        <!-- add favicon
-    <link rel="shortcut icon" type="image/x-icon" href="/static/images/favicon.ico"/> -->
-    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico')|version }}"/>
+    <link rel="icon" type="{{ brand_logo_mime() }}" href="{{ brand_logo_url() }}"/>
+    <link rel="alternate icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico')|version }}"/>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css')|version }}"/>
     <!-- custom.css -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/custom.css')|version }}"/>
@@ -63,6 +62,7 @@
 
 </head>
 <body id="app" >
+    <input type="file" ref="brandLogoInput" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" style="display:none" @change="on_brand_logo_selected">
     <title v-if="localeData.app_title">[[ localeData.app_title ]] {{ settings.mail_domain }}</title>
     <title v-else>[[ fallbackLocaleData.app_title ]] {{ settings.mail_domain }}</title>
 

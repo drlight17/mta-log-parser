@@ -1175,3 +1175,85 @@ div.ui.menu.item.contextMenu.animate {
 #user-settings-wrapper #savesettings {
     margin-top: .5em;
 }
+
+/* brand logo upload controls */
+.brand-logo-wrap {
+    position: relative;
+    display: inline-block;
+}
+.brand-logo-wrap .brand-logo {
+    cursor: pointer;
+}
+.brand-logo-hint i.icon {
+    display: flex!important;
+    align-items: center;
+    justify-content: center;
+    width: 1em!important;
+    height: 1em!important;
+    padding: 0!important;
+    margin: 0!important;
+    line-height: 1!important;
+}
+.brand-logo-hint {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 1.8em;
+    height: 1.8em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, .55);
+    color: #fff;
+    opacity: 0!important;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .15s ease-in-out;
+    z-index: 2;
+}
+.brand-logo-wrap:hover .brand-logo-hint,
+.brand-logo-wrap:focus-within .brand-logo-hint {
+    opacity: 1!important;
+    visibility: visible;
+}
+.brand-logo-remove {
+    position: absolute!important;
+    top: -8px;
+    right: -8px;
+    width: 1.8em!important;
+    height: 1.8em!important;
+    min-width: 0!important;
+    padding: 0!important;
+    border-radius: 50%!important;
+    display: flex!important;
+    align-items: center;
+    justify-content: center;
+    line-height: 1!important;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s ease-in-out;
+    z-index: 3;
+}
+.brand-logo-wrap:hover .brand-logo-remove,
+.brand-logo-wrap:focus-within .brand-logo-remove {
+    opacity: 1;
+    pointer-events: auto;
+}
+.brand-logo-remove i.icon {
+    display: flex!important;
+    align-items: center;
+    justify-content: center;
+    width: 2em!important;
+    height: 1em!important;
+    padding: 0!important;
+    line-height: 1!important;
+    margin: 0!important;
+}
+@media (hover: none) {
+    .brand-logo-remove {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}

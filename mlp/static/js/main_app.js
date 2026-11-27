@@ -907,6 +907,48 @@ const app = Vue.createApp({
                 githubBtn.src = githubBtn.dataset.src;
             }
         },
+        upload_brand_logo() {
+            if (this.$refs.brandLogoInput) {
+                this.$refs.brandLogoInput.click();
+            }
+        },
+        on_brand_logo_selected(event) {
+            var file = event.target.files && event.target.files[0];
+            event.target.value = '';
+            if (!file) {
+                return;
+            }
+            var form = new FormData();
+            form.append('logo', file);
+            fetch(`${path_prefix}/api/brand_logo`, {method: 'POST', body: form, cache: 'no-store'})
+                .then((response) => response.json().then((data) => ({status: response.status, data: data})))
+                .then((res) => {
+                    if (res.status === 200 && res.data && res.data.status === 'ok') {
+                        location.reload();
+                    } else {
+                        this.brand_logo_error();
+                    }
+                })
+                .catch(() => this.brand_logo_error());
+        },
+        remove_brand_logo() {
+            fetch(`${path_prefix}/api/brand_logo`, {method: 'DELETE', cache: 'no-store'})
+                .then((response) => response.json())
+                .then((res) => {
+                    if (res && res.status === 'ok') {
+                        location.reload();
+                    } else {
+                        this.brand_logo_error();
+                    }
+                })
+                .catch(() => this.brand_logo_error());
+        },
+        brand_logo_error() {
+            var locale = this.localeData.notie || {};
+            var fallback = this.fallbackLocaleData.notie || {};
+            var text = locale.brand_logo_error !== undefined ? locale.brand_logo_error : fallback.brand_logo_error;
+            notie.alert({type: 'error', text: text, time: 6});
+        },
         showDonate(a,index,type) {
             // Load the external GitHub button only when the dialog is actually opened
             this.load_donate_iframe();

@@ -1,5 +1,7 @@
 .env
 user_prompts.md
+/brand/
+mlp/static/images/brand/
 *.log
 venv/
 __pycache__/

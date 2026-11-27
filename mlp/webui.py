@@ -19,9 +19,11 @@ Copyright::
 import asyncio
 import fcntl
 import hmac
+import io
 import json
 import os.path
 import platform
+import re
 import secrets
 import socket
 import sys
@@ -42,7 +44,7 @@ from mlp import settings, api
 
 from mlp.exceptions import APIException
 from mlp.core import get_rethink, __STORE
-from quart import Quart, session, redirect, render_template, request, jsonify
+from quart import Quart, session, redirect, render_template, request, jsonify, send_file
 
 import moment
 import ldap
@@ -59,6 +61,8 @@ PARSER_LOCK = '/tmp/lck_mlp'
 LICENSE_PRODUCT = 'MTA Log Parser'
 LICENSE_USER_AGENT = f'{LICENSE_PRODUCT} {VERSION} ({socket.gethostname()}/{platform.machine()}/{platform.system()})'
 _DONATE_LICENSE_CACHE = {'ts': 0.0, 'valid': False, 'token': ''}
+BRAND_EXTENSIONS = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml'}
+MAX_BRAND_LOGO_SIZE = 2 * 1024 * 1024
 new_static_path = PREFIX+"/static"
 app.static_url_path = new_static_path
 
@@ -76,6 +80,145 @@ app.url_map._rules_by_endpoint['static'] = []
 app.add_url_rule(f'{new_static_path}/<path:filename>',
                  endpoint='static',
                  view_func=app.send_static_file)
+
+
+def _uploaded_brand_logo():
+    try:
+        for name in os.listdir(settings.brand_dir):
+            if name.startswith('brand_logo.') and os.path.splitext(name)[1].lower() in BRAND_EXTENSIONS:
+                return os.path.join(settings.brand_dir, name)
+    except OSError:
+        return None
+    return None
+
+
+def _brand_logo_file():
+    uploaded = _uploaded_brand_logo()
+    if uploaded:
+        return uploaded
+    if settings.brand_logo_path and os.path.isfile(settings.brand_logo_path):
+        return settings.brand_logo_path
+    return os.path.join(app.static_folder, 'images', 'logo.png')
+
+
+def _brand_logo_mime(path=None):
+    path = path or _brand_logo_file()
+    return BRAND_EXTENSIONS.get(os.path.splitext(path)[1].lower(), 'image/png')
+
+
+@app.template_global()
+def brand_logo_url():
+    path = _brand_logo_file()
+    try:
+        version = os.stat(path).st_mtime_ns
+    except OSError:
+        version = VERSION
+    return f'{PREFIX}/brand_logo?v={version}'
+
+
+@app.template_global()
+def brand_logo_mime():
+    return _brand_logo_mime()
+
+
+@app.template_global()
+def brand_logo_uploaded():
+    return _uploaded_brand_logo() is not None
+
+
+@app.route(f'{PREFIX}/brand_logo', methods=['GET'])
+async def brand_logo():
+    path = _brand_logo_file()
+    if not os.path.isfile(path):
+        return '', 404
+    response = await send_file(path, mimetype=_brand_logo_mime(path), conditional=True)
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Content-Security-Policy'] = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
+    return response
+
+
+@app.route(f'{PREFIX}/api/brand_logo', methods=['POST'])
+async def api_brand_logo_upload():
+    if 'admin' not in session:
+        return jsonify({'error': 'unauthorized'}), 401
+    if await _require_auth():
+        return jsonify({'error': 'unauthorized'}), 401
+
+    files = await request.files
+    upload = files.get('logo')
+    if upload is None or not upload.filename:
+        return jsonify({'error': 'missing_file'}), 400
+
+    ext = os.path.splitext(upload.filename)[1].lower()
+    if ext not in BRAND_EXTENSIONS:
+        return jsonify({'error': 'unsupported_type'}), 400
+
+    data = upload.read(MAX_BRAND_LOGO_SIZE + 1)
+    if len(data) > MAX_BRAND_LOGO_SIZE:
+        return jsonify({'error': 'too_large'}), 413
+
+    if ext == '.svg':
+        text = data.decode('utf-8', errors='ignore')
+        lower = text.lower()
+        if '<svg' not in lower or re.search(r'<script|\son\w+\s*=|javascript:', lower):
+            return jsonify({'error': 'invalid_svg'}), 400
+    elif ext == '.png':
+        if not data.startswith(b'\x89PNG\r\n\x1a\n'):
+            return jsonify({'error': 'invalid_png'}), 400
+    elif ext in ('.jpg', '.jpeg'):
+        if not data.startswith(b'\xff\xd8\xff'):
+            return jsonify({'error': 'invalid_jpeg'}), 400
+        try:
+            from PIL import Image
+            image = Image.open(io.BytesIO(data)).convert('RGBA')
+            output = io.BytesIO()
+            image.save(output, format='PNG', optimize=True)
+            data = output.getvalue()
+            ext = '.png'
+        except ImportError:
+            return jsonify({'error': 'unsupported_type'}), 400
+        except Exception:
+            return jsonify({'error': 'invalid_jpeg'}), 400
+
+    try:
+        os.makedirs(settings.brand_dir, exist_ok=True)
+        for name in os.listdir(settings.brand_dir):
+            if name.startswith('brand_logo.'):
+                try:
+                    os.remove(os.path.join(settings.brand_dir, name))
+                except OSError:
+                    pass
+        destination = os.path.join(settings.brand_dir, 'brand_logo' + ext)
+        with open(destination, 'wb') as logo_file:
+            logo_file.write(data)
+    except OSError:
+        log.exception('Could not save uploaded brand logo')
+        return jsonify({'error': 'save_failed'}), 500
+
+    return jsonify({'status': 'ok'})
+
+
+@app.route(f'{PREFIX}/api/brand_logo', methods=['DELETE'])
+async def api_brand_logo_remove():
+    if 'admin' not in session:
+        return jsonify({'error': 'unauthorized'}), 401
+    if await _require_auth():
+        return jsonify({'error': 'unauthorized'}), 401
+
+    removed = False
+    try:
+        for name in os.listdir(settings.brand_dir):
+            if name.startswith('brand_logo.'):
+                try:
+                    os.remove(os.path.join(settings.brand_dir, name))
+                    removed = True
+                except OSError:
+                    pass
+    except OSError:
+        pass
+    return jsonify({'status': 'ok', 'removed': removed})
+
 
 app.secret_key = settings.secret_key
 app.config['SESSION_COOKIE_HTTPONLY'] = True

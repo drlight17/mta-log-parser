@@ -4,7 +4,14 @@
     <div class="top_title">
         <div class="logo">
             <div class="field wrapper">
-                <a href="#"><img width="60" src="{{ url_for('static', filename='images/logo.png')|version }}"></img></a>
+                <div class="brand-logo-wrap">
+                    <a href="#" @click.prevent="upload_brand_logo()" :title="localeData.user_settings ? localeData.user_settings.brand_logo_upload : ''"><img width="60" class="brand-logo" src="{{ brand_logo_url() }}"></a>
+                    {% if not brand_logo_uploaded() %}
+                    <span class="brand-logo-hint"><i class="search icon"></i></span>
+                    {% else %}
+                    <button class="ui mini circular icon button brand-logo-remove" @click.stop="remove_brand_logo()" :title="localeData.user_settings ? localeData.user_settings.brand_logo_remove : ''"><i class="times icon"></i></button>
+                    {% endif %}
+                </div>
             </div>
             <div class="field title">
                 <h1 v-if="localeData.app_title">[[ localeData.app_title ]] <span style="text-decoration:underline">{{ settings.mail_domain }}</span></h1>

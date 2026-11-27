@@ -162,3 +162,7 @@ lang_files = json.dumps(new_lang_files_json)
 
 # SECRET_KEY is used to sign session cookies, so a default value is unsafe
 insecure_secret_key = secret_key in ('', 'ChangeMe', 'SetThis!InYourEnv')
+
+# custom brand logo (file path) and uploaded logo storage directory
+brand_logo_path = env('BRAND_LOGO_PATH', '')
+brand_dir = env('BRAND_DIR', path.join(basedir, 'static/images/brand'))
