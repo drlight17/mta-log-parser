@@ -1,13 +1,32 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from datetime import datetime
 from typing import List
 
 import moment
 from dateutil.parser import parse
-from privex.helpers import Dictable, is_false
 
 from mlp.settings import log_timezone
 from mlp import settings
+
+
+class Dictable:
+    def keys(self):
+        return [item.name for item in fields(self)]
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
+    def get(self, key, default=None):
+        return getattr(self, key, default)
+
+
+def _is_false(value) -> bool:
+    if isinstance(value, str):
+        return value.strip().lower() in ('', '0', 'false', 'no', 'off')
+    return not value
 
 @dataclass
 class PostfixLog(Dictable):
@@ -31,7 +50,7 @@ class PostfixLog(Dictable):
         data = dict(self)
         if settings.mail_log_timestamp_convert:
             data['timestamp'] = moment.date(str(self.timestamp)).format(settings.datetime_format)
-        elif is_false(convert_time):
+        elif _is_false(convert_time):
             data['timestamp'] = self.timestamp
         else:
             data['timestamp'] = convert_time(self.timestamp)
@@ -78,7 +97,7 @@ class PostfixMessage(Dictable):
 
     def clean_dict(self, convert_time=str) -> dict:
         data = dict(self)
-        if is_false(convert_time):
+        if _is_false(convert_time):
             data['timestamp'] = self.timestamp
             data['first_attempt'], data['last_attempt'] = self.first_attempt, self.last_attempt
         else:

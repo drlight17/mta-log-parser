@@ -291,8 +291,11 @@ summary {
 }
 
 .logo img {
-    width: 100px;
-    height: 60px;
+    max-width: 100px;
+    max-height: 60px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
 }
 .api_error_container {
     width: 100%;
@@ -322,7 +325,8 @@ summary {
     margin-top: 5vh;
 }
 .logo img {
-    box-shadow: 3px 3px 3px 0 rgba(34,36,38,.15);
+    /*box-shadow: 3px 3px 3px 0 rgba(34,36,38,.15);*/
+    filter: drop-shadow(3px 3px 3px rgba(34, 36, 30, .15));
     /*background: white;*/
 }
 .title {
@@ -1153,4 +1157,21 @@ div.ui.menu.item.contextMenu.animate {
 }
 .date-filter-wrapper > i.clear-input:hover {
     opacity: 1;
+}
+
+/* user settings modal layout */
+#user-settings-wrapper .ui.form .field {
+    margin-bottom: 1em;
+}
+#user-settings-wrapper .ui.grid .column .field:last-child {
+    margin-bottom: 0;
+}
+#user-settings-wrapper div.ui.toggle.checkbox {
+    margin-right: 0;
+}
+#user-settings-wrapper .ui.divider {
+    margin: 1em 0;
+}
+#user-settings-wrapper #savesettings {
+    margin-top: .5em;
 }

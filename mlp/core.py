@@ -25,18 +25,22 @@ import rethinkdb.query
 
 from typing import Tuple, List
 
-from privex.helpers import empty
 from rethinkdb import RethinkDB
 from rethinkdb.ast import DB
 from rethinkdb.net import DefaultConnection
 
 from mlp import settings
-from privex.loghelper import LogHelper
 
 from mlp.settings import AppError, DEFAULT_ERR, ERRORS
 
-_lh = LogHelper('mlp')
-_lh.add_console_handler(level=logging.INFO)
+_mlp_logger = logging.getLogger('mlp')
+if not _mlp_logger.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s'))
+    _handler.setLevel(logging.INFO)
+    _mlp_logger.addHandler(_handler)
+    _mlp_logger.setLevel(logging.INFO)
+    _mlp_logger.propagate = False
 
 log = logging.getLogger(__name__)
 
@@ -173,9 +177,7 @@ def _get_error(code: str, fallback: str = 'UNKNOWN_ERROR') -> AppError:
     :param str fallback:  The error code to attempt to fallback to, if ``code`` wasn't found.
     :return AppError err: An instance of an error in :class:`.AppError` form.
     """
-    e = ERRORS.get(code, ERRORS.get(fallback))
-    if empty(e, True, True): return DEFAULT_ERR
-    return e
+    return ERRORS.get(code) or ERRORS.get(fallback) or DEFAULT_ERR
 
 
 def add_app_error(code: str, msg: str, status: int = 500) -> AppError:

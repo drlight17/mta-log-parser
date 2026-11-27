@@ -1,8 +1,8 @@
 import json
 import traceback
+from types import SimpleNamespace
 from typing import Union, Dict, Any
 
-from privex.helpers import empty_if, DictObject, filter_form
 from quart import jsonify, request, render_template
 from werkzeug.datastructures import Headers
 
@@ -109,9 +109,9 @@ async def wants_json() -> bool:
 
 
 async def handle_error(err_code='UNKNOWN_ERROR', err_msg=None, code: int = None, VERSION: str = '', exc: Exception = None, **kwargs):
-    tpl = empty_if(kwargs.get('template'), 'api_error.html')
+    tpl = kwargs.get('template') or 'api_error.html'
 
-    res, extra = DictObject(error_code=err_code), {}
+    res, extra = SimpleNamespace(error_code=err_code), {}
     if exc is not None:
         res.exc_name, res.exc_msg, res.traceback = str(type(exc)), str(exc), traceback.format_exc()
         log.warning("_handle_error exception type / msg: %s / %s", res.exc_name, res.exc_msg)
@@ -121,7 +121,9 @@ async def handle_error(err_code='UNKNOWN_ERROR', err_msg=None, code: int = None,
     res.status_code = err.status if code is None else code
     
     if settings.DEBUG and exc is not None:
-        extra: Dict[str, Any] = dict(exception=filter_form(res, 'traceback', 'exc_name', 'exc_msg'))
+        extra: Dict[str, Any] = dict(exception={
+            key: getattr(res, key) for key in ('traceback', 'exc_name', 'exc_msg') if hasattr(res, key)
+        })
         if 'traceback' in extra['exception']: extra['exception']['traceback'] = res.traceback.split("\n")
     
     if await wants_json():
@@ -129,7 +131,7 @@ async def handle_error(err_code='UNKNOWN_ERROR', err_msg=None, code: int = None,
 
 
     tpl = await render_template(
-        tpl, **res, data=json.dumps(error_dict(res.error_code, msg=res.error_msg, extra=extra), indent=4),
+        tpl, **vars(res), data=json.dumps(error_dict(res.error_code, msg=res.error_msg, extra=extra), indent=4),
         settings=settings, VERSION=VERSION, NOTIE_MESSAGE="api_error", debug=settings.DEBUG,
     )
     return tpl, res.status_code

@@ -1,4 +1,7 @@
 Ver. 2.0.0
+- ~~NEW: update the application logo and favicon to the v2 white transparent logo~~
+- ~~NEW: reorganize the user settings modal into a cleaner two-column layout~~
+- ~~NEW: remove `privex-helpers`/`privex-loghelper` dependencies and use local utility/logging implementations~~
 - ~~BUG: filtered status pie counts statuses across all pages without pagination or MAX_LIMIT influence~~
 - ~~BUG: force refresh statistic charts after parser completion when autorefresh is not paused~~
 - ~~BUG: load the GitHub stars button when the donate dialog opens automatically~~

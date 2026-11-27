@@ -22,10 +22,11 @@ import hmac
 import json
 import os.path
 import platform
+import secrets
 import socket
 import sys
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import timedelta, timezone
 from typing import List, Union, Mapping, Tuple
 
@@ -42,7 +43,6 @@ from mlp import settings, api
 from mlp.exceptions import APIException
 from mlp.core import get_rethink, __STORE
 from quart import Quart, session, redirect, render_template, request, jsonify
-from privex.helpers import random_str, empty, filter_form, DictDataClass, DictObject
 
 import moment
 import ldap
@@ -185,7 +185,7 @@ async def login():
         session.clear()
         session.permanent = bool(frm.get('remember'))
         session['login'] = frm.get('login')
-        session['admin'] = random_str()
+        session['admin'] = secrets.token_urlsafe(32)
         return redirect(f'{PREFIX}/emails')
     elif auth_status == 0:
         session['NOTIE_MESSAGE'] = "pass_error"
@@ -278,7 +278,7 @@ async def logout():
 
 
 @dataclass
-class PageResult(DictDataClass):
+class PageResult:
     result: Union[list, dict, str, int, float] = field(default_factory=list)
     error: bool = False
     error_code: str = None
@@ -289,20 +289,20 @@ class PageResult(DictDataClass):
     message: List[str] = field(default_factory=list)
     messages: List[str] = field(default_factory=list)
     
-    raw_data: Union[dict, DictObject] = field(default_factory=DictObject, repr=False)
+    raw_data: dict = field(default_factory=dict, repr=False)
     # ^ The raw, unmodified data that was passed as kwargs, as a dictionary
     
     def to_json_dict(self) -> dict:
-        d = dict(self)
-        
+        d = asdict(self)
+
         if not d['error']:
-            if 'error_code' in d and empty(d['error_code'], True, True):
-                del d['error_code']
-            if 'messages' in d and empty(d['messages'], True, True):
-                del d['messages']
-            if 'message' in d and empty(d['message'], True, True):
-                del d['message']
-        
+            if not d.get('error_code'):
+                d.pop('error_code', None)
+            if not d.get('messages'):
+                d.pop('messages', None)
+            if not d.get('message'):
+                d.pop('message', None)
+
         return d
     
     def to_json(self, indent=4, **kwargs) -> str:
@@ -688,10 +688,21 @@ async def api_emails():
         return redirect(f'{PREFIX}/')
 
 
+def _form_int(frm: Mapping, key: str, default=None):
+    value = frm.get(key)
+    if value is None or value == '':
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 async def _paginate_query(query: QueryOrTable, frm: Mapping, rt_conn: DefaultConnection, rt_query: rethinkdb.query,
                           order_by=None, order_dir='desc') -> Tuple[QueryOrTable, PageResult]:
-    _lo = filter_form(frm, 'limit', 'offset', 'page', cast=int)
-    limit, offset, page = _lo.get('limit', settings.default_limit), _lo.get('offset', 0), _lo.get('page')
+    limit = _form_int(frm, 'limit', settings.default_limit)
+    offset = _form_int(frm, 'offset', 0)
+    page = _form_int(frm, 'page')
 
     if page:
         offset = limit * (page - 1)
@@ -719,7 +730,7 @@ async def _paginate_query(query: QueryOrTable, frm: Mapping, rt_conn: DefaultCon
     return query, res
 
 async def _process_filters(mode, r_q, query: QueryOrTable, frm: Mapping, skip_keys: List[str] = None) -> QueryOrTable:
-    if empty(frm, itr=True):
+    if not frm:
         return query
 
     skip_keys = ['limit', 'offset', 'page', '_'] if not skip_keys else skip_keys

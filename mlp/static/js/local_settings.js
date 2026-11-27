@@ -7,59 +7,71 @@
                 </i>
             <span v-if="!$parent.loading" v-html="$parent.localeData.user_settings.user_settings_title"></span></h3>
 
-            <div class="ui form grid">
-                <div class="ui column wide">
-                    <div class="two fields">
+            <div class="ui form">
+                <div class="ui two column stackable grid">
+                    <div class="column">
                         <div class="field">
                             <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.current_lang"></label>
                             <select name="cur-lang" id="cur-lang" v-model="settings.locale" class="ui selection dropdown">
-                                <option v-for="(item, key) in $parent.locales" v-bind:value="key"> {{ item }}</option>
+                                <option v-for="(item, key) in $parent.locales" v-bind:value="key">{{ item }}</option>
                             </select>
-                            <p></p>
-                            <div class="ui field"><i class="list ol icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.page_limit"></label> {{ settings.page_limit }}</div>
-                            <div class="ui input">
-                                <input v-model="settings.page_limit" type="range" step="5" min="5" max="300" class="ui input range">
+                        </div>
+                        <div class="field">
+                            <label v-if="!$parent.loading"><i class="list ol icon"></i><span v-html="$parent.localeData.user_settings.page_limit"></span>: <strong>{{ settings.page_limit }}</strong></label>
+                            <input v-model="settings.page_limit" type="range" step="5" min="5" max="300" class="ui input range">
+                        </div>
+                        <div class="field" style="display:none" id="default_period_div">
+                            <label v-if="!$parent.loading" :title="$parent.localeData.user_settings.show_last_min_title"><i class="clock icon"></i><span v-html="$parent.localeData.user_settings.show_last_min"></span>: <strong>{{ settings.default_period_processed }}</strong></label>
+                            <input v-if="!$parent.loading" v-model="settings.default_period" type="range" step="5" min="5" :max="$parent.gui_max_log_period" :title="$parent.localeData.user_settings.show_last_min_title" class="ui input range">
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="ui two column stackable grid">
+                            <div class="column">
+                                <div class="field">
+                                    <div class="ui toggle checkbox">
+                                      <input v-if="!$parent.loading" v-model="settings.dark" type="checkbox" :title="$parent.localeData.user_settings.dark_title">
+                                      <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.dark"></label>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="ui toggle checkbox">
+                                      <input v-if="!$parent.loading" v-model="settings.blurring" type="checkbox" :title="$parent.localeData.user_settings.blur_title">
+                                      <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.blur"></label>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="ui toggle checkbox">
+                                      <input v-if="!$parent.loading" v-model="settings.sticky" type="checkbox" :title="$parent.localeData.user_settings.sticky_title">
+                                      <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.sticky"></label>
+                                    </div>
+                                </div>
                             </div>
-                            <div style="display:none" id="default_period_div">
-                                <div v-if="!$parent.loading" :title="$parent.localeData.user_settings.show_last_min_title" class="ui field"><i class="clock icon"/><label style="display:inline" v-if="!$parent.loading" v-html="$parent.localeData.user_settings.show_last_min"></label> {{ settings.default_period_processed }} </div>
-                                <div class="ui input">
-                                    <input v-if="!$parent.loading" v-model="settings.default_period" type="range" step="5" min="5" :max="$parent.gui_max_log_period" :title="$parent.localeData.user_settings.show_last_min_title" class="ui input range">
+                            <div class="column">
+                                <div class="field">
+                                    <div class="ui toggle checkbox">
+                                      <input v-if="!$parent.loading" v-model="settings.colored" type="checkbox" :title="$parent.localeData.user_settings.colored_title">
+                                      <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.colored"></label>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="ui toggle checkbox">
+                                      <input v-if="!$parent.loading" v-model="settings.resizable" type="checkbox" :title="$parent.localeData.user_settings.resizable_title">
+                                      <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.resizable"></label>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="ui toggle checkbox">
+                                      <input v-if="!$parent.loading" v-model="settings.filters" type="checkbox" :title="$parent.localeData.user_settings.save_and_load_title">
+                                      <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.save_and_load"></label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="field">
-                            <div class="ui toggle checkbox">
-                              <input v-if="!$parent.loading" v-model="settings.dark" type="checkbox" :title="$parent.localeData.user_settings.dark_title" >
-                              <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.dark"></label>
-                            </div>                        
-                            <div class="ui toggle checkbox">
-                              <input v-if="!$parent.loading" v-model="settings.blurring" type="checkbox" :title="$parent.localeData.user_settings.blur_title" >
-                              <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.blur"></label>
-                            </div>
-                            <div class="ui toggle checkbox">
-                              <input v-if="!$parent.loading" v-model="settings.sticky" type="checkbox" :title="$parent.localeData.user_settings.sticky_title" >
-                              <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.sticky"></label>
-                            </div>
-                            <!--<div id="marquee_sw" class="ui toggle checkbox">
-                              <input v-if="!$parent.loading" v-model="settings.marquee" type="checkbox" :title="$parent.localeData.user_settings.marquee_title" >
-                              <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.marquee"></label>
-                            </div>-->
-                            <div class="ui toggle checkbox">
-                              <input v-if="!$parent.loading" v-model="settings.colored" type="checkbox" :title="$parent.localeData.user_settings.colored_title" >
-                              <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.colored"></label>
-                            </div>
-                            <div class="ui toggle checkbox">
-                              <input v-if="!$parent.loading" v-model="settings.resizable" type="checkbox" :title="$parent.localeData.user_settings.resizable_title" >
-                              <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.resizable"></label>
-                            </div>
-                            <div class="ui toggle checkbox">
-                              <input v-if="!$parent.loading" v-model="settings.filters" type="checkbox" :title="$parent.localeData.user_settings.save_and_load_title" >
-                              <label v-if="!$parent.loading" v-html="$parent.localeData.user_settings.save_and_load"></label>
-                            </div>
-                        </div>        
                     </div>
-                    <button id="savesettings" class="ui button primary" @click="saveSettings()" disabled><i class="save icon"></i><span v-if="!$parent.loading" v-html="$parent.localeData.user_settings.save_settings"></span></button>
                 </div>
+                <div class="ui divider"></div>
+                <button id="savesettings" class="ui button primary" @click="saveSettings()" disabled><i class="save icon"></i><span v-if="!$parent.loading" v-html="$parent.localeData.user_settings.save_settings"></span></button>
             </div>
         </div>`,
         

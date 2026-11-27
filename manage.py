@@ -21,7 +21,10 @@ import argparse
 import asyncio
 import textwrap
 
-from privex.helpers import ErrHelpParser
+class ErrHelpParser(argparse.ArgumentParser):
+    def error(self, message):
+        self.print_help()
+        self.exit(2, f'{self.prog}: error: {message}\n')
 
 help_text = textwrap.dedent('''\
 

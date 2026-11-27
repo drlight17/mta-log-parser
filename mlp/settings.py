@@ -24,9 +24,32 @@ import json
 
 from os import getenv as env, path as path, listdir as listdir
 from dotenv import load_dotenv
-from privex.helpers import env_bool, env_csv, env_int
 
 load_dotenv()
+
+
+def env_bool(name, default=False):
+    value = env(name)
+    if value is None or value.strip() == '':
+        return default
+    return value.strip().lower() in ('1', 'true', 'yes', 'on')
+
+
+def env_int(name, default=0):
+    value = env(name)
+    if value is None or value.strip() == '':
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def env_csv(name, default=None):
+    value = env(name)
+    if value is None or value.strip() == '':
+        return default if default is not None else []
+    return [item.strip() for item in value.split(',') if item.strip()]
 
 DEBUG = env_bool('DEBUG', False)
 
