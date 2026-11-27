@@ -263,6 +263,9 @@ const app = Vue.createApp({
             }
         },
         clearFilter(field) {
+            if (field === 'date_filter__gt' && !this.settings.filters) {
+                return;
+            }
             this[field] = '';
             this.reset_page();
             this.debounce_emails(true);
@@ -590,6 +593,19 @@ const app = Vue.createApp({
                 return moment(new Date(text)).utc().format(format);
             }
         },
+        format_host(host, ip, port) {
+            if (!host && !ip) {
+                return '';
+            }
+            var address = ip || '';
+            if (ip && port) {
+                address += ':' + port;
+            }
+            if (host && address) {
+                return host + ' (' + address + ')';
+            }
+            return host || address;
+        },
         callResizableTableColumns($found_table) {
 
             // cleanup before colResizable() call
@@ -606,8 +622,7 @@ const app = Vue.createApp({
                     postbackSafe: true,
                     liveDrag:true,
                     useLocalStorage: true,
-                    minWidth: 60,
-                    disabledColumns: [8] // disable last column (button)
+                    minWidth: 60
                 });
             }, 600);
             
@@ -822,6 +837,7 @@ const app = Vue.createApp({
             }
             $td.each(function(i, obj) {
                 $th = $(obj).closest('table').find('th').eq($(obj).index());
+                var column = $th.attr('id');
                 if (($th.attr('id') != "size") && ($th.attr('id') != "refresh-button")) {
                     $(obj).addClass('filter_linked');
                 }
@@ -882,6 +898,14 @@ const app = Vue.createApp({
                         window.app.bindMailtoFilterClick(object,false);
                     }
                     
+                }
+                if (column == "client" || column == "relay") {
+                    $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){
+                        window.app.search = window.app.returnAllowedString($(obj).text()).trim();
+                        window.app.search_by = column;
+                        e.stopPropagation();
+                        window.app.debounce_emails(true);
+                    })
                 }
                 if ($th.attr('id') == "subject") {
                     $(obj).find('span').attr('title', text + " «" + $th.text().trim() + "»").on("click", function(e){

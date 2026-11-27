@@ -399,14 +399,14 @@ summary {
   table-layout: fixed;
 }
 
-.emails-list:not(.resizable) #timestamp, .emails-list:not(.resizable) #queue_id, .emails-list:not(.resizable) #first_attempt, .emails-list:not(.resizable) #last_attempt {
+.emails-list:not(.resizable) #timestamp, .emails-list:not(.resizable) #id, .emails-list:not(.resizable) #queue_id, .emails-list:not(.resizable) #first_attempt, .emails-list:not(.resizable) #last_attempt, .emails-list:not(.resizable) #client, .emails-list:not(.resizable) #relay {
     width: 8%;
 }
 .emails-list:not(.resizable) #status, .emails-list:not(.resizable) #size {
-    width: 9%;
+    width: 8%;
 }
 .emails-list:not(.resizable) #subject {
-    width: 25%;
+    width: 18%;
 }
 
 

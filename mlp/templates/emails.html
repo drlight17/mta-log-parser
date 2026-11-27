@@ -78,6 +78,10 @@
                             <option v-else value="mail_from" v-html="fallbackLocaleData.filters.search_by_mail_from"></option>
                             <option v-if="localeData.filters.search_by_mail_to" value="mail_to" v-html="localeData.filters.search_by_mail_to"></option>
                             <option v-else value="mail_to" v-html="fallbackLocaleData.filters.search_by_mail_to"></option>
+                            <option v-if="localeData.filters.search_by_client" value="client" v-html="localeData.filters.search_by_client"></option>
+                            <option v-else value="client" v-html="fallbackLocaleData.filters.search_by_client"></option>
+                            <option v-if="localeData.filters.search_by_relay" value="relay" v-html="localeData.filters.search_by_relay"></option>
+                            <option v-else value="relay" v-html="fallbackLocaleData.filters.search_by_relay"></option>
                             <option v-if="localeData.filters.search_by_subject" value="subject" v-html="localeData.filters.search_by_subject"></option>
                             <option v-else value="subject" v-html="fallbackLocaleData.filters.search_by_subject"></option>
                             <option v-if="localeData.filters.search_by_log_lines" value="log_lines" v-html="localeData.filters.search_by_log_lines"></option>
@@ -117,13 +121,13 @@
                   <div class="field">
                     <div class="date-filter-wrapper">
                       <div class="ui calendar" :class="{ inverted: settings.dark, disabled: !settings.filters }" id="rangestart">
-                        <div class="ui input left icon has-clear">
+                        <div class="ui input left icon" :class="{ 'has-clear': date_filter__gt && settings.filters }">
                           <i class="calendar icon"></i>
                           <input v-if="localeData.filters.date_filter__gt_placeholder" v-model="date_filter__gt" type="text" :placeholder="localeData.filters.date_filter__gt_placeholder">
                           <input v-else v-model="date_filter__gt" type="text" :placeholder="fallbackLocaleData.filters.date_filter__gt_placeholder">
                         </div>
                       </div>
-                      <i v-if="date_filter__gt" class="times circle icon link clear-input" @click.stop="clearFilter('date_filter__gt')"></i>
+                      <i v-if="date_filter__gt && settings.filters" class="times circle icon link clear-input" @click.stop="clearFilter('date_filter__gt')"></i>
                     </div>
                   </div>
 	            <div class="field">
@@ -182,6 +186,10 @@
                 <th v-else id="first_attempt"><i class="hourglass start icon"></i> [[ fallbackLocaleData.emails_list.first_attempt ]]</th>
                 <th v-if="localeData.emails_list.last_attempt" id="last_attempt"><i class="hourglass end icon"></i> [[ localeData.emails_list.last_attempt ]]</th>
                 <th v-else id="last_attempt"><i class="hourglass end icon"></i> [[ fallbackLocaleData.emails_list.last_attempt ]]</th>
+                <th v-if="localeData.emails_list.client" id="client"><i class="desktop icon"></i> [[ localeData.emails_list.client ]]</th>
+                <th v-else id="client"><i class="desktop icon"></i> [[ fallbackLocaleData.emails_list.client ]]</th>
+                <th v-if="localeData.emails_list.relay" id="relay"><i class="server icon"></i> [[ localeData.emails_list.relay ]]</th>
+                <th v-else id="relay"><i class="server icon"></i> [[ fallbackLocaleData.emails_list.relay ]]</th>
                 <!--<th id="refresh-button" ><button @click="loadEmails(true)" class="ui button primary refresh-button"><i class="sync icon"></i></button></th>-->
             </tr>
         </thead>
@@ -197,6 +205,8 @@
                 <td><span>[[ m.size ]]</span></td>
                 <td><span>[[ m.first_attempt ]]</span></td>
                 <td><span>[[ m.last_attempt ]]</span></td>
+                <td><span>[[ format_host(m.client && m.client.host, m.client && m.client.ip) ]]</span></td>
+                <td><span>[[ format_host(m.relay && m.relay.host, m.relay && m.relay.ip, m.relay && m.relay.port) ]]</span></td>
                 <!--<td><button @click="show_email_modal(m)" class="ui button primary"><i class="envelope open icon"></i><span v-if="localeData.emails_list.show_button">[[ localeData.emails_list.show_button ]]</span><span v-else>[[ fallbackLocaleData.emails_list.show_button ]]</span></button></td>-->
             </tr>
         </tbody>

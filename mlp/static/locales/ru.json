@@ -195,6 +195,8 @@
     "search_by_id": "ID очереди",
     "search_by_mail_from": "Отправителю",
     "search_by_mail_to": "Адресату(ам)",
+    "search_by_client": "Клиенту",
+    "search_by_relay": "Релею",
     "search_by_subject": "Теме",
     "search_by_log_lines": "Всем строкам лога",
     "status_filter_NOFILTER": "Нет фильтра статуса",

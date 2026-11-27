@@ -543,7 +543,14 @@ async def _paginate_query(query: QueryOrTable, frm: Mapping, rt_conn: DefaultCon
 
     count = await query.count().run(rt_conn, array_limit=settings.rethink_arr_limit)
 
-    r_order = order_by if order_dir == 'asc' else rt_query.desc(order_by)
+    if order_by in ('client', 'relay'):
+        sort_key = lambda m: (
+            m[order_by].default({})['host'].default('') + ' ' +
+            m[order_by].default({})['ip'].default('')
+        )
+    else:
+        sort_key = order_by
+    r_order = sort_key if order_dir == 'asc' else rt_query.desc(sort_key)
     limit = settings.default_limit if limit <= 0 else min(limit, settings.max_limit)
     if offset >= count:
         offset = max(count - limit, 0)
@@ -614,6 +621,19 @@ async def _filter_form_key(equal: str, fkey: str, fval: str, query: QueryOrTable
 
     # Asterisks act as wildcards and are stripped before matching
     rval = fval.replace('*', '')
+
+    if fkey in ('client', 'relay'):
+        if equal == 'false':
+            query = query.filter(lambda m: (
+                ~m[fkey].default({})['host'].default('').match(rval) &
+                ~m[fkey].default({})['ip'].default('').match(rval)
+            ))
+        else:
+            query = query.filter(lambda m: (
+                m[fkey].default({})['host'].default('').match(rval) |
+                m[fkey].default({})['ip'].default('').match(rval)
+            ))
+        return query
 
     if equal == 'false':
         if fkey.startswith('mail_to'):

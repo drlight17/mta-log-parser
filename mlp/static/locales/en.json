@@ -195,6 +195,8 @@
     "search_by_id": "Queue ID",
     "search_by_mail_from": "Sender",
     "search_by_mail_to": "Recipient(s)",
+    "search_by_client": "Client",
+    "search_by_relay": "Relay",
     "search_by_subject": "Subject",
     "search_by_log_lines": "Related logs",
     "status_filter_NOFILTER": "No Status Filter",
