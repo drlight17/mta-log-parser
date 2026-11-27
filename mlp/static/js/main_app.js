@@ -317,7 +317,7 @@ const app = Vue.createApp({
                     } else {
                         this.set_processing(false);
                         notie.alert({type: 'success', text: started, time: 3});
-                        this.loadEmails(true);
+                        this.refresh_emails_after_parse();
                     }
                 })
                 .catch(() => {
@@ -329,7 +329,7 @@ const app = Vue.createApp({
             this.autorefresh_paused = !this.autorefresh_paused;
             window.localStorage['autorefresh_paused'] = this.autorefresh_paused;
             if (!this.autorefresh_paused) {
-                this.loadEmails(true);
+                this.refresh_emails_after_parse();
             }
         },
         autorefresh_title() {
@@ -337,6 +337,14 @@ const app = Vue.createApp({
             var fallback = this.fallbackLocaleData.pager || {};
             var key = this.autorefresh_paused ? 'autorefresh_resume_title' : 'autorefresh_pause_title';
             return locale[key] !== undefined ? locale[key] : fallback[key];
+        },
+        refresh_emails_after_parse() {
+            var $table = $('#emails-list');
+            if ($table.length && $table.is(':visible') && $table.find('tbody tr').length > 0) {
+                this.loadEmails(false);
+            } else {
+                this.loadEmails(true);
+            }
         },
         set_processing(state) {
             this.processing = state;
@@ -394,7 +402,7 @@ const app = Vue.createApp({
                                         this.email_modal_appearance('fade');
                                     }, 1000);
                                 }
-                                this.loadEmails(true);
+                                this.refresh_emails_after_parse();
                             }
                         }
                         if (res.running) {
@@ -412,14 +420,238 @@ const app = Vue.createApp({
             };
             poll();
         },
-        ExportToExcel(type, fn, dl) {
-           var source = document.getElementById('emails-list');
-           var wb = XLSX.utils.table_to_book(source, { sheet: "sheet1" });
-           var cur_date = new Date(Date.now());
-           cur_date = this.format_date(cur_date,datetime_format,true);
-           return dl ?
-             XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }):
-             XLSX.writeFile(wb, fn || ('exported-data_' + cur_date + '.' + (type || 'xlsx')));
+        ExportPrompt() {
+            var locale = this.localeData.user_settings || {};
+            var fallback = this.fallbackLocaleData.user_settings || {};
+            var prompt = locale.export_prompt !== undefined ? locale.export_prompt : fallback.export_prompt;
+            var current = locale.export_current_page !== undefined ? locale.export_current_page : fallback.export_current_page;
+            var all = locale.export_all_pages !== undefined ? locale.export_all_pages : fallback.export_all_pages;
+            var cancel = locale.export_cancel !== undefined ? locale.export_cancel : fallback.export_cancel;
+
+            notie.select({
+                text: prompt,
+                cancelText: cancel,
+                cancelCallback: function() {},
+                choices: [
+                    {type: 4, text: current, handler: () => this.ExportToExcel('xlsx', null, null, false)},
+                    {type: 1, text: all, handler: () => this.ExportToExcel('xlsx', null, null, true)},
+                ]
+            });
+        },
+        export_columns() {
+            var columns = [];
+            $('#emails-list thead th').each(function() {
+                columns.push({
+                    id: $(this).attr('id'),
+                    label: $(this).text().trim(),
+                    width: Math.round($(this).get(0).getBoundingClientRect().width) || 100
+                });
+            });
+            return columns;
+        },
+        css_color_to_hex(color) {
+            if (!color || typeof color !== 'string') {
+                return null;
+            }
+            color = color.trim();
+            if (/^#[0-9a-f]{6}$/i.test(color)) {
+                return color.substring(1).toUpperCase();
+            }
+            if (/^#[0-9a-f]{3}$/i.test(color)) {
+                return (color[1] + color[1] + color[2] + color[2] + color[3] + color[3]).toUpperCase();
+            }
+            var match = color.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+            if (match) {
+                var toHex = (value) => parseInt(value, 10).toString(16).padStart(2, '0');
+                return (toHex(match[1]) + toHex(match[2]) + toHex(match[3])).toUpperCase();
+            }
+            return null;
+        },
+        export_row_color(code) {
+            if (!this.settings.colored) {
+                return null;
+            }
+            var color = this.css_color_to_hex((this.settings.status_color || {})[code]);
+            if (!color) {
+                return null;
+            }
+            if (this.settings.dark && code !== 'NOFILTER') {
+                color = this.shadeColor('#' + color, -40).substring(1);
+            }
+            return color;
+        },
+        apply_export_row_colors(wb, emails, columns) {
+            if (!this.settings.colored) {
+                return;
+            }
+            var status_index = columns.findIndex((column) => column.id === 'status');
+            if (status_index < 0) {
+                return;
+            }
+            var ws = wb.Sheets[wb.SheetNames[0]];
+            if (!ws) {
+                return;
+            }
+            var text_rgb = this.settings.dark ? 'FFFFFF' : '000000';
+            emails.forEach((m, row_index) => {
+                var code = (m.status && m.status.code) ? m.status.code : 'unknown';
+                var rgb = this.export_row_color(code);
+                if (!rgb) {
+                    return;
+                }
+                columns.forEach((column, col_index) => {
+                    var address = XLSX.utils.encode_cell({r: row_index + 1, c: col_index});
+                    if (!ws[address]) {
+                        return;
+                    }
+                    ws[address].s = ws[address].s || {};
+                    ws[address].s.fill = {patternType: 'solid', fgColor: {rgb: rgb}};
+                    ws[address].s.font = ws[address].s.font || {};
+                    ws[address].s.font.color = {rgb: text_rgb};
+                });
+            });
+        },
+        localized_status(code) {
+            var locale = this.localeData.filters || {};
+            var fallback = this.fallbackLocaleData.filters || {};
+            var key = 'status_filter_' + code;
+            if (locale[key] !== undefined) {
+                return locale[key];
+            }
+            return fallback[key] !== undefined ? fallback[key] : code;
+        },
+        export_cell_value(column_id, m) {
+            switch (column_id) {
+                case 'timestamp':
+                    return this.format_date(m.timestamp, datetime_format, false);
+                case 'id':
+                    return m.id;
+                case 'status':
+                    return this.localized_status((m.status && m.status.code) ? m.status.code : 'unknown');
+                case 'mail_from':
+                    return m.mail_from;
+                case 'mail_to':
+                    var mail_to = m.mail_to;
+                    if (!_.isEmpty(m.mail_to_alias) && (mail_to.match(/\[[^\]]*]/g) == null)) {
+                        mail_to = '[{"mail_to": "' + Object.keys(m.mail_to_alias) + '", "mail_to_alias": "' + Object.values(m.mail_to_alias) + '"}]';
+                    }
+                    return mail_to;
+                case 'subject':
+                    return m.subject;
+                case 'size':
+                    return m.size;
+                case 'first_attempt':
+                    return this.format_date(m.first_attempt, datetime_format, false);
+                case 'last_attempt':
+                    return this.format_date(m.last_attempt, datetime_format, false);
+                case 'client':
+                    return this.format_host(m.client && m.client.host, m.client && m.client.ip);
+                case 'relay':
+                    return this.format_host(m.relay && m.relay.host, m.relay && m.relay.ip, m.relay && m.relay.port);
+                default:
+                    return '';
+            }
+        },
+        build_export_table(columns, emails) {
+            var table = document.createElement('table');
+            var thead = document.createElement('thead');
+            var head_row = document.createElement('tr');
+            columns.forEach(function(column) {
+                var th = document.createElement('th');
+                th.textContent = column.label;
+                head_row.appendChild(th);
+            });
+            thead.appendChild(head_row);
+            table.appendChild(thead);
+
+            var tbody = document.createElement('tbody');
+            emails.forEach((m) => {
+                var row = document.createElement('tr');
+                columns.forEach((column) => {
+                    var td = document.createElement('td');
+                    td.textContent = this.export_cell_value(column.id, m);
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+            return table;
+        },
+        style_export_sheet(wb, columns) {
+            var ws = wb.Sheets[wb.SheetNames[0]];
+            if (!ws) {
+                return;
+            }
+            ws['!cols'] = columns.map((column) => ({wpx: column.width || 100}));
+            if (ws['!ref']) {
+                var range = XLSX.utils.decode_range(ws['!ref']);
+                for (var c = range.s.c; c <= range.e.c; c++) {
+                    var cell = ws[XLSX.utils.encode_cell({r: 0, c: c})];
+                    if (cell) {
+                        cell.s = {
+                            font: {bold: true},
+                            fill: {patternType: 'solid', fgColor: {rgb: 'D9D9D9'}},
+                            alignment: {vertical: 'center'}
+                        };
+                    }
+                }
+            }
+        },
+        export_write(wb, type, fn, dl) {
+            var cur_date = new Date(Date.now());
+            cur_date = this.format_date(cur_date, datetime_format, true);
+            return dl ?
+                XLSX.write(wb, {bookType: type, bookSST: true, type: 'base64', cellStyles: true}) :
+                XLSX.writeFile(wb, fn || ('exported-data_' + cur_date + '.' + (type || 'xlsx')), {cellStyles: true});
+        },
+        async fetch_all_emails() {
+            var limit = 1000;
+            var page = 1;
+            var all = [];
+            var total = null;
+            while (true) {
+                var url = this.get_emails_url(page, limit);
+                var res = await fetch(url, {cache: 'no-store'}).then((response) => response.json());
+                if (res.error || !res.result) {
+                    throw new Error(res.error || 'Invalid export response');
+                }
+                var rows = res.result;
+                all = all.concat(rows);
+                total = res.count;
+                if (rows.length === 0 || (total !== undefined && total !== null && all.length >= total) || page > 10000) {
+                    break;
+                }
+                page += 1;
+            }
+            return all;
+        },
+        ExportToExcel(type, fn, dl, all_pages) {
+            var columns = this.export_columns();
+            if (!all_pages) {
+                var source = document.getElementById('emails-list');
+                var $clone = $(source).clone();
+                $clone.find('td.status span').each(function() {
+                    var code = $(this).text().trim();
+                    $(this).text(window.app.localized_status(code));
+                });
+                var wb = XLSX.utils.table_to_book($clone[0], {sheet: 'sheet1'});
+                this.style_export_sheet(wb, columns);
+                this.apply_export_row_colors(wb, this.emails, columns);
+                return this.export_write(wb, type, fn, dl);
+            }
+            this.fetch_all_emails().then((emails) => {
+                var table = this.build_export_table(columns, emails);
+                var wb = XLSX.utils.table_to_book(table, {sheet: 'sheet1'});
+                this.style_export_sheet(wb, columns);
+                this.apply_export_row_colors(wb, emails, columns);
+                this.export_write(wb, type, fn, dl);
+            }).catch((err) => {
+                console.error(err);
+                var locale = this.localeData.user_settings || {};
+                var fallback = this.fallbackLocaleData.user_settings || {};
+                var text = locale.export_error !== undefined ? locale.export_error : fallback.export_error;
+                notie.alert({type: 'error', text: text, time: 6});
+            });
         },
         arrowKeyUnBind() {
             document.onkeydown = null;
@@ -1276,6 +1508,9 @@ const app = Vue.createApp({
 
                 table.hide();
                 $('.JCLRgrips').hide();
+            } else {
+                table.show();
+                $('.JCLRgrips').show();
             }
         },
         loadAccounts() {
@@ -1384,6 +1619,25 @@ const app = Vue.createApp({
                             })
                 }
         },
+        get_emails_url(page, limit) {
+            var url = base_url, queries = 0;
+
+            if (this.search.length > 0) {
+                url += `?equal=${this.isEqual}`;
+                queries += 1;
+            }
+
+            for (var f in this.email_filter) {
+                url += (queries === 0) ? '?' : '&';
+                url += `${f}=${this.email_filter[f]}`;
+                queries += 1;
+            }
+
+            url += (queries === 0) ? '?' : '&';
+            url += `page=${page}&limit=${limit}`;
+            url += `&order=${this.order}&order_dir=${this.order_dir}&_=${Date.now()}`;
+            return url;
+        },
         loadEmails(refresh,processing) {
 
             fetch(base_url4, {cache: 'no-store'}).then(function (response) {
@@ -1430,29 +1684,10 @@ const app = Vue.createApp({
                         }
                     }
 
-                    var url = base_url, queries = 0;
-                    var no_results = false;
-
                     // load saved sort
                     this.loadSort();
 
-                    if (this.search.length > 0) {
-                        // add filter equal flag
-                        url += `?equal=${this.isEqual}`;
-                        queries += 1;
-                    }
-
-                    for (var f in this.email_filter) {
-                        url += (queries === 0) ? '?' : '&';
-                        url += `${f}=${this.email_filter[f]}`;
-                        queries += 1;
-                    }
-
-
-                    url += (queries === 0) ? '?' : '&';
-                    url += `page=${this.page}&limit=${this.settings.page_limit}`;
-                    // add sort string and bypass browser caches
-                    url += `&order=${this.order}&order_dir=${this.order_dir}&_=${Date.now()}`;
+                    var url = this.get_emails_url(this.page, this.settings.page_limit);
 
                     if (this.path_page == 2) {
                         element = $('#emails-list')[0];

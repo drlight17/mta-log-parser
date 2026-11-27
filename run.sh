@@ -78,6 +78,10 @@ fi
 : ${GU_WORKERS='10'}    # Number of Gunicorn worker processes
 : ${PARSE_NEXT_FILE='/tmp/mlp_next_parse'}
 
+parse_log () {
+    printf '%s,000 %-12s %-8s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" 'mlp.main' 'INFO' "$1"
+}
+
 parse_loop () {
     exec 9>/tmp/lck_mlp_loop
     if ! flock -n 9; then
@@ -86,7 +90,7 @@ parse_loop () {
     fi
     rm -f "$PARSE_NEXT_FILE"
     while true; do
-        msg ts bold green "Parsing mail log (interval ${PARSE_INTERVAL} min)"
+        parse_log "Parsing mail log (interval ${PARSE_INTERVAL} min)"
         flock -n /tmp/lck_mlp ./manage.py parse || true
         echo $(( $(date +%s) + PARSE_INTERVAL * 60 )) > "$PARSE_NEXT_FILE"
         sleep $((PARSE_INTERVAL * 60))

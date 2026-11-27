@@ -13,8 +13,13 @@ Unreleased VER.
 - parse log file from the new lines since last parsing
 
 Ver. 2.0.0
+- ~~NEW: export prompts for the current page or all filtered rows; Excel header styling and column widths follow the GUI (style-capable XLSX bundle)~~
+- ~~BUG: localize status values in the Excel export~~
+- ~~NEW: preserve colored status rows in Excel exports when colored rows are enabled~~
+- ~~BUG: format the parser loop start message like the Python backend logs~~
 - ~~NEW: countdown to the next parser start on the "Parse now" action; replaced the obsolete `#navi` refresh button with an autorefresh pause/resume toggle~~
 - ~~NEW: replace the GUI auto-refresh with backend parse status polling; the table is force-refreshed when parsing finishes and GUI actions are blocked while parsing~~
+- ~~BUG: re-show the emails table when results arrive after a "nothing found" state; refresh silently when rows are already visible~~
 - ~~NEW: parser loop runs inside the container every `PARSE_INTERVAL` minutes (default 1, 0 disables) instead of external cron; added a "Parse now" GUI action (disabled while parsing) and show the interval in tips~~
 - ~~BUG: wait for RethinkDB primary availability before parsing and use a single upsert to avoid startup save errors~~
 - ~~BUG: use the host timezone inside the containers so backend log timestamps match the host clock~~

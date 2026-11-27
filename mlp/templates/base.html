@@ -31,7 +31,8 @@
 
     <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/underscore-min.min.js') }}"></script>
 
-    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/xlsx.full.min.js') }}"></script>
+    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/cpexcel.js')|version }}"></script>
+    <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/xlsx.full.min.js')|version }}"></script>
 
     <!-- add chart.js -->
     <script onerror="window.js_load_error = true" src="{{ url_for('static', filename='js/extra/chart.umd.min.js') }}"></script>

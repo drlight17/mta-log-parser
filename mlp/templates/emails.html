@@ -23,7 +23,7 @@
         {% else %}
         <a :title="localeData.user_settings.acc_ctrl_disabled_title" class="item disabled"><i class="address card icon"></i>&nbsp;<span v-if="localeData.user_settings.acc_ctrl_disabled" v-html="localeData.user_settings.acc_ctrl_disabled"></span><span v-else v-html="fallbackLocaleData.user_settings.acc_ctrl_disabled"></span></a>
         {% endif %}
-        <a :title="localeData.user_settings.export_to_xls_title" @click="ExportToExcel('xlsx')" class="item"><i class="file excel icon"></i>&nbsp;<span v-if="localeData.user_settings.export_to_xls" v-html="localeData.user_settings.export_to_xls"></span><span v-else v-html="fallbackLocaleData.user_settings.export_to_xls"></span></a>
+        <a :title="localeData.user_settings.export_to_xls_title" @click="ExportPrompt()" class="item"><i class="file excel icon"></i>&nbsp;<span v-if="localeData.user_settings.export_to_xls" v-html="localeData.user_settings.export_to_xls"></span><span v-else v-html="fallbackLocaleData.user_settings.export_to_xls"></span></a>
         <a :title="localeData.user_settings.force_parse_title" :class="{ disabled: processing }" @click="ForceParse()" class="item"><i class="play circle icon"></i>&nbsp;<span v-if="localeData.user_settings.force_parse" v-html="localeData.user_settings.force_parse"></span><span v-else v-html="fallbackLocaleData.user_settings.force_parse"></span><span v-if="parse_countdown" class="parse-countdown"> ([[ parse_countdown ]])</span></a>
       </div>
 	  <div class="right menu" :class="{ inverted: settings.dark, ui: is_mobile }">
