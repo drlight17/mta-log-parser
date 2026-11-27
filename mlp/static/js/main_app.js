@@ -56,6 +56,7 @@ const app = Vue.createApp({
             hidden_stats: true,
             error: null,
             emails: [],
+            hidden_columns: [],
             search: "",
             search_error: false,
             search_by: "id",
@@ -126,6 +127,11 @@ const app = Vue.createApp({
                 this.error !== null &&
                 this.error !== false
             ) 
+        },
+        hidden_columns_text() {
+            var locale = this.localeData.emails_list || {};
+            var fallback = this.fallbackLocaleData.emails_list || {};
+            return locale.hidden_columns_indicator !== undefined ? locale.hidden_columns_indicator : fallback.hidden_columns_indicator;
         }/*,
         email() {
             return this.modelValue
@@ -286,8 +292,8 @@ const app = Vue.createApp({
         },
         // table to excel export
         ExportToExcel(type, fn, dl) {
-           var elt = document.getElementById('emails-list');
-           var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
+           var source = document.getElementById('emails-list');
+           var wb = XLSX.utils.table_to_book(source, { sheet: "sheet1" });
            var cur_date = new Date(Date.now());
            cur_date = this.format_date(cur_date,datetime_format,true);
            return dl ?
@@ -641,6 +647,154 @@ const app = Vue.createApp({
 
                 this.saveSort();
                 this.loadEmails(true);
+        },
+        is_column_hidden(column) {
+            return this.hidden_columns.indexOf(column) >= 0;
+        },
+        is_protected_column(column) {
+            return column === 'timestamp' || column === 'id' || column === 'queue_id';
+        },
+        hideable_columns() {
+            return [
+                {id: 'status', label: 'status_code'},
+                {id: 'mail_from', label: 'mail_from'},
+                {id: 'mail_to', label: 'mail_to'},
+                {id: 'subject', label: 'subject'},
+                {id: 'size', label: 'size'},
+                {id: 'first_attempt', label: 'first_attempt'},
+                {id: 'last_attempt', label: 'last_attempt'},
+                {id: 'client', label: 'client'},
+                {id: 'relay', label: 'relay'}
+            ];
+        },
+        column_label(key) {
+            var locale = this.localeData.emails_list || {};
+            var fallback = this.fallbackLocaleData.emails_list || {};
+            return locale[key] !== undefined ? locale[key] : fallback[key];
+        },
+        load_hidden_columns() {
+            try {
+                var saved = JSON.parse(window.localStorage['hidden_columns'] || '[]');
+                if (Array.isArray(saved)) {
+                    this.hidden_columns = saved.filter((column) => !this.is_protected_column(column));
+                }
+            } catch (e) {
+                this.hidden_columns = [];
+            }
+        },
+        save_hidden_columns() {
+            window.localStorage['hidden_columns'] = JSON.stringify(this.hidden_columns);
+        },
+        toggle_column(column) {
+            if (this.is_protected_column(column)) {
+                return;
+            }
+            var index = this.hidden_columns.indexOf(column);
+            if (index >= 0) {
+                this.hidden_columns.splice(index, 1);
+            } else {
+                this.hidden_columns.push(column);
+            }
+            this.save_hidden_columns();
+            this.close_columns_menu();
+            this.loadEmails(true);
+        },
+        show_all_columns() {
+            this.hidden_columns = [];
+            this.save_hidden_columns();
+            this.close_columns_menu();
+            this.loadEmails(true);
+        },
+        close_columns_menu() {
+            $('#columns-context-menu').removeClass('animate').empty();
+        },
+        open_columns_menu(event, $table) {
+            event.preventDefault();
+            event.stopPropagation();
+            var menu = document.getElementById('columns-context-menu');
+            if (!menu) {
+                return false;
+            }
+            $(menu).empty();
+
+            var locale = this.localeData.emails_list || {};
+            var fallback = this.fallbackLocaleData.emails_list || {};
+            var title = locale.columns_menu !== undefined ? locale.columns_menu : fallback.columns_menu;
+            var hide_text = locale.hide_column !== undefined ? locale.hide_column : fallback.hide_column;
+            var show_text = locale.show_column !== undefined ? locale.show_column : fallback.show_column;
+            var show_all_text = locale.show_all_columns !== undefined ? locale.show_all_columns : fallback.show_all_columns;
+            var reset_text = locale.reset_columns_width !== undefined ? locale.reset_columns_width : fallback.reset_columns_width;
+
+            let close = document.createElement('i');
+            close.className = 'close large icon link';
+            close.addEventListener('click', () => this.close_columns_menu(), {once: true});
+            $(menu).append(close);
+
+            let heading = document.createElement('span');
+            heading.className = 'menu-item-nonhover';
+            let heading_text = document.createElement('u');
+            heading_text.textContent = title;
+            heading.appendChild(heading_text);
+            $(menu).append(heading);
+
+            var hidden = this.hidden_columns;
+            this.hideable_columns().forEach(function(column) {
+                var id = column.id;
+                var is_hidden = hidden.indexOf(id) >= 0;
+                let item = document.createElement('span');
+                item.className = 'menu-item';
+                let icon = document.createElement('i');
+                icon.className = is_hidden ? 'eye icon' : 'eye slash icon';
+                item.prepend(icon);
+                item.appendChild(document.createTextNode(' ' + window.app.column_label(column.label)));
+                item.setAttribute('title', is_hidden ? show_text : hide_text);
+                item.addEventListener('click', function() {
+                    window.app.toggle_column(id);
+                }, {once: true});
+                $(menu).append(item);
+            });
+
+            if (hidden.length > 0) {
+                let show_all = document.createElement('span');
+                show_all.className = 'menu-item';
+                let icon = document.createElement('i');
+                icon.className = 'eye icon';
+                show_all.prepend(icon);
+                show_all.appendChild(document.createTextNode(' ' + show_all_text));
+                show_all.addEventListener('click', function() {
+                    window.app.show_all_columns();
+                }, {once: true});
+                $(menu).append(show_all);
+            }
+
+            if (this.settings.resizable) {
+                let reset = document.createElement('span');
+                reset.className = 'menu-item';
+                let icon = document.createElement('i');
+                icon.className = 'sync alternate icon';
+                reset.prepend(icon);
+                reset.appendChild(document.createTextNode(' ' + reset_text));
+                reset.addEventListener('click', function() {
+                    window.localStorage.removeItem('emails-list');
+                    window.app.close_columns_menu();
+                    window.app.loadEmails(true);
+                }, {once: true});
+                $(menu).append(reset);
+            }
+
+            menu.style.left = event.clientX + 'px';
+            menu.style.top = event.clientY + 'px';
+            $(menu).addClass('animate');
+            requestAnimationFrame(() => {
+                var rect = menu.getBoundingClientRect();
+                if (rect.right > window.innerWidth) {
+                    menu.style.left = Math.max(0, window.innerWidth - rect.width - 10) + 'px';
+                }
+                if (rect.bottom > window.innerHeight) {
+                    menu.style.top = Math.max(0, window.innerHeight - rect.height - 10) + 'px';
+                }
+            });
+            return false;
         },
         returnAllowedString(string) {
             string_check = string.match(/[()\\/$?+\[\]]/);
@@ -1296,28 +1450,34 @@ const app = Vue.createApp({
                                             } else {
                                                 text = this.localeData.user_settings.resizable_title_tip
                                             }
+                                            var hidden_names = this.hideable_columns()
+                                                .filter((column) => this.is_column_hidden(column.id))
+                                                .map((column) => this.column_label(column.label));
+                                            if (hidden_names.length > 0) {
+                                                var hidden_title = this.localeData.user_settings.hidden_columns_title !== undefined ? this.localeData.user_settings.hidden_columns_title : this.fallbackLocaleData.user_settings.hidden_columns_title;
+                                                text += ' ' + hidden_title + ' ' + hidden_names.join(', ');
+                                            }
                                             thead.find('th').attr('title',text)
-                                            // reset colResizable() widths states
-                                            thead.find('th:not(#refresh-button)').one( "contextmenu", function() {
-                                                window.localStorage.removeItem($found_table.attr('id'));
-                                                window.app.loadEmails(true);
-                                                return false;
-                                            });
                                         } else {
                                             // cleanup if colResizable() was called earlier
                                             $('.JCLRgrips').hide();
                                             $found_table.removeClass('resizable');
                                         }
+
+                                        thead.find('th:not(#refresh-button)').off('contextmenu').on('contextmenu', function(e) {
+                                            window.app.open_columns_menu(e, $(this).closest('table'));
+                                            return false;
+                                        });
                                     }
 
                                     // styling of statuses and status filter dropdown
-                                    if (!$found_table.find('td:nth-child(3)').hasClass('styled')) {
-                                        $found_table.find('td:nth-child(3):contains("deferred")').addClass('styled')/*.prepend(this.settings.status_icon['deferred'])*/;
-                                        $found_table.find('td:nth-child(3):contains("sent")').addClass('styled')/*.prepend(this.settings.status_icon['sent'])*/;
-                                        $found_table.find('td:nth-child(3):contains("reject")').addClass('styled')/*.prepend(this.settings.status_icon['reject'])*/;
-                                        $found_table.find('td:nth-child(3):contains("bounced")').addClass('styled')/*.prepend(this.settings.status_icon['bounced'])*/;
-                                        $found_table.find('td:nth-child(3):contains("multiple")').addClass('styled')/*.prepend(this.settings.status_icon['multiple'])*/;
-                                        $found_table.find('td:nth-child(3):contains("unknown")').addClass('styled')/*.prepend(this.settings.status_icon['unknown'])*/;
+                                    if (!$found_table.find('td.status').hasClass('styled')) {
+                                        $found_table.find('td.status:contains("deferred")').addClass('styled')/*.prepend(this.settings.status_icon['deferred'])*/;
+                                        $found_table.find('td.status:contains("sent")').addClass('styled')/*.prepend(this.settings.status_icon['sent'])*/;
+                                        $found_table.find('td.status:contains("reject")').addClass('styled')/*.prepend(this.settings.status_icon['reject'])*/;
+                                        $found_table.find('td.status:contains("bounced")').addClass('styled')/*.prepend(this.settings.status_icon['bounced'])*/;
+                                        $found_table.find('td.status:contains("multiple")').addClass('styled')/*.prepend(this.settings.status_icon['multiple'])*/;
+                                        $found_table.find('td.status:contains("unknown")').addClass('styled')/*.prepend(this.settings.status_icon['unknown'])*/;
                                     }
 
                                     if (this.settings.colored) {
@@ -1337,7 +1497,7 @@ const app = Vue.createApp({
                                                 text_color = "white";
                                             }
 
-                                            $found_table.find('td:nth-child(3):contains("'+x+'")').closest('tr').css('background-color',color);
+                                            $found_table.find('td.status:contains("'+x+'")').closest('tr').css('background-color',color);
 
                                             $('#filter-email option[value="'+x+'"]').css({'background-color':color, 'color': text_color});
                                         } 
@@ -1493,6 +1653,7 @@ const app = Vue.createApp({
             var dark = localStorage.getItem('dark');
             var hidden_settings_tips = localStorage.getItem('hidden_settings_tips');
             var hidden_stats = localStorage.getItem('hidden_stats');
+            var hidden_columns = localStorage.getItem('hidden_columns');
             localStorage.clear();
             localStorage.setItem('localeData',localeData);
             localStorage.setItem('fallbackLocaleData',fallbackLocaleData);
@@ -1500,6 +1661,9 @@ const app = Vue.createApp({
             localStorage.setItem('dark',dark);
             localStorage.setItem('hidden_settings_tips',hidden_settings_tips);
             localStorage.setItem('hidden_stats',hidden_stats);
+            if (hidden_columns !== null) {
+                localStorage.setItem('hidden_columns',hidden_columns);
+            }
 
             // clear stats
             this.clear_cookies('filtered_pie');
@@ -2335,6 +2499,26 @@ const app = Vue.createApp({
         
 
         this.setDark();
+
+        this.load_hidden_columns();
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#columns-context-menu').length) {
+                window.app.close_columns_menu();
+            }
+        });
+        $(document).on('contextmenu', function(e) {
+            if (!$(e.target).closest('#columns-context-menu').length) {
+                window.app.close_columns_menu();
+            }
+        });
+        $(window).on('scroll', function() {
+            window.app.close_columns_menu();
+        });
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.app.close_columns_menu();
+            }
+        });
 
         // get current page path
         if (window.location.pathname.slice(-1)=='/') {

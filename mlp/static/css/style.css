@@ -647,6 +647,10 @@ summary {
     width: 100%;
 }
 
+.columns-hidden-indicator {
+    cursor: help!important;
+}
+
 @media only screen and (min-width: 768px) and (max-width: 963px) {
     #filters-wrapper > div.five.wide.column {
         width: 55%!important;
@@ -1000,6 +1004,14 @@ i.close.large.icon.link {
     /*background-color:rgba(0,0,0,.9);*/
 }
 
+#app.dark #columns-context-menu,
+#app.dark #columns-context-menu .menu-item,
+#app.dark #columns-context-menu .menu-item-nonhover,
+#app.dark #columns-context-menu .menu-item i.icon,
+#app.dark #columns-context-menu .close.icon {
+    color: #fff!important;
+}
+
 #app.dark .contextMenu hr {
     border: 1px solid rgb(255 255 255 / 22%);
 }
@@ -1033,6 +1045,11 @@ div.ui.menu.item.contextMenu.animate {
     max-height: 30vh;
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+#columns-context-menu {
+    position: fixed!important;
+    z-index: 1000;
 }
 
 .menu-item {

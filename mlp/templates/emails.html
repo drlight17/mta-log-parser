@@ -165,31 +165,35 @@
 
     <!--<Pager v-model="page" :page-count="page_count"></Pager>-->
     <table id="emails-list" class="ui table celled emails-list" v-if="!loading">
-        <thead id="emails-list-head" class="ui segment" :class="{ inverted: settings.dark, disabled: processing }"  >
+        <thead id="emails-list-head" class="ui segment"
+               :class="[{ inverted: settings.dark, disabled: processing }, hidden_columns.length > 0 ? 'columns-hidden-indicator ui looping pulsating transition' : '']"
+               :data-tooltip="hidden_columns.length > 0 ? hidden_columns_text : null"
+               data-position="top left"
+               :data-inverted="settings.dark ? true : null">
             <tr>
             	<!--<th>#</th>-->
                 <th v-if="localeData.emails_list.timestamp" id="timestamp"><i class="clock icon"></i> [[ localeData.emails_list.timestamp ]]</th>
                 <th v-else id="timestamp"><i class="clock icon"></i> [[ fallbackLocaleData.emails_list.timestamp ]]</th>
                 <th v-if="localeData.emails_list.timestamp" id="id"><i class="stream icon"></i> [[ localeData.emails_list.queue_id ]]</th>
                 <th v-else id="queue_id"><i class="stream icon"></i> [[ fallbackLocaleData.emails_list.queue_id ]]</th>
-                <th v-if="localeData.emails_list.timestamp" id="status"><i class="info icon"></i> [[ localeData.emails_list.status_code ]]</th>
-                <th v-else id="status"><i class="info icon"></i> [[ fallbackLocaleData.emails_list.status_code ]]</th>
-                <th v-if="localeData.emails_list.mail_from" id="mail_from"><i class="address card icon"></i> [[ localeData.emails_list.mail_from ]]</th>
-                <th v-else id="mail_from"><i class="address card icon"></i> [[ fallbackLocaleData.emails_list.mail_from ]]</th>
-                <th v-if="localeData.emails_list.mail_to" id="mail_to"><i class="address card outline icon"></i> [[ localeData.emails_list.mail_to ]]</th>
-                <th v-else id="mail_to"><i class="address card outline icon"></i> [[ fallbackLocaleData.emails_list.mail_to ]]</th>
-                <th v-if="localeData.emails_list.subject" id="subject"><i class="terminal icon"></i> [[ localeData.emails_list.subject ]]</th>
-                <th v-else id="subject"><i class="terminal icon"></i> [[ fallbackLocaleData.emails_list.subject ]]</th>
-                <th v-if="localeData.emails_list.size" id="size"><i class="hdd icon"></i> [[ localeData.emails_list.size ]]</th>
-                <th v-else id="size"><i class="hdd icon"></i> [[ fallbackLocaleData.emails_list.size ]]</th>
-                <th v-if="localeData.emails_list.first_attempt" id="first_attempt"><i class="hourglass start icon"></i> [[ localeData.emails_list.first_attempt ]]</th>
-                <th v-else id="first_attempt"><i class="hourglass start icon"></i> [[ fallbackLocaleData.emails_list.first_attempt ]]</th>
-                <th v-if="localeData.emails_list.last_attempt" id="last_attempt"><i class="hourglass end icon"></i> [[ localeData.emails_list.last_attempt ]]</th>
-                <th v-else id="last_attempt"><i class="hourglass end icon"></i> [[ fallbackLocaleData.emails_list.last_attempt ]]</th>
-                <th v-if="localeData.emails_list.client" id="client"><i class="desktop icon"></i> [[ localeData.emails_list.client ]]</th>
-                <th v-else id="client"><i class="desktop icon"></i> [[ fallbackLocaleData.emails_list.client ]]</th>
-                <th v-if="localeData.emails_list.relay" id="relay"><i class="server icon"></i> [[ localeData.emails_list.relay ]]</th>
-                <th v-else id="relay"><i class="server icon"></i> [[ fallbackLocaleData.emails_list.relay ]]</th>
+                <th v-if="!is_column_hidden('status') && localeData.emails_list.status_code" id="status"><i class="info icon"></i> [[ localeData.emails_list.status_code ]]</th>
+                <th v-if="!is_column_hidden('status') && !localeData.emails_list.status_code" id="status"><i class="info icon"></i> [[ fallbackLocaleData.emails_list.status_code ]]</th>
+                <th v-if="!is_column_hidden('mail_from') && localeData.emails_list.mail_from" id="mail_from"><i class="address card icon"></i> [[ localeData.emails_list.mail_from ]]</th>
+                <th v-if="!is_column_hidden('mail_from') && !localeData.emails_list.mail_from" id="mail_from"><i class="address card icon"></i> [[ fallbackLocaleData.emails_list.mail_from ]]</th>
+                <th v-if="!is_column_hidden('mail_to') && localeData.emails_list.mail_to" id="mail_to"><i class="address card outline icon"></i> [[ localeData.emails_list.mail_to ]]</th>
+                <th v-if="!is_column_hidden('mail_to') && !localeData.emails_list.mail_to" id="mail_to"><i class="address card outline icon"></i> [[ fallbackLocaleData.emails_list.mail_to ]]</th>
+                <th v-if="!is_column_hidden('subject') && localeData.emails_list.subject" id="subject"><i class="terminal icon"></i> [[ localeData.emails_list.subject ]]</th>
+                <th v-if="!is_column_hidden('subject') && !localeData.emails_list.subject" id="subject"><i class="terminal icon"></i> [[ fallbackLocaleData.emails_list.subject ]]</th>
+                <th v-if="!is_column_hidden('size') && localeData.emails_list.size" id="size"><i class="hdd icon"></i> [[ localeData.emails_list.size ]]</th>
+                <th v-if="!is_column_hidden('size') && !localeData.emails_list.size" id="size"><i class="hdd icon"></i> [[ fallbackLocaleData.emails_list.size ]]</th>
+                <th v-if="!is_column_hidden('first_attempt') && localeData.emails_list.first_attempt" id="first_attempt"><i class="hourglass start icon"></i> [[ localeData.emails_list.first_attempt ]]</th>
+                <th v-if="!is_column_hidden('first_attempt') && !localeData.emails_list.first_attempt" id="first_attempt"><i class="hourglass start icon"></i> [[ fallbackLocaleData.emails_list.first_attempt ]]</th>
+                <th v-if="!is_column_hidden('last_attempt') && localeData.emails_list.last_attempt" id="last_attempt"><i class="hourglass end icon"></i> [[ localeData.emails_list.last_attempt ]]</th>
+                <th v-if="!is_column_hidden('last_attempt') && !localeData.emails_list.last_attempt" id="last_attempt"><i class="hourglass end icon"></i> [[ fallbackLocaleData.emails_list.last_attempt ]]</th>
+                <th v-if="!is_column_hidden('client') && localeData.emails_list.client" id="client"><i class="desktop icon"></i> [[ localeData.emails_list.client ]]</th>
+                <th v-if="!is_column_hidden('client') && !localeData.emails_list.client" id="client"><i class="desktop icon"></i> [[ fallbackLocaleData.emails_list.client ]]</th>
+                <th v-if="!is_column_hidden('relay') && localeData.emails_list.relay" id="relay"><i class="server icon"></i> [[ localeData.emails_list.relay ]]</th>
+                <th v-if="!is_column_hidden('relay') && !localeData.emails_list.relay" id="relay"><i class="server icon"></i> [[ fallbackLocaleData.emails_list.relay ]]</th>
                 <!--<th id="refresh-button" ><button @click="loadEmails(true)" class="ui button primary refresh-button"><i class="sync icon"></i></button></th>-->
             </tr>
         </thead>
@@ -198,21 +202,22 @@
             	<!--<td><span>[[ counter_index ]]</span></td>-->
                 <td><span>[[ m.timestamp ]]</span></td>
                 <td><span>[[ m.id ]]</span></td>
-                <td><i class="icon" :class="getStatusIcon(emails,counter_index)"></i><span>[[ m.status.code ]]</span></td>
-                <td><span>[[ m.mail_from ]]</span></td>
-                <td><span>[[ m.mail_to ]]</span></td>
-                <td class="subject"><span>[[ m.subject ]]</span></td>
-                <td><span>[[ m.size ]]</span></td>
-                <td><span>[[ m.first_attempt ]]</span></td>
-                <td><span>[[ m.last_attempt ]]</span></td>
-                <td><span>[[ format_host(m.client && m.client.host, m.client && m.client.ip) ]]</span></td>
-                <td><span>[[ format_host(m.relay && m.relay.host, m.relay && m.relay.ip, m.relay && m.relay.port) ]]</span></td>
+                <td v-if="!is_column_hidden('status')" class="status"><i class="icon" :class="getStatusIcon(emails,counter_index)"></i><span>[[ m.status.code ]]</span></td>
+                <td v-if="!is_column_hidden('mail_from')"><span>[[ m.mail_from ]]</span></td>
+                <td v-if="!is_column_hidden('mail_to')"><span>[[ m.mail_to ]]</span></td>
+                <td v-if="!is_column_hidden('subject')" class="subject"><span>[[ m.subject ]]</span></td>
+                <td v-if="!is_column_hidden('size')"><span>[[ m.size ]]</span></td>
+                <td v-if="!is_column_hidden('first_attempt')"><span>[[ m.first_attempt ]]</span></td>
+                <td v-if="!is_column_hidden('last_attempt')"><span>[[ m.last_attempt ]]</span></td>
+                <td v-if="!is_column_hidden('client')"><span>[[ format_host(m.client && m.client.host, m.client && m.client.ip) ]]</span></td>
+                <td v-if="!is_column_hidden('relay')"><span>[[ format_host(m.relay && m.relay.host, m.relay && m.relay.ip, m.relay && m.relay.port) ]]</span></td>
                 <!--<td><button @click="show_email_modal(m)" class="ui button primary"><i class="envelope open icon"></i><span v-if="localeData.emails_list.show_button">[[ localeData.emails_list.show_button ]]</span><span v-else>[[ fallbackLocaleData.emails_list.show_button ]]</span></button></td>-->
             </tr>
         </tbody>
     </table>
 
     <pager v-model="page" :page-count="page_count" :emails-count="count"></pager>
+    <div id="columns-context-menu" class="ui menu item contextMenu" :class="{ inverted: settings.dark }"></div>
 
     <div class="ui modal" id="mail-modal" :class="{ inverted: settings.dark }">
         <i class="close icon"></i>
