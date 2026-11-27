@@ -779,49 +779,16 @@
 
 
                 } else if (chart_type == 'filtered_pie') {
-                    var url = base_url, queries = 0;
-                    url += '?';
-                    var element_status = '';
+                    var url = base_url3 + '?filtered_statuses&';
 
-                    // add filter equal flag
                     if (this.$parent.search.length > 0) {
                         url += `equal=${this.$parent.isEqual}&`;
-                        queries += 1;
                     }
-
                     for (var f in this.$parent.email_filter) {
-                        if (f != 'status.code') {
-                            url += `${f}=${this.$parent.email_filter[f]}&`;
-                            queries += 1;
-                            
-                        } else {
-                            element_status = this.$parent.email_filter[f];
-                        }
+                        url += `${f}=${this.$parent.email_filter[f]}&`;
                     }
-                    url += (queries === 0) ? '&' : '';
 
-                    if (element_status != '') {
-                        url_upd = url+`status.code=`+element_status;
-                        url_upd += `&page=${this.$parent.page}&limit=${this.$parent.settings.page_limit}`;
-                        response = await this.fetch_stats_data(url_upd,chart_type,element_status);
-                    } else {
-                        // check for statuses in current fetched emails table
-                        var statuses = [];
-                        for (let i = 0; i < this.$parent.emails.length; i++) {
-                             if (statuses.indexOf(this.$parent.emails[i].status.code) === -1) {
-                                statuses.push(this.$parent.emails[i].status.code)
-                             }
-                        }
-                        if (statuses.length < 1) {
-                            response = 0;
-                        } else {
-                            for (const element of statuses) {
-                            url_upd = url+`status.code=`+element;
-                            url_upd += `&page=${this.$parent.page}&limit=${this.$parent.settings.page_limit}`;
-                            response = await this.fetch_stats_data(url_upd,chart_type,element);
-                            }
-                        }
-                    }
+                    response = await this.fetch_stats_data(url, chart_type, null);
                     // store to cookie with expiration after hour
                     if (response == 0) {
                         return 0;
@@ -912,7 +879,14 @@
                         this.array_overall[element] = res[element];
                     }
                     if (chart_type == 'filtered_pie') {
-                        this.array_filtered[element] = res['count'];
+                        this.array_filtered = {
+                            sent: res['sent'] || 0,
+                            deferred: res['deferred'] || 0,
+                            reject: res['reject'] || 0,
+                            bounced: res['bounced'] || 0,
+                            unknown: res['unknown'] || 0,
+                            multiple: res['multiple'] || 0
+                        };
                     }
                     if (chart_type == 'filtered_top_senders') {
                         this.array_filtered_top_senders = res;

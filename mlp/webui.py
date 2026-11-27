@@ -465,6 +465,26 @@ async def api_stats():
         log.debug('Status %s count query took %.2fs', status, time.time() - start_time)
         return {status: count}
 
+    if 'filtered_statuses' in frm:
+        del frm['filtered_statuses']
+        statuses = ['sent', 'deferred', 'reject', 'bounced', 'unknown', 'multiple']
+        if 'log_lines' in frm:
+            search_string = str(frm.pop('log_lines'))
+            if equal == 'true':
+                found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: m['message'].match(search_string)).run(conn, array_limit=settings.rethink_arr_limit)
+            else:
+                found_strings = await _sm.concat_map(lambda m: m['lines']).filter(lambda m: ~(m['message'].match(search_string))).run(conn, array_limit=settings.rethink_arr_limit)
+            ids = [f['queue_id'] async for f in found_strings]
+            _sm = _sm.get_all(r_q.args(ids), index='id').distinct()
+        filtered = await _process_filters(1, r_q=r_q, query=_sm, frm=frm)
+        counts = {}
+        for status in statuses:
+            counts[status] = await filtered.filter(
+                lambda m: m['status']['code'] == status
+            ).count().run(conn, array_limit=settings.rethink_arr_limit)
+        log.debug('Filtered statuses query took %.2fs', time.time() - start_time)
+        return jsonify(counts)
+
     if 'top_senders' in frm:
         del frm['top_senders']
         mode = 1 if 'log_lines' in frm else 0

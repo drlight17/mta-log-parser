@@ -1,4 +1,5 @@
 Ver. 2.0.0
+- ~~BUG: filtered status pie counts statuses across all pages without pagination or MAX_LIMIT influence~~
 - ~~BUG: force refresh statistic charts after parser completion when autorefresh is not paused~~
 - ~~BUG: load the GitHub stars button when the donate dialog opens automatically~~
 - ~~BUG: apply the UI blur setting when the donate dialog opens automatically~~
