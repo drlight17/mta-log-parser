@@ -11,6 +11,7 @@ Copyright::
     |        Core Developer(s):                         |
     |                                                   |
     |          (+)  Chris (@someguy123) [Privex]        |
+    |          (+)  Yuri Samoilov (@drlight17)          |
     |                                                   |
     +===================================================+
 
